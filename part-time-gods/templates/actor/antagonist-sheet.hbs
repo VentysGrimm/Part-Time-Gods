@@ -1,0 +1,37 @@
+<form class="ptg-sheet ptg-compact-sheet" autocomplete="off">
+  <header class="ptg-header">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}">
+    <div class="ptg-title">
+      <input class="ptg-name" name="name" type="text" value="{{actor.name}}" placeholder="Antagonist Name">
+      <div class="ptg-subtitle">Antagonist</div>
+    </div>
+  </header>
+
+  <section class="ptg-stat-grid">
+    <label>
+      <span>Threat</span>
+      <input name="system.threat" type="number" value="{{system.threat}}" min="1">
+    </label>
+    <label>
+      <span>Health</span>
+      <input name="system.health" type="number" value="{{system.health}}" min="0">
+    </label>
+    <label>
+      <span>Psyche</span>
+      <input name="system.psyche" type="number" value="{{system.psyche}}" min="0">
+    </label>
+    <label>
+      <span>Initiative</span>
+      <input name="system.initiative" type="number" value="{{system.initiative}}">
+    </label>
+    <label>
+      <span>Damage</span>
+      <input name="system.damage" type="number" value="{{system.damage}}" min="0">
+    </label>
+  </section>
+
+  <section class="ptg-editor-section">
+    <h2>Description</h2>
+    {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+  </section>
+</form>

@@ -1,0 +1,110 @@
+{
+  "id": "part-time-gods",
+  "title": "Part-Time Gods 2E",
+  "description": "Part-Time Gods Second Edition for Foundry VTT",
+  "version": "0.0.1",
+
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14"
+  },
+
+  "authors": [
+    {
+      "name": "Ventys"
+    }
+  ],
+
+  "esmodules": [
+    "part-time-gods.js"
+  ],
+
+  "styles": [
+    "styles/part-time-gods.css"
+  ],
+
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+
+  "packs": [
+    {
+      "name": "character-creation",
+      "label": "Part-Time Gods Character Creation",
+      "path": "packs/character-creation",
+      "type": "Item",
+      "system": "part-time-gods"
+    },
+    {
+      "name": "premade-items",
+      "label": "Part-Time Gods Premade Items",
+      "path": "packs/premade-items",
+      "type": "Item",
+      "system": "part-time-gods"
+    }
+  ],
+
+  "documentTypes": {
+    "Actor": {
+      "character": {
+        "htmlFields": [
+          "notes"
+        ]
+      },
+      "antagonist": {},
+      "pantheon": {}
+    },
+
+    "Item": {
+      "occupation": {
+        "htmlFields": ["description", "notes"]
+      },
+      "archetype": {
+        "htmlFields": ["description", "notes"]
+      },
+      "domain": {
+        "htmlFields": ["description", "notes"]
+      },
+      "theology": {
+        "htmlFields": ["description", "notes"]
+      },
+      "power": {
+        "htmlFields": ["effect", "limitations", "notes"]
+      },
+      "bond": {
+        "htmlFields": ["description", "notes"]
+      },
+      "truth": {
+        "htmlFields": ["effect", "notes"]
+      },
+      "relic": {
+        "htmlFields": ["effect", "description", "notes"]
+      },
+      "worshipper": {
+        "htmlFields": ["benefit", "description", "notes"]
+      },
+      "vassal": {
+        "htmlFields": ["benefit", "description", "notes"]
+      },
+      "blessing": {
+        "htmlFields": ["effect", "notes"]
+      },
+      "curse": {
+        "htmlFields": ["effect", "notes"]
+      },
+      "weapon": {
+        "htmlFields": ["description", "notes"]
+      },
+      "armor": {
+        "htmlFields": ["description", "notes"]
+      }
+    }
+  },
+
+  "primaryTokenAttribute": "resources.health",
+  "secondaryTokenAttribute": "resources.psyche"
+}

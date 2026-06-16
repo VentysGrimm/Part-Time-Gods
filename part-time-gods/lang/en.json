@@ -1,0 +1,66 @@
+{
+  "PTG": {
+    "SystemName": "Part-Time Gods 2E",
+    "SystemDescription": "A Foundry VTT system for Part-Time Gods Second Edition.",
+    "Actor": {
+      "Character": "Character",
+      "Antagonist": "Antagonist",
+      "Pantheon": "Pantheon"
+    },
+    "Item": {
+      "Domain": "Domain",
+      "Occupation": "Occupation",
+      "Archetype": "Archetype",
+      "Theology": "Theology",
+      "Power": "Power",
+      "Bond": "Bond",
+      "Truth": "Truth",
+      "Relic": "Relic",
+      "Worshipper": "Worshipper",
+      "Vassal": "Vassal",
+      "Blessing": "Blessing",
+      "Curse": "Curse",
+      "Weapon": "Weapon",
+      "Armor": "Armor"
+    },
+    "Sheet": {
+      "CharacterSheet": "Part-Time Gods Character",
+      "AntagonistSheet": "Part-Time Gods Antagonist",
+      "PantheonSheet": "Part-Time Gods Pantheon",
+      "ItemSheet": "Part-Time Gods Item"
+    },
+    "Attachments": {
+      "bonds": "Bonds",
+      "failings": "Failings",
+      "relics": "Relics",
+      "truths": "Truths",
+      "vassals": "Vassals",
+      "worshippers": "Worshippers",
+      "blessings": "Blessings",
+      "curses": "Curses"
+    }
+  },
+  "TYPES": {
+    "Actor": {
+      "character": "Character",
+      "antagonist": "Antagonist",
+      "pantheon": "Pantheon"
+    },
+    "Item": {
+      "domain": "Domain",
+      "occupation": "Occupation",
+      "archetype": "Archetype",
+      "theology": "Theology",
+      "power": "Power",
+      "bond": "Bond",
+      "truth": "Truth",
+      "relic": "Relic",
+      "worshipper": "Worshipper",
+      "vassal": "Vassal",
+      "blessing": "Blessing",
+      "curse": "Curse",
+      "weapon": "Weapon",
+      "armor": "Armor"
+    }
+  }
+}

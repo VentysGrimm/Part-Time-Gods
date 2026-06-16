@@ -1,0 +1,56 @@
+{{#if items.length}}
+  <ol class="ptg-item-list">
+    {{#each items as |item|}}
+      <li class="ptg-item-row" data-item-id="{{item.id}}">
+        <img src="{{item.img}}" alt="">
+        <div class="ptg-item-main">
+          <strong>{{item.name}}</strong>
+          <span>{{ptgItemTypeLabel item.type}}</span>
+        </div>
+
+        <div class="ptg-item-meta">
+          {{#if (eq item.type "bond")}}
+            <span>Level {{item.system.level}}</span>
+            <span>Strain {{item.system.strain.value}}/{{item.system.strain.max}}</span>
+          {{/if}}
+          {{#if (eq item.type "worshipper")}}<span>Level {{item.system.level}}</span>{{/if}}
+          {{#if (eq item.type "vassal")}}<span>Level {{item.system.level}}</span>{{/if}}
+          {{#if (eq item.type "relic")}}<span>Level {{item.system.level}}</span>{{/if}}
+          {{#if (eq item.type "truth")}}<span>{{item.system.activation}}</span>{{/if}}
+          {{#if (eq item.type "power")}}<span>Cost {{item.system.cost}}</span>{{/if}}
+          {{#if (eq item.type "weapon")}}<span>Damage +{{item.system.damage}}</span>{{/if}}
+          {{#if (eq item.type "armor")}}<span>Armor {{item.system.rating}}</span>{{/if}}
+        </div>
+
+        <div class="ptg-item-actions">
+          {{#if (eq ../mode "choice")}}
+            <button type="button" data-item-action="apply">Apply</button>
+          {{/if}}
+
+          {{#if (eq ../mode "usable")}}
+            <button type="button" data-item-action="use">Use</button>
+          {{/if}}
+
+          {{#if (eq ../mode "attachment")}}
+            {{#if (eq item.type "bond")}}
+              <button type="button" data-item-action="strain-minus">-</button>
+              <button type="button" data-item-action="strain-plus">+</button>
+            {{else}}
+              <button type="button" data-item-action="use">Use</button>
+            {{/if}}
+          {{/if}}
+
+          {{#if (eq ../mode "gear")}}
+            <button type="button" data-item-action="equip">{{#if item.system.equipped}}Unequip{{else}}Equip{{/if}}</button>
+            <button type="button" data-item-action="use">Use</button>
+          {{/if}}
+
+          <button type="button" data-item-action="edit">Edit</button>
+          <button type="button" data-item-action="delete">Delete</button>
+        </div>
+      </li>
+    {{/each}}
+  </ol>
+{{else}}
+  <p class="ptg-empty">Drop items here from a compendium or the Items sidebar.</p>
+{{/if}}
