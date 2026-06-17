@@ -1,6 +1,6 @@
-import { PTGCharacterData } from "./module/data/character-data.mjs";
-import { PTGAntagonistData } from "./module/data/antagonist-data.mjs";
-import { PTGPantheonData } from "./module/data/pantheon-data.mjs";
+import { PTGCharacterData } from "./module/documents/models/actor/character-model.mjs";
+import { PTGAntagonistData } from "./module/documents/models/actor/antagonist-model.mjs";
+import { PTGPantheonData } from "./module/documents/models/actor/pantheon-model.mjs";
 import {
   PTGArmorData,
   PTGArchetypeData,
@@ -16,7 +16,7 @@ import {
   PTGVassalData,
   PTGWeaponData,
   PTGWorshipperData
-} from "./module/data/item-data.mjs";
+} from "./module/documents/models/item/item-models.mjs";
 import { PartTimeGodsActor } from "./module/documents/actor/part-time-gods-actor.mjs";
 import { PartTimeGodsItem } from "./module/documents/item/part-time-gods-item.mjs";
 import { PTGCharacterSheet } from "./module/sheets/character-sheet.mjs";
@@ -27,6 +27,8 @@ import { PTGDiceEngine } from "./module/dice/ptg-dice-engine.mjs";
 import { PTG_PREMADE_ITEMS, importPremadeItems } from "./module/data/premade-items.mjs";
 import { PTG_PREMADE_CHOICES, importPremadeChoices } from "./module/data/premade-choices.mjs";
 import { populatePremadeCompendiums } from "./module/data/premade-compendiums.mjs";
+import { getPremadeJournals, importRulesJournals } from "./module/data/premade-journals.mjs";
+import { getGodTerritorySceneData, importGodTerritoryScene } from "./module/data/premade-scenes.mjs";
 
 Hooks.once("init", async () => {
   console.log("Part-Time Gods 2E | Initializing");
@@ -38,6 +40,10 @@ Hooks.once("init", async () => {
     premadeChoices: PTG_PREMADE_CHOICES,
     importPremadeItems,
     importPremadeChoices,
+    getPremadeJournals,
+    importRulesJournals,
+    getGodTerritorySceneData,
+    importGodTerritoryScene,
     populatePremadeCompendiums
   };
 
@@ -91,7 +97,7 @@ Hooks.once("init", async () => {
 
   game.settings.register("part-time-gods", "autoPopulatePremadeCompendiums", {
     name: "Auto-populate premade Part-Time Gods compendiums",
-    hint: "Creates the system's premade character creation choices and play items in system compendiums for GMs.",
+    hint: "Creates the system's premade character creation choices, play items, maps, and rules journals in system compendiums for GMs.",
     scope: "world",
     config: true,
     type: Boolean,
@@ -138,9 +144,19 @@ Hooks.on("chatMessage", (chatLog, message) => {
     return false;
   }
 
+  if (message === "/ptg-create-territory-scene") {
+    importGodTerritoryScene();
+    return false;
+  }
+
+  if (message === "/ptg-import-rules-journals") {
+    importRulesJournals();
+    return false;
+  }
+
   if (message !== "/ptg") return true;
 
-  ui.notifications.info("Part-Time Gods 2E loaded. Premade content lives in the system compendiums.");
+  ui.notifications.info("Part-Time Gods 2E loaded. Premade content lives in the system compendiums. Use /ptg-create-territory-scene or /ptg-import-rules-journals for world setup.");
   return false;
 });
 

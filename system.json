@@ -3,6 +3,8 @@
   "title": "Part-Time Gods 2E",
   "description": "Part-Time Gods Second Edition for Foundry VTT",
   "version": "0.0.1",
+  "manifest": "https://github.com/VentysGrimm/part-time-gods/releases/latest/download/system.json",
+  "download": "https://github.com/VentysGrimm/part-time-gods/releases/download/v0.0.1/part-time-gods.zip",
 
   "compatibility": {
     "minimum": "14",
@@ -11,7 +13,7 @@
 
   "authors": [
     {
-      "name": "Ventys"
+      "name": "VentysGrimm"
     }
   ],
 
@@ -44,6 +46,20 @@
       "label": "Part-Time Gods Premade Items",
       "path": "packs/premade-items",
       "type": "Item",
+      "system": "part-time-gods"
+    },
+    {
+      "name": "maps",
+      "label": "Part-Time Gods Maps",
+      "path": "packs/maps",
+      "type": "Scene",
+      "system": "part-time-gods"
+    },
+    {
+      "name": "rules-reference",
+      "label": "Part-Time Gods Rules Reference",
+      "path": "packs/rules-reference",
+      "type": "JournalEntry",
       "system": "part-time-gods"
     }
   ],
