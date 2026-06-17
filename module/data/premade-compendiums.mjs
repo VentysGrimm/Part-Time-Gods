@@ -136,6 +136,7 @@ const choiceFolderLabels = {
 
 const itemFolderLabels = {
   armor: "Armor",
+  blessing: "Blessings",
   bond: "Bonds",
   curse: "Curses and Failings",
   relic: "Relics",

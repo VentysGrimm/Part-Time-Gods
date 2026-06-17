@@ -1,3 +1,5 @@
+import { PTG_PREMADE_CHOICES } from "./premade-choices.mjs";
+
 export const PTG_PREMADE_ITEMS = [
   truth("Aquatic", 117, "is one with the sea.", "Breathe underwater and gain a bonus while acting in a body of water."),
   truth("Armored", 117, "is tougher than they appear.", "Choose a damage source. Gain scaling armor against that source."),
@@ -65,6 +67,8 @@ export const PTG_PREMADE_ITEMS = [
   curse("Vengeance", "Failing", 110, 0, "Retaliation becomes difficult to resist but helps when pursuing payback."),
 
   vassal("Custom Vassal", 1, 121, "A mythological creature, Outsider, or supernatural ally bound to the god."),
+
+  ...choiceAbilityItems(),
 
   armor("Armored Jumpsuit", 2, 4, "Resistant, Light", 210),
   armor("Asbestos Suit", 0, 2, "Fireproof 2, Weak", 210),
@@ -141,25 +145,45 @@ async function createPremadeFolders(items) {
 }
 
 function truth(name, page, statement, effect) {
+  const fragmentCost = effect.includes("Spend a Fragment") ? 1 : 0;
+  const activation = effect.includes("Spend") ? "action" : "passive";
+
   return baseItem("truth", name, page, {
     statement,
     rank: 1,
     cost: 2,
-    fragmentCost: effect.includes("Spend a Fragment") ? 1 : 0,
-    activation: effect.includes("Spend") ? "action" : "passive",
+    fragmentCost,
+    activation,
     effect: paragraph(effect),
-    notes: source(page)
+    notes: source(page),
+    ...itemRules("truth", name, page, effect, {
+      kind: fragmentCost ? "active" : "passive",
+      trigger: fragmentCost ? "use" : "always",
+      target: "self",
+      cost: { fragments: fragmentCost },
+      action: fragmentCost ? "spend-fragment" : ""
+    })
   });
 }
 
 function relic(name, level, page, bonus, effect) {
+  const fragmentCost = effect.includes("Fragment") ? 1 : 0;
+
   return baseItem("relic", name, page, {
     level,
     cost: level,
     bonus,
+    fragmentCost,
     effect: paragraph(effect),
     description: "",
-    notes: source(page)
+    notes: source(page),
+    ...itemRules("relic", name, page, `${bonus}. ${effect}`, {
+      kind: fragmentCost ? "active" : "passive",
+      trigger: fragmentCost ? "use" : "always",
+      target: "self",
+      cost: { fragments: fragmentCost },
+      action: fragmentCost ? "spend-fragment" : ""
+    })
   });
 }
 
@@ -170,7 +194,13 @@ function worshipper(name, level, page, benefit) {
     size: "",
     benefit: paragraph(benefit),
     description: "",
-    notes: source(page)
+    notes: source(page),
+    ...itemRules("worshipper", name, page, benefit, {
+      kind: "active",
+      trigger: "favor",
+      target: "self",
+      action: "request-favor"
+    })
   });
 }
 
@@ -183,7 +213,14 @@ function bond(name, kind, page, description) {
       max: 1
     },
     description: paragraph(description),
-    notes: source(page)
+    notes: source(page),
+    ...itemRules("bond", name, page, description, {
+      kind: "active",
+      trigger: "favor",
+      target: "attachment",
+      cost: { strain: 1 },
+      action: "request-favor"
+    })
   });
 }
 
@@ -193,7 +230,15 @@ function curse(name, sourceName, page, pantheonDice, effect) {
     trigger: "",
     pantheonDice,
     effect: paragraph(effect),
-    notes: source(page)
+    notes: source(page),
+    ...itemRules("curse", name, page, effect, {
+      kind: "triggered",
+      trigger: "gm",
+      target: "self",
+      action: "gain-pantheon-dice",
+      resourceChange: { resource: "pantheon", amount: pantheonDice },
+      enabled: pantheonDice > 0
+    })
   });
 }
 
@@ -204,11 +249,19 @@ function vassal(name, level, page, benefit) {
     loyalty: 0,
     benefit: paragraph(benefit),
     description: "",
-    notes: source(page)
+    notes: source(page),
+    ...itemRules("vassal", name, page, benefit, {
+      kind: "active",
+      trigger: "favor",
+      target: "ally",
+      action: "request-favor"
+    })
   });
 }
 
 function armor(name, rating, cost, quality, page) {
+  const summary = `${name} provides Armor ${rating}. Qualities: ${quality}.`;
+
   return baseItem("armor", name, page, {
     amount: 1,
     weight: 0,
@@ -217,12 +270,21 @@ function armor(name, rating, cost, quality, page) {
     rating,
     cost,
     quality,
-    description: paragraph(`${name}: ${quality}.`),
-    notes: source(page)
+    description: paragraph(summary),
+    notes: source(page),
+    ...itemRules("armor", name, page, summary, {
+      kind: "passive",
+      trigger: "equipped",
+      target: "self",
+      action: "apply-armor",
+      bonus: { armor: rating }
+    })
   });
 }
 
 function weapon(name, damage, range, cost, quality, page) {
+  const summary = `${name} deals +${damage} damage at ${range} range. Qualities: ${quality}.`;
+
   return baseItem("weapon", name, page, {
     amount: 1,
     weight: 0,
@@ -232,9 +294,61 @@ function weapon(name, damage, range, cost, quality, page) {
     range,
     cost,
     quality,
-    description: paragraph(`${name}: ${quality}.`),
-    notes: source(page)
+    description: paragraph(summary),
+    notes: source(page),
+    ...itemRules("weapon", name, page, summary, {
+      kind: "active",
+      trigger: "use",
+      target: "targeted",
+      action: "weapon-attack",
+      enabled: true,
+      roll: { primary: "fighting", secondary: "might", difficulty: 1 },
+      damage: { amount: damage, type: "weapon" }
+    })
   });
+}
+
+function blessing(name, sourceName, page, effect) {
+  return baseItem("blessing", name, page, {
+    source: sourceName,
+    trigger: "",
+    bonus: "",
+    effect: paragraph(effect),
+    notes: source(page),
+    ...itemRules("blessing", name, page, effect, {
+      kind: "triggered",
+      trigger: "gm",
+      target: "self",
+      action: "apply-bonus"
+    })
+  });
+}
+
+function choiceAbilityItems() {
+  const items = [];
+  const seen = new Set();
+
+  for (const choice of PTG_PREMADE_CHOICES) {
+    const page = choice.flags?.["part-time-gods"]?.page ?? 0;
+    const sourceName = `${choice.name} ${typeName(choice.type)}`;
+    const grants = choice.system?.grants ?? {};
+
+    for (const type of ["blessing", "curse"]) {
+      const name = grants[type];
+      if (!name) continue;
+
+      const key = `${type}:${name}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const effect = `${name} is a book-referenced ${type} option granted by ${choice.name}.`;
+      items.push(type === "blessing"
+        ? blessing(name, sourceName, page, effect)
+        : curse(name, sourceName, page, type === "curse" ? 1 : 0, effect));
+    }
+  }
+
+  return items;
 }
 
 function baseItem(type, name, page, system) {
@@ -249,6 +363,50 @@ function baseItem(type, name, page, system) {
         source: "Part-Time Gods Second Edition",
         page
       }
+    }
+  };
+}
+
+function itemRules(type, name, page, summary, options = {}) {
+  const cost = {
+    freeTime: 0,
+    wealth: 0,
+    pantheonDice: 0,
+    fragments: 0,
+    health: 0,
+    psyche: 0,
+    strain: 0,
+    ...(options.cost ?? {})
+  };
+
+  return {
+    rules: {
+      summary,
+      fullText: paragraph(summary),
+      source: {
+        book: "Part-Time Gods Second Edition",
+        page,
+        section: name,
+        type
+      }
+    },
+    usage: {
+      kind: options.kind ?? "narrative",
+      trigger: options.trigger ?? "",
+      target: options.target ?? "",
+      cost
+    },
+    automation: {
+      enabled: options.enabled ?? false,
+      action: options.action ?? "",
+      bonus: options.bonus ?? null,
+      penalty: options.penalty ?? null,
+      roll: options.roll ?? null,
+      healing: options.healing ?? null,
+      damage: options.damage ?? null,
+      condition: options.condition ?? null,
+      resourceChange: options.resourceChange ?? null,
+      chatCard: true
     }
   };
 }
@@ -274,6 +432,7 @@ function escapeHTML(text) {
 function defaultIcon(type) {
   const icons = {
     armor: "icons/equipment/chest/breastplate-layered-steel.webp",
+    blessing: "icons/magic/holy/prayer-hands-glowing-yellow.webp",
     bond: "icons/sundries/documents/document-sealed-red.webp",
     curse: "icons/magic/unholy/silhouette-robe-evil-power.webp",
     relic: "icons/commodities/treasure/token-runed-os-grey.webp",
@@ -288,6 +447,7 @@ function defaultIcon(type) {
 
 const typeLabels = {
   armor: "Armor",
+  blessing: "Blessings",
   bond: "Bonds",
   curse: "Curses and Failings",
   relic: "Relics",
@@ -296,3 +456,16 @@ const typeLabels = {
   weapon: "Weapons",
   worshipper: "Worshippers"
 };
+
+function typeName(type) {
+  return {
+    archetype: "Archetype",
+    domain: "Dominion",
+    occupation: "Occupation",
+    theology: "Theology"
+  }[type] ?? labelize(type);
+}
+
+function labelize(type) {
+  return `${type[0].toUpperCase()}${type.slice(1)}`;
+}

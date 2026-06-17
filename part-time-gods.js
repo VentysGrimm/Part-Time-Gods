@@ -128,6 +128,22 @@ Hooks.once("ready", async () => {
   await populatePremadeCompendiums({ notify: true });
 });
 
+Hooks.on("dropCanvasData", async (canvas, data) => {
+  if (data?.type !== "Item") return true;
+
+  const item = await Item.implementation.fromDropData(data);
+  if (!item || !["worshipper", "vassal"].includes(item.type)) return true;
+
+  if (!game.user?.isGM) {
+    ui.notifications.warn("Only a GM can create Worshipper and Vassal actors on a scene.");
+    return false;
+  }
+
+  const actor = await getOrCreateFollowerActor(item);
+  await createFollowerToken(canvas, actor, data);
+  return false;
+});
+
 Hooks.on("chatMessage", (chatLog, message) => {
   if (message === "/ptg-import-items") {
     importPremadeItems();
@@ -159,6 +175,108 @@ Hooks.on("chatMessage", (chatLog, message) => {
   ui.notifications.info("Part-Time Gods 2E loaded. Premade content lives in the system compendiums. Use /ptg-create-territory-scene or /ptg-import-rules-journals for world setup.");
   return false;
 });
+
+async function getOrCreateFollowerActor(item) {
+  const existing = game.actors.find(actor => actor.getFlag("part-time-gods", "sourceItemUuid") === item.uuid);
+  if (existing) return existing;
+
+  const folder = await ensureFollowerActorFolder(item.type);
+  return Actor.create(followerActorData(item, folder), { renderSheet: false });
+}
+
+async function ensureFollowerActorFolder(type) {
+  const folderName = type === "vassal" ? "PTG Vassals" : "PTG Worshippers";
+  const existing = game.folders.find(folder => folder.type === "Actor" && folder.name === folderName);
+  if (existing) return existing;
+
+  return Folder.create({
+    name: folderName,
+    type: "Actor",
+    sorting: "a"
+  });
+}
+
+function followerActorData(item, folder) {
+  const level = followerLevel(item);
+  const img = item.img || followerIcon(item.type);
+  const disposition = CONST?.TOKEN_DISPOSITIONS?.FRIENDLY ?? 1;
+
+  return {
+    name: item.name,
+    type: "antagonist",
+    img,
+    folder: folder?.id,
+    system: {
+      threat: level,
+      health: Math.max(1, level * 2),
+      psyche: Math.max(1, level),
+      initiative: level,
+      damage: Math.max(1, level),
+      description: followerActorDescription(item)
+    },
+    prototypeToken: {
+      name: item.name,
+      actorLink: false,
+      disposition,
+      texture: {
+        src: img
+      }
+    },
+    flags: {
+      "part-time-gods": {
+        sourceItemUuid: item.uuid,
+        sourceItemType: item.type
+      }
+    }
+  };
+}
+
+async function createFollowerToken(canvas, actor, data) {
+  const tokenDocument = await actor.getTokenDocument({
+    x: Number(data.x) || 0,
+    y: Number(data.y) || 0
+  });
+  const tokenData = tokenDocument.toObject ? tokenDocument.toObject() : tokenDocument;
+  await canvas.scene.createEmbeddedDocuments("Token", [tokenData]);
+}
+
+function followerActorDescription(item) {
+  const system = item.system ?? {};
+  const rulesSummary = system.rules?.summary;
+  const parts = [
+    `<p><strong>Source Item:</strong> ${escapeHTML(item.name)} (${escapeHTML(game.i18n.localize(`TYPES.Item.${item.type}`))})</p>`
+  ];
+
+  if (system.level) parts.push(`<p><strong>Level:</strong> ${escapeHTML(String(system.level))}</p>`);
+  if (rulesSummary) parts.push(`<p><strong>Rules:</strong> ${escapeHTML(rulesSummary)}</p>`);
+  if (system.benefit) parts.push(`<h3>Benefit</h3>${system.benefit}`);
+  if (system.description) parts.push(`<h3>Description</h3>${system.description}`);
+  if (system.notes) parts.push(`<h3>Notes</h3>${system.notes}`);
+
+  return parts.join("");
+}
+
+function followerLevel(item) {
+  const level = Number(item.system?.level ?? 1);
+  return Number.isFinite(level) && level > 0 ? level : 1;
+}
+
+function followerIcon(type) {
+  return {
+    vassal: "icons/creatures/magical/spirit-undead-winged-blue.webp",
+    worshipper: "icons/environment/people/group.webp"
+  }[type] ?? "icons/svg/mystery-man.svg";
+}
+
+function escapeHTML(text) {
+  return String(text).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
+}
 
 export const PTG = {
   skills: {
