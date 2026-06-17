@@ -210,10 +210,13 @@ function vassal(name, level, page, benefit) {
 
 function armor(name, rating, cost, quality, page) {
   return baseItem("armor", name, page, {
+    amount: 1,
+    weight: 0,
+    held: true,
+    equipped: false,
     rating,
     cost,
     quality,
-    equipped: false,
     description: paragraph(`${name}: ${quality}.`),
     notes: source(page)
   });
@@ -221,11 +224,14 @@ function armor(name, rating, cost, quality, page) {
 
 function weapon(name, damage, range, cost, quality, page) {
   return baseItem("weapon", name, page, {
+    amount: 1,
+    weight: 0,
+    held: true,
+    equipped: false,
     damage,
     range,
     cost,
     quality,
-    equipped: false,
     description: paragraph(`${name}: ${quality}.`),
     notes: source(page)
   });

@@ -32,6 +32,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.manifestationEntries = Object.entries(CONFIG.PTG.manifestations);
     context.items = this.actor.items;
     context.inventory = this.#prepareInventory();
+    context.gearSummary = this.#prepareGearSummary(context.inventory.gear);
     context.itemTypeLabels = Object.fromEntries(
       Object.keys(CONFIG.Item.dataModels ?? {}).map(type => [type, game.i18n.localize(`TYPES.Item.${type}`)])
     );
@@ -111,9 +112,26 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     return Object.fromEntries(
       Object.entries(groups).map(([group, types]) => [
         group,
-        types.flatMap(type => this.actor.items.filter(item => item.type === type)).sort((a, b) => a.name.localeCompare(b.name))
+        types
+          .flatMap(type => this.actor.items.filter(item => item.type === type))
+          .filter(item => group !== "gear" || item.system.held !== false || item.system.equipped)
+          .sort((a, b) => a.name.localeCompare(b.name))
       ])
     );
+  }
+
+  #prepareGearSummary(items) {
+    return items.reduce((summary, item) => {
+      const amount = Number(item.system.amount ?? 1);
+      summary.cost += Number(item.system.cost ?? 0) * amount;
+      summary.weight += Number(item.system.weight ?? 0) * amount;
+      summary.equippedArmor += item.type === "armor" && item.system.equipped ? Number(item.system.rating ?? 0) : 0;
+      return summary;
+    }, {
+      cost: 0,
+      weight: 0,
+      equippedArmor: 0
+    });
   }
 
   async #onItemAction(button) {
@@ -140,6 +158,11 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (action === "equip") {
       await item.update({ "system.equipped": !item.system.equipped });
+      return;
+    }
+
+    if (action === "hold") {
+      await item.update({ "system.held": item.system.held === false });
       return;
     }
 

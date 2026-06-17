@@ -416,6 +416,10 @@
   {{#if (eq item.type "weapon")}}
     <section class="ptg-item-fields four">
       <label>
+        <span>Amount</span>
+        <input name="system.amount" type="number" value="{{system.amount}}" min="0">
+      </label>
+      <label>
         <span>Damage</span>
         <input name="system.damage" type="number" value="{{system.damage}}" min="0">
       </label>
@@ -426,6 +430,14 @@
       <label>
         <span>Cost</span>
         <input name="system.cost" type="number" value="{{system.cost}}" min="0">
+      </label>
+      <label>
+        <span>Weight</span>
+        <input name="system.weight" type="number" value="{{system.weight}}" min="0" step="0.1">
+      </label>
+      <label class="ptg-checkbox">
+        <input name="system.held" type="checkbox" {{checked system.held}}>
+        <span>Carried</span>
       </label>
       <label class="ptg-checkbox">
         <input name="system.equipped" type="checkbox" {{checked system.equipped}}>
@@ -449,12 +461,24 @@
   {{#if (eq item.type "armor")}}
     <section class="ptg-item-fields four">
       <label>
+        <span>Amount</span>
+        <input name="system.amount" type="number" value="{{system.amount}}" min="0">
+      </label>
+      <label>
         <span>Rating</span>
         <input name="system.rating" type="number" value="{{system.rating}}" min="0">
       </label>
       <label>
         <span>Cost</span>
         <input name="system.cost" type="number" value="{{system.cost}}" min="0">
+      </label>
+      <label>
+        <span>Weight</span>
+        <input name="system.weight" type="number" value="{{system.weight}}" min="0" step="0.1">
+      </label>
+      <label class="ptg-checkbox">
+        <input name="system.held" type="checkbox" {{checked system.held}}>
+        <span>Carried</span>
       </label>
       <label class="span-2">
         <span>Quality</span>

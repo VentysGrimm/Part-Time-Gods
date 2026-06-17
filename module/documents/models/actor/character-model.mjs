@@ -24,7 +24,9 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
       derived: new fields.SchemaField({
         initiative: new fields.NumberField({ integer: true, initial: 0 }),
         strength: new fields.NumberField({ integer: true, initial: 1 }),
-        movement: new fields.NumberField({ integer: true, initial: 1 })
+        movement: new fields.NumberField({ integer: true, initial: 1 }),
+        armor: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
+        carriedWeight: new fields.NumberField({ min: 0, initial: 0 })
       }),
 
       skills: new fields.SchemaField(Object.fromEntries(

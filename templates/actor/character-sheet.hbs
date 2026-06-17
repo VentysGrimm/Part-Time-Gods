@@ -67,6 +67,8 @@
     <div><span>Initiative</span><strong>{{system.derived.initiative}}</strong></div>
     <div><span>Strength</span><strong>{{system.derived.strength}}</strong></div>
     <div><span>Movement</span><strong>{{system.derived.movement}}</strong></div>
+    <div><span>Armor</span><strong>{{system.derived.armor}}</strong></div>
+    <div><span>Carry Wt</span><strong>{{system.derived.carriedWeight}}</strong></div>
   </section>
 
   <nav class="ptg-tabs">
@@ -146,6 +148,11 @@
 
       <section class="ptg-inventory-group">
         <h2>Gear</h2>
+        <div class="ptg-inventory-summary">
+          <span>Total Cost {{gearSummary.cost}}</span>
+          <span>Total Wt {{gearSummary.weight}}</span>
+          <span>Equipped Armor {{gearSummary.equippedArmor}}</span>
+        </div>
         {{> "systems/part-time-gods/templates/actor/parts/item-list.hbs" items=inventory.gear mode="gear"}}
       </section>
     </div>

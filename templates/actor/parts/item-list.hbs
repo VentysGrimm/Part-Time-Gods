@@ -18,8 +18,22 @@
           {{#if (eq item.type "relic")}}<span>Level {{item.system.level}}</span>{{/if}}
           {{#if (eq item.type "truth")}}<span>{{item.system.activation}}</span>{{/if}}
           {{#if (eq item.type "power")}}<span>Cost {{item.system.cost}}</span>{{/if}}
-          {{#if (eq item.type "weapon")}}<span>Damage +{{item.system.damage}}</span>{{/if}}
-          {{#if (eq item.type "armor")}}<span>Armor {{item.system.rating}}</span>{{/if}}
+          {{#if (eq item.type "weapon")}}
+            <span>Amount {{item.system.amount}}</span>
+            <span>Cost {{item.system.cost}}</span>
+            <span>Wt {{item.system.weight}}</span>
+            <span>Damage +{{item.system.damage}}</span>
+            <span>{{#if (eq item.system.held false)}}Stowed{{else}}Carried{{/if}}</span>
+            {{#if item.system.equipped}}<span>Equipped</span>{{/if}}
+          {{/if}}
+          {{#if (eq item.type "armor")}}
+            <span>Amount {{item.system.amount}}</span>
+            <span>Cost {{item.system.cost}}</span>
+            <span>Wt {{item.system.weight}}</span>
+            <span>Armor {{item.system.rating}}</span>
+            <span>{{#if (eq item.system.held false)}}Stowed{{else}}Carried{{/if}}</span>
+            {{#if item.system.equipped}}<span>Equipped</span>{{/if}}
+          {{/if}}
         </div>
 
         <div class="ptg-item-actions">
@@ -41,6 +55,7 @@
           {{/if}}
 
           {{#if (eq ../mode "gear")}}
+            <button type="button" data-item-action="hold">{{#if (eq item.system.held false)}}Carry{{else}}Stow{{/if}}</button>
             <button type="button" data-item-action="equip">{{#if item.system.equipped}}Unequip{{else}}Equip{{/if}}</button>
             <button type="button" data-item-action="use">Use</button>
           {{/if}}

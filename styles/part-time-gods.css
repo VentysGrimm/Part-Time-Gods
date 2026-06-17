@@ -231,3 +231,61 @@
 .ptg-chat-card h3 {
   margin: 0 0 4px;
 }
+
+.ptg-inventory-summary,
+.ptg-item-meta,
+.ptg-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+}
+
+.ptg-inventory-summary {
+  margin: 0 0 6px;
+  color: var(--color-text-light-6);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ptg-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+
+.ptg-item-row {
+  display: grid;
+  grid-template-columns: 36px minmax(120px, 1fr) minmax(180px, 1.4fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px;
+  border: 1px solid var(--color-border-light-tertiary);
+  border-radius: 6px;
+}
+
+.ptg-item-row img {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border: 1px solid var(--color-border-light-primary);
+}
+
+.ptg-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ptg-item-main span,
+.ptg-item-meta span {
+  color: var(--color-text-light-6);
+  font-size: 12px;
+}
+
+.ptg-item-actions button {
+  padding: 2px 6px;
+}
