@@ -6,6 +6,9 @@
         <div class="ptg-item-main">
           <strong>{{item.name}}</strong>
           <span>{{ptgItemTypeLabel item.type}}</span>
+          {{#if item.system.rules.summary}}
+            <span class="ptg-item-summary">{{item.system.rules.summary}}</span>
+          {{/if}}
         </div>
 
         <div class="ptg-item-meta">
@@ -17,6 +20,8 @@
           {{#if (eq item.type "vassal")}}<span>Level {{item.system.level}}</span>{{/if}}
           {{#if (eq item.type "relic")}}<span>Level {{item.system.level}}</span>{{/if}}
           {{#if (eq item.type "truth")}}<span>{{item.system.activation}}</span>{{/if}}
+          {{#if (eq item.type "blessing")}}<span>{{item.system.usage.kind}}</span>{{/if}}
+          {{#if (eq item.type "curse")}}<span>{{item.system.usage.kind}}</span>{{/if}}
           {{#if (eq item.type "power")}}<span>Cost {{item.system.cost}}</span>{{/if}}
           {{#if (eq item.type "weapon")}}
             <span>Amount {{item.system.amount}}</span>

@@ -32,6 +32,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.manifestationEntries = Object.entries(CONFIG.PTG.manifestations);
     context.items = this.actor.items;
     context.inventory = this.#prepareInventory();
+    context.inventorySections = this.#prepareInventorySections(context.inventory);
     context.gearSummary = this.#prepareGearSummary(context.inventory.gear);
     context.itemTypeLabels = Object.fromEntries(
       Object.keys(CONFIG.Item.dataModels ?? {}).map(type => [type, game.i18n.localize(`TYPES.Item.${type}`)])
@@ -104,8 +105,14 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   #prepareInventory() {
     const groups = {
       choices: ["occupation", "archetype", "domain", "theology"],
-      divine: ["truth", "relic", "power"],
-      attachments: ["bond", "worshipper", "vassal", "blessing", "curse"],
+      truths: ["truth"],
+      relics: ["relic"],
+      powers: ["power"],
+      bonds: ["bond"],
+      worshippers: ["worshipper"],
+      vassals: ["vassal"],
+      blessings: ["blessing"],
+      curses: ["curse"],
       gear: ["weapon", "armor"]
     };
 
@@ -118,6 +125,19 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
           .sort((a, b) => a.name.localeCompare(b.name))
       ])
     );
+  }
+
+  #prepareInventorySections(inventory) {
+    return [
+      { key: "truths", title: "Truths", family: "Divine Identity", mode: "usable", items: inventory.truths },
+      { key: "relics", title: "Relics", family: "Divine Identity", mode: "usable", items: inventory.relics },
+      { key: "powers", title: "Powers", family: "Divine Identity", mode: "usable", items: inventory.powers },
+      { key: "bonds", title: "Bonds", family: "Attachments", mode: "attachment", items: inventory.bonds },
+      { key: "worshippers", title: "Worshippers", family: "Attachments", mode: "attachment", items: inventory.worshippers },
+      { key: "vassals", title: "Vassals", family: "Attachments", mode: "attachment", items: inventory.vassals },
+      { key: "blessings", title: "Blessings", family: "Boons and Burdens", mode: "usable", items: inventory.blessings },
+      { key: "curses", title: "Curses", family: "Boons and Burdens", mode: "usable", items: inventory.curses }
+    ];
   }
 
   #prepareGearSummary(items) {

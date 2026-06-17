@@ -136,15 +136,15 @@
         {{> "systems/part-time-gods/templates/actor/parts/item-list.hbs" items=inventory.choices mode="choice"}}
       </section>
 
-      <section class="ptg-inventory-group">
-        <h2>Divine</h2>
-        {{> "systems/part-time-gods/templates/actor/parts/item-list.hbs" items=inventory.divine mode="usable"}}
-      </section>
-
-      <section class="ptg-inventory-group">
-        <h2>Attachments</h2>
-        {{> "systems/part-time-gods/templates/actor/parts/item-list.hbs" items=inventory.attachments mode="attachment"}}
-      </section>
+      {{#each inventorySections as |section|}}
+        <section class="ptg-inventory-group" data-item-section="{{section.key}}">
+          <div class="ptg-section-heading">
+            <h2>{{section.title}}</h2>
+            <span>{{section.family}}</span>
+          </div>
+          {{> "systems/part-time-gods/templates/actor/parts/item-list.hbs" items=section.items mode=section.mode}}
+        </section>
+      {{/each}}
 
       <section class="ptg-inventory-group">
         <h2>Gear</h2>
