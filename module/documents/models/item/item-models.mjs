@@ -117,6 +117,7 @@ export class PTGOccupationData extends PTGBaseItemData {
       ...this.rulesAutomationFields("occupation"),
       category: this.textField(),
       career: this.textField(),
+      careerOptions: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] }),
       grants: this.grantsField(),
       description: this.htmlField(),
       notes: this.htmlField()

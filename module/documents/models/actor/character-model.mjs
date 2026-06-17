@@ -18,7 +18,9 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
         pantheon: resourceField(0),
         spark: new fields.NumberField({ integer: true, min: 1, initial: 1 }),
         freeTime: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
-        wealth: new fields.NumberField({ integer: true, min: 0, initial: 0 })
+        wealth: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
+        occupationFreeTime: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
+        occupationWealth: new fields.NumberField({ integer: true, min: 0, initial: 0 })
       }),
 
       derived: new fields.SchemaField({

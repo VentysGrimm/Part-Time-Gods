@@ -73,7 +73,10 @@ export class PartTimeGodsActor extends Actor {
       return false;
     }
 
-    const grants = item.system.grants ?? {};
+    const careerSelection = item.type === "occupation" ? await selectOccupationCareer(item) : null;
+    if (careerSelection === false) return false;
+
+    const grants = choiceGrants(item.system.grants ?? {}, careerSelection);
     const updates = {};
     const identityPath = {
       occupation: "system.identity.occupation",
@@ -82,7 +85,12 @@ export class PartTimeGodsActor extends Actor {
       theology: "system.identity.theology"
     }[item.type];
 
-    updates[identityPath] = item.name;
+    updates[identityPath] = careerSelection?.career ? `${careerSelection.career.name} (${item.name})` : item.name;
+
+    if (careerSelection?.career) {
+      updates["system.resources.occupationFreeTime"] = Number(careerSelection.career.resources?.freeTime ?? 0);
+      updates["system.resources.occupationWealth"] = Number(careerSelection.career.resources?.wealth ?? 0);
+    }
 
     for (const [skill, bonus] of Object.entries(grants.skills ?? {})) {
       updates[`system.skills.${skill}`] = Number(this.system.skills?.[skill] ?? 0) + Number(bonus);
@@ -103,6 +111,10 @@ export class PartTimeGodsActor extends Actor {
 
     await this.update(updates);
 
+    if (careerSelection?.career && item.parent?.uuid === this.uuid) {
+      await item.update({ "system.career": careerSelection.career.name });
+    }
+
     const embedded = [
       ...embeddedAttachmentItems(grants.attachments, item)
     ];
@@ -118,7 +130,7 @@ export class PartTimeGodsActor extends Actor {
 
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      content: `<p><strong>${this.name}</strong> applied <strong>${item.name}</strong>.</p>`
+      content: `<p><strong>${this.name}</strong> applied <strong>${careerSelection?.career ? `${careerSelection.career.name} (${item.name})` : item.name}</strong>.</p>`
     });
 
     return true;
@@ -165,6 +177,109 @@ export class PartTimeGodsActor extends Actor {
   }
 }
 
+async function selectOccupationCareer(item) {
+  const careers = Array.from(item.system.careerOptions ?? []);
+  if (!careers.length) return null;
+
+  const options = careerAttachmentOptions(careers);
+  if (options.length === 1) {
+    const option = options[0];
+    return {
+      career: careers[option.careerIndex],
+      attachment: careers[option.careerIndex].attachments?.[option.attachmentIndex] ?? null
+    };
+  }
+
+  return new Promise(resolve => {
+    let resolved = false;
+    const content = `
+      <form class="ptg-career-dialog">
+        <div class="form-group">
+          <label>Career and Attachment</label>
+          <select name="careerOption">
+            ${options.map((option, index) => `<option value="${index}">${escapeHTML(option.label)}</option>`).join("")}
+          </select>
+        </div>
+      </form>
+    `;
+
+    new Dialog({
+      title: `Choose ${item.name} Career`,
+      content,
+      buttons: {
+        apply: {
+          label: "Apply",
+          callback: html => {
+            resolved = true;
+            const index = Number(getDialogValue(html, "careerOption") ?? 0);
+            const option = options[index] ?? options[0];
+            resolve({
+              career: careers[option.careerIndex],
+              attachment: careers[option.careerIndex].attachments?.[option.attachmentIndex] ?? null
+            });
+          }
+        },
+        cancel: {
+          label: "Cancel",
+          callback: () => {
+            resolved = true;
+            resolve(false);
+          }
+        }
+      },
+      default: "apply",
+      close: () => {
+        if (!resolved) resolve(false);
+      }
+    }).render(true);
+  });
+}
+
+function careerAttachmentOptions(careers) {
+  return careers.flatMap((career, careerIndex) => {
+    const attachments = Array.isArray(career.attachments) && career.attachments.length ? career.attachments : [null];
+    return attachments.map((attachment, attachmentIndex) => ({
+      careerIndex,
+      attachmentIndex,
+      label: `${career.name} - ${attachment ? attachmentLabel(attachment) : "No Attachment"}`
+    }));
+  });
+}
+
+function attachmentLabel(attachment) {
+  return `Level ${attachment.level ?? 1} ${attachment.name} (${kindCode(attachment.kind)})`;
+}
+
+function getDialogValue(html, name) {
+  const selector = `[name="${name}"]`;
+  return html?.find?.(selector)?.[0]?.value
+    ?? html?.[0]?.querySelector?.(selector)?.value
+    ?? html?.querySelector?.(selector)?.value;
+}
+
+function choiceGrants(baseGrants, careerSelection) {
+  const grants = {
+    skills: { ...(baseGrants.skills ?? {}) },
+    manifestations: { ...(baseGrants.manifestations ?? {}) },
+    resources: { ...(baseGrants.resources ?? {}) },
+    attachments: baseGrants.attachments ?? {},
+    blessing: baseGrants.blessing ?? "",
+    curse: baseGrants.curse ?? ""
+  };
+
+  if (!careerSelection?.career) return grants;
+
+  grants.resources = {
+    ...grants.resources,
+    ...(careerSelection.career.resources ?? {})
+  };
+  grants.attachments = careerSelection.attachment ? [careerSelection.attachment] : [];
+  grants.blessing = careerSelection.career.blessing ?? "";
+  grants.curse = careerSelection.career.curse ?? "";
+
+  return grants;
+}
+
 function clamp(value, min, max) {
   return Math.min(Math.max(Number(value ?? max), min), max);
 }
@@ -172,12 +287,10 @@ function clamp(value, min, max) {
 function embeddedAttachmentItems(attachments, sourceItem) {
   const items = [];
 
-  for (const [key, value] of Object.entries(attachments ?? {})) {
-    const config = ATTACHMENT_GRANTS[key];
-    if (!config) continue;
-
-    const level = Math.max(1, isNumeric(value) ? Number(value) : config.defaultLevel);
-    const name = typeof value === "string" && value.trim() ? value : config.name;
+  for (const attachment of normalizeAttachmentGrants(attachments)) {
+    const level = Math.max(1, Number(attachment.level ?? 1));
+    const name = attachment.name;
+    const label = attachment.label ?? `${kindLabel(attachment.kind)} Bond`;
     const sourceName = sourceItem.name;
 
     items.push({
@@ -185,15 +298,15 @@ function embeddedAttachmentItems(attachments, sourceItem) {
       type: "bond",
       img: "icons/sundries/documents/document-sealed-red.webp",
       system: {
-        kind: config.kind,
+        kind: attachment.kind,
         level,
         strain: {
           value: 0,
           max: level
         },
-        description: `<p>${escapeHTML(sourceName)} grants this ${escapeHTML(config.label.toLowerCase())}.</p>`,
+        description: `<p>${escapeHTML(sourceName)} grants this ${escapeHTML(label.toLowerCase())}.</p>`,
         notes: sourceNotes(sourceItem),
-        rules: sourceRules(`${sourceName} grants ${config.label.toLowerCase()} ${level}.`, sourceItem, "bond"),
+        rules: sourceRules(`${sourceName} grants ${label.toLowerCase()} ${level}.`, sourceItem, "bond"),
         usage: narrativeUsage(),
         automation: defaultAutomation()
       }
@@ -203,21 +316,47 @@ function embeddedAttachmentItems(attachments, sourceItem) {
   return items;
 }
 
-function simpleEmbeddedItem(type, name, sourceItem) {
+function normalizeAttachmentGrants(attachments) {
+  if (Array.isArray(attachments)) {
+    return attachments.map(attachment => ({
+      kind: attachment.kind,
+      name: attachment.name,
+      level: attachment.level ?? 1,
+      label: `${kindLabel(attachment.kind)} Bond`
+    })).filter(attachment => attachment.name && attachment.kind);
+  }
+
+  return Object.entries(attachments ?? {}).flatMap(([key, value]) => {
+    const config = ATTACHMENT_GRANTS[key];
+    if (!config) return [];
+
+    return {
+      kind: config.kind,
+      name: typeof value === "string" && value.trim() ? value : config.name,
+      level: Math.max(1, isNumeric(value) ? Number(value) : config.defaultLevel),
+      label: config.label
+    };
+  });
+}
+
+function simpleEmbeddedItem(type, grant, sourceItem) {
+  const detail = typeof grant === "object" && grant !== null ? grant : { name: grant };
   const sourceName = sourceItem.name;
   const label = typeLabel(type);
+  const name = detail.name;
+  const effect = detail.effect ?? `${label} granted by ${sourceName}.`;
   const system = {
     source: sourceName,
     trigger: "",
-    effect: `<p>${escapeHTML(label)} granted by ${escapeHTML(sourceName)}.</p>`,
+    effect: paragraph(effect),
     notes: sourceNotes(sourceItem),
-    rules: sourceRules(`${label} granted by ${sourceName}.`, sourceItem, type),
-    usage: narrativeUsage("triggered"),
+    rules: sourceRules(effect, sourceItem, type, paragraph(effect)),
+    usage: narrativeUsage(detail.usageKind ?? (type === "curse" ? "triggered" : "passive")),
     automation: defaultAutomation()
   };
 
-  if (type === "blessing") system.bonus = "";
-  if (type === "curse") system.pantheonDice = 1;
+  if (type === "blessing") system.bonus = detail.bonus ?? "";
+  if (type === "curse") system.pantheonDice = detail.pantheonDice ?? 1;
 
   return {
     name,
@@ -229,12 +368,12 @@ function simpleEmbeddedItem(type, name, sourceItem) {
   };
 }
 
-function sourceRules(summary, sourceItem, type) {
+function sourceRules(summary, sourceItem, type, fullText = "") {
   const source = sourceReference(sourceItem);
 
   return {
     summary,
-    fullText: sourceItem.system.description ?? "",
+    fullText: fullText || sourceItem.system.description || paragraph(summary),
     source: {
       ...source,
       type
@@ -254,6 +393,10 @@ function sourceReference(item) {
 function sourceNotes(item) {
   const source = sourceReference(item);
   return `<p>Source: ${escapeHTML(source.book)}${source.page ? `, p. ${source.page}` : ""}; ${escapeHTML(source.section)}.</p>`;
+}
+
+function paragraph(text) {
+  return `<p>${escapeHTML(text)}</p>`;
 }
 
 function narrativeUsage(kind = "narrative") {
@@ -304,6 +447,22 @@ function isNumeric(value) {
 
 function typeLabel(type) {
   return game.i18n.localize(`TYPES.Item.${type}`) || type;
+}
+
+function kindLabel(kind) {
+  return {
+    individual: "Individual",
+    group: "Group",
+    landmark: "Landmark"
+  }[kind] ?? "Group";
+}
+
+function kindCode(kind) {
+  return {
+    individual: "I",
+    group: "G",
+    landmark: "L"
+  }[kind] ?? "G";
 }
 
 const ATTACHMENT_GRANTS = {

@@ -9,7 +9,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       height: 820
     },
     window: {
-      title: "PTG.Sheet.CharacterSheet"
+      title: "PTG.Sheet.CharacterSheet",
+      resizable: true
     },
     dragDrop: [{ dropSelector: ".ptg-sheet" }]
   };

@@ -329,26 +329,75 @@ function choiceAbilityItems() {
   const seen = new Set();
 
   for (const choice of PTG_PREMADE_CHOICES) {
-    const page = choice.flags?.["part-time-gods"]?.page ?? 0;
-    const sourceName = `${choice.name} ${typeName(choice.type)}`;
-    const grants = choice.system?.grants ?? {};
-
-    for (const type of ["blessing", "curse"]) {
-      const name = grants[type];
-      if (!name) continue;
+    for (const grant of choiceAbilityGrants(choice)) {
+      const { type, name, sourceName, page, effect, pantheonDice } = grant;
 
       const key = `${type}:${name}`;
       if (seen.has(key)) continue;
       seen.add(key);
 
-      const effect = `${name} is a book-referenced ${type} option granted by ${choice.name}.`;
       items.push(type === "blessing"
         ? blessing(name, sourceName, page, effect)
-        : curse(name, sourceName, page, type === "curse" ? 1 : 0, effect));
+        : curse(name, sourceName, page, pantheonDice ?? 1, effect));
     }
   }
 
   return items;
+}
+
+function choiceAbilityGrants(choice) {
+  const page = choice.flags?.["part-time-gods"]?.page ?? 0;
+  const sourceName = `${choice.name} ${typeName(choice.type)}`;
+  const grants = choice.system?.grants ?? {};
+  const abilities = [];
+
+  if (grants.blessing) {
+    abilities.push({
+      type: "blessing",
+      name: grants.blessing,
+      sourceName,
+      page,
+      effect: `${grants.blessing} is a book-referenced blessing option granted by ${choice.name}.`
+    });
+  }
+
+  if (grants.curse) {
+    abilities.push({
+      type: "curse",
+      name: grants.curse,
+      sourceName,
+      page,
+      pantheonDice: 1,
+      effect: `${grants.curse} is a book-referenced curse option granted by ${choice.name}.`
+    });
+  }
+
+  for (const career of choice.system?.careerOptions ?? []) {
+    const careerSource = `${career.name} (${choice.name})`;
+
+    if (career.blessing?.name) {
+      abilities.push({
+        type: "blessing",
+        name: career.blessing.name,
+        sourceName: careerSource,
+        page,
+        effect: career.blessing.effect ?? `${career.blessing.name} is a book-referenced blessing option granted by ${careerSource}.`
+      });
+    }
+
+    if (career.curse?.name) {
+      abilities.push({
+        type: "curse",
+        name: career.curse.name,
+        sourceName: careerSource,
+        page,
+        pantheonDice: career.curse.pantheonDice ?? 1,
+        effect: career.curse.effect ?? `${career.curse.name} is a book-referenced curse option granted by ${careerSource}.`
+      });
+    }
+  }
+
+  return abilities;
 }
 
 function baseItem(type, name, page, system) {

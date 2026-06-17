@@ -1,5 +1,12 @@
 .part-time-gods.sheet.character {
-  min-width: 760px;
+  min-width: 620px;
+  min-height: 480px;
+}
+
+.part-time-gods.sheet.character .window-content,
+.part-time-gods.sheet.character [data-application-part="form"] {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .part-time-gods.sheet.antagonist,
@@ -12,6 +19,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
   padding: 12px;
 }
 
@@ -57,16 +67,22 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.ptg-resources,
-.ptg-derived,
-.ptg-roll-controls {
+.ptg-resources {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 8px;
+}
+
+.ptg-derived {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
 .ptg-roll-controls {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .ptg-compact-sheet .ptg-stat-grid {
@@ -169,6 +185,7 @@
 
 .ptg-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   border-bottom: 1px solid var(--color-border-light-tertiary);
 }
@@ -334,7 +351,74 @@
 }
 
 @media (max-width: 820px) {
+  .part-time-gods.sheet.character {
+    min-width: 520px;
+  }
+
+  .ptg-identity,
+  .ptg-roll-controls,
+  .ptg-list {
+    grid-template-columns: 1fr;
+  }
+
+  .ptg-derived {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .ptg-inventory {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .part-time-gods.sheet.character {
+    min-width: 420px;
+  }
+
+  .ptg-header {
+    grid-template-columns: 72px 1fr;
+  }
+
+  .ptg-header .profile-img {
+    width: 72px;
+    height: 72px;
+  }
+
+  .ptg-name {
+    font-size: 22px;
+  }
+
+  .ptg-grid,
+  .ptg-derived,
+  .ptg-item-fields.two,
+  .ptg-item-fields.three,
+  .ptg-item-fields.four,
+  .ptg-grants {
+    grid-template-columns: 1fr;
+  }
+
+  .ptg-item-fields .span-2,
+  .ptg-item-fields .span-3,
+  .ptg-item-fields .span-4 {
+    grid-column: span 1;
+  }
+
+  .ptg-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ptg-row span,
+  .ptg-row input,
+  .ptg-row button {
+    grid-column: 1;
+  }
+
+  .ptg-item-row {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .ptg-item-meta,
+  .ptg-item-actions {
+    grid-column: 2;
   }
 }
