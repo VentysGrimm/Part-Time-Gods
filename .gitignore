@@ -17,7 +17,9 @@ pnpm-debug.log*
 
 # Local scratch/export working files
 .repo-git-test/
+.codex-publish-test/
 tmp/
+temp/
 
 # Foundry VTT compendium runtime files
 packs/**/LOCK
