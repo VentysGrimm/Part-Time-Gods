@@ -352,30 +352,30 @@
 
 .ptg-character-sheet {
   gap: 8px;
-  color: #1f1a17;
-  background: #d8d0c1;
+  color: #21162d;
+  background: #efe8f7;
 }
 
 .ptg-page-tabs {
   display: flex;
   gap: 4px;
   padding: 0 4px;
-  border-bottom: 2px solid #1f1a17;
+  border-bottom: 2px solid #8d74b8;
 }
 
 .ptg-page-tabs .item {
   min-width: 84px;
-  border: 1px solid #1f1a17;
+  border: 1px solid #8d74b8;
   border-bottom: 0;
   border-radius: 4px 4px 0 0;
   padding: 6px 12px;
-  background: #e8e1d4;
-  color: #1f1a17;
+  background: #ddd0f0;
+  color: #21162d;
   font-weight: 700;
 }
 
 .ptg-page-tabs .item.active {
-  background: #f6f1e8;
+  background: #faf7ff;
 }
 
 .ptg-character-page {
@@ -384,8 +384,8 @@
   gap: 8px;
   min-height: 0;
   padding: 14px;
-  border: 2px solid #1f1a17;
-  background: #f6f1e8;
+  border: 2px solid #8d74b8;
+  background: #faf7ff;
 }
 
 .ptg-paper-header {
@@ -399,8 +399,8 @@
   width: 92px;
   height: 92px;
   object-fit: cover;
-  border: 2px solid #1f1a17;
-  background: #f6f1e8;
+  border: 2px solid #8d74b8;
+  background: #faf7ff;
 }
 
 .ptg-paper-title {
@@ -411,13 +411,13 @@
 .ptg-paper-panel {
   min-width: 0;
   padding: 8px;
-  border: 1px solid #1f1a17;
-  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid #b49bd8;
+  background: #f3edfb;
 }
 
 .ptg-paper-panel h2 {
   margin: 0 0 6px;
-  color: #1f1a17;
+  color: #21162d;
   font-size: 14px;
   font-weight: 800;
   text-align: center;
@@ -426,7 +426,7 @@
 
 .ptg-character-sheet label span,
 .ptg-character-sheet .ptg-readout span {
-  color: #1f1a17;
+  color: #35214b;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0;
@@ -437,10 +437,10 @@
 .ptg-character-sheet select,
 .ptg-character-sheet textarea {
   border: 0;
-  border-bottom: 1px solid #1f1a17;
+  border-bottom: 1px solid #8d74b8;
   border-radius: 0;
-  background: rgba(255, 255, 255, 0.38);
-  color: #1f1a17;
+  background: #ffffff;
+  color: #21162d;
 }
 
 .ptg-character-sheet textarea {
@@ -487,7 +487,7 @@
   gap: 8px;
   align-items: center;
   min-height: 28px;
-  border-bottom: 1px solid #1f1a17;
+  border-bottom: 1px solid #b49bd8;
 }
 
 .ptg-readout strong {
@@ -503,7 +503,7 @@
 
 .ptg-track em {
   grid-column: 3;
-  color: #1f1a17;
+  color: #4e3971;
   font-size: 11px;
   font-style: normal;
   text-align: right;
@@ -562,11 +562,11 @@
 
 .ptg-score-row button {
   border: 0;
-  border-bottom: 1px solid #1f1a17;
+  border-bottom: 1px solid #8d74b8;
   border-radius: 0;
   padding: 2px 0;
   background: transparent;
-  color: #1f1a17;
+  color: #21162d;
   font-weight: 700;
   text-align: left;
 }
@@ -577,7 +577,7 @@
 
 .ptg-sheet-note {
   margin: 6px 0 0;
-  color: #1f1a17;
+  color: #4e3971;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.3;
@@ -605,7 +605,7 @@
 .ptg-paper-table th,
 .ptg-paper-table td {
   padding: 4px;
-  border-bottom: 1px solid #1f1a17;
+  border-bottom: 1px solid #b49bd8;
   text-align: left;
   vertical-align: middle;
 }
@@ -618,10 +618,10 @@
 .ptg-paper-table button,
 .ptg-mini-item button {
   padding: 2px 6px;
-  border: 1px solid #1f1a17;
+  border: 1px solid #8d74b8;
   border-radius: 3px;
-  background: #e8e1d4;
-  color: #1f1a17;
+  background: #e8def6;
+  color: #21162d;
   font-size: 11px;
 }
 
@@ -643,7 +643,7 @@
   gap: 6px;
   align-items: center;
   padding: 3px 0;
-  border-bottom: 1px solid rgba(31, 26, 23, 0.35);
+  border-bottom: 1px solid rgba(141, 116, 184, 0.45);
 }
 
 .ptg-mini-item span {
