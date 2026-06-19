@@ -25,6 +25,16 @@
           <span>Conditions</span>
           <textarea name="system.conditions">{{system.conditions}}</textarea>
         </label>
+        <div class="ptg-mini-item-list">
+          {{#each inventory.conditions as |item|}}
+            <div class="ptg-mini-item" data-item-id="{{item.id}}">
+              <span>{{item.name}}</span>
+              <small>{{item.system.category}} {{item.system.severity}}</small>
+              <button type="button" data-item-action="edit">Edit</button>
+              <button type="button" data-item-action="delete">Remove</button>
+            </div>
+          {{/each}}
+        </div>
         <label>
           <span>Failings</span>
           <textarea name="system.attachments.failings">{{system.attachments.failings}}</textarea>

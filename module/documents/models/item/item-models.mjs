@@ -270,6 +270,18 @@ export class PTGCurseData extends PTGBaseItemData {
   }
 }
 
+export class PTGConditionData extends PTGBaseItemData {
+  static defineSchema() {
+    return {
+      ...this.rulesAutomationFields("condition", "passive"),
+      category: this.textField(),
+      severity: this.numberField(1),
+      effect: this.htmlField(),
+      notes: this.htmlField()
+    };
+  }
+}
+
 export class PTGWeaponData extends PTGBaseItemData {
   static defineSchema() {
     return {

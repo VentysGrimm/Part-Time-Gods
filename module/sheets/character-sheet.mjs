@@ -119,6 +119,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       vassals: ["vassal"],
       blessings: ["blessing"],
       curses: ["curse"],
+      conditions: ["condition"],
       gear: ["weapon", "armor"]
     };
 
@@ -141,6 +142,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       { key: "bonds", title: "Bonds", family: "Attachments", mode: "attachment", items: inventory.bonds },
       { key: "worshippers", title: "Worshippers", family: "Attachments", mode: "attachment", items: inventory.worshippers },
       { key: "vassals", title: "Vassals", family: "Attachments", mode: "attachment", items: inventory.vassals },
+      { key: "conditions", title: "Conditions", family: "Character State", mode: "usable", items: inventory.conditions },
       { key: "blessings", title: "Blessings", family: "Boons and Burdens", mode: "usable", items: inventory.blessings },
       { key: "curses", title: "Curses", family: "Boons and Burdens", mode: "usable", items: inventory.curses }
     ];

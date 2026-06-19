@@ -111,6 +111,9 @@
       "curse": {
         "htmlFields": ["effect", "notes"]
       },
+      "condition": {
+        "htmlFields": ["effect", "notes"]
+      },
       "weapon": {
         "htmlFields": ["description", "notes"]
       },

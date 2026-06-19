@@ -66,6 +66,29 @@ export const PTG_PREMADE_ITEMS = [
   curse("Self-Destruction", "Failing", 109, 0, "Danger becomes seductive, worsening incoming harm but stiffening against fear."),
   curse("Vengeance", "Failing", 110, 0, "Retaliation becomes difficult to resist but helps when pursuing payback."),
 
+  condition("Bleeding", "physical", 1, 205, "Ongoing physical harm from blood loss or open wounds."),
+  condition("Burned/Frozen", "physical", 1, 205, "Temperature injury that makes continued action harder."),
+  condition("Deprived", "physical", 1, 205, "Lack of a needed resource, rest, or care creates physical pressure."),
+  condition("Impaired", "physical", 1, 206, "A sense, limb, tool, or other physical capability is compromised."),
+  condition("Injured", "physical", 1, 206, "Lasting bodily harm that should be tracked until treated or recovered."),
+  condition("Sickened", "physical", 1, 206, "Illness, poison, nausea, or similar physical distress."),
+  condition("Unconscious", "physical", 1, 206, "Unable to act until the character recovers or is revived."),
+
+  condition("Afraid", "mental", 1, 206, "Fear constrains choices and can push the character away from danger."),
+  condition("Confused", "mental", 1, 206, "Uncertainty or muddled perception makes clear action difficult."),
+  condition("Convinced", "mental", 1, 206, "Persuasion, belief, or influence has taken hold."),
+  condition("Dazed", "mental", 1, 206, "Shock or disorientation slows response and judgment."),
+  condition("Embarrassed", "mental", 1, 206, "Social pressure or shame interferes with confident action."),
+  condition("Hopeless", "mental", 1, 206, "Despair makes continued effort difficult to sustain."),
+  condition("Overwhelmed", "mental", 1, 206, "Too much pressure or stimulus blocks clean action."),
+
+  condition("Broken", "crossover", 1, 207, "A severe compromised state that can affect body, mind, or both."),
+  condition("Drunk", "crossover", 1, 207, "Intoxication affects control, judgment, and action."),
+  condition("Ignored Limits", "crossover", 1, 207, "The character has pushed beyond a safe boundary and must track the fallout."),
+  condition("On the Altar", "crossover", 1, 207, "Ritual vulnerability or sacrificial exposure puts the character at risk."),
+  condition("Pain", "crossover", 1, 207, "Distracting pain interferes with focus and physical control."),
+  condition("Scarred", "crossover", 1, 207, "A lingering mark, wound, or trauma remains after the immediate harm passes."),
+
   vassal("Custom Vassal", 1, 121, "A mythological creature, Outsider, or supernatural ally bound to the god."),
 
   ...choiceAbilityItems(),
@@ -255,6 +278,23 @@ function vassal(name, level, page, benefit) {
       trigger: "favor",
       target: "ally",
       action: "request-favor"
+    })
+  });
+}
+
+function condition(name, category, severity, page, effect) {
+  return baseItem("condition", name, page, {
+    category,
+    severity,
+    effect: paragraph(effect),
+    notes: source(page),
+    ...itemRules("condition", name, page, effect, {
+      kind: "passive",
+      trigger: "applied",
+      target: "self",
+      action: "track-condition",
+      enabled: true,
+      condition: { name, category, severity }
     })
   });
 }
@@ -483,6 +523,7 @@ function defaultIcon(type) {
     armor: "icons/equipment/chest/breastplate-layered-steel.webp",
     blessing: "icons/magic/holy/prayer-hands-glowing-yellow.webp",
     bond: "icons/sundries/documents/document-sealed-red.webp",
+    condition: "icons/svg/daze.svg",
     curse: "icons/magic/unholy/silhouette-robe-evil-power.webp",
     relic: "icons/commodities/treasure/token-runed-os-grey.webp",
     truth: "icons/magic/symbols/rune-sigil-black-pink.webp",
@@ -498,6 +539,7 @@ const typeLabels = {
   armor: "Armor",
   blessing: "Blessings",
   bond: "Bonds",
+  condition: "Conditions",
   curse: "Curses and Failings",
   relic: "Relics",
   truth: "Truths",

@@ -20,6 +20,7 @@
       "Vassal": "Vassal",
       "Blessing": "Blessing",
       "Curse": "Curse",
+      "Condition": "Condition",
       "Weapon": "Weapon",
       "Armor": "Armor"
     },
@@ -59,6 +60,7 @@
       "vassal": "Vassal",
       "blessing": "Blessing",
       "curse": "Curse",
+      "condition": "Condition",
       "weapon": "Weapon",
       "armor": "Armor"
     }

@@ -414,6 +414,36 @@
     </section>
   {{/if}}
 
+  {{#if (eq item.type "condition")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Category</span>
+        <select name="system.category">
+          <option value=""></option>
+          <option value="physical" {{#if (eq system.category "physical")}}selected{{/if}}>Physical</option>
+          <option value="mental" {{#if (eq system.category "mental")}}selected{{/if}}>Mental</option>
+          <option value="crossover" {{#if (eq system.category "crossover")}}selected{{/if}}>Crossover</option>
+        </select>
+      </label>
+      <label>
+        <span>Severity</span>
+        <input name="system.severity" type="number" value="{{system.severity}}" min="0">
+      </label>
+      <label>
+        <span>Usage</span>
+        <input name="system.usage.trigger" type="text" value="{{system.usage.trigger}}">
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Effect</h2>
+      {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
   {{#if (eq item.type "weapon")}}
     <section class="ptg-item-fields four">
       <label>
@@ -500,4 +530,3 @@
     </section>
   {{/if}}
 </form>
-

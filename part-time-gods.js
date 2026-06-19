@@ -6,6 +6,7 @@ import {
   PTGArchetypeData,
   PTGBlessingData,
   PTGBondData,
+  PTGConditionData,
   PTGCurseData,
   PTGDomainData,
   PTGOccupationData,
@@ -73,6 +74,7 @@ Hooks.once("init", async () => {
     vassal: PTGVassalData,
     blessing: PTGBlessingData,
     curse: PTGCurseData,
+    condition: PTGConditionData,
     weapon: PTGWeaponData,
     armor: PTGArmorData
   };

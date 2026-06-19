@@ -639,7 +639,7 @@
 
 .ptg-mini-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   gap: 6px;
   align-items: center;
   padding: 3px 0;
@@ -650,6 +650,14 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ptg-mini-item small {
+  color: var(--ptg-muted);
+  font-size: 0.75rem;
+  justify-self: end;
+  text-transform: capitalize;
   white-space: nowrap;
 }
 
