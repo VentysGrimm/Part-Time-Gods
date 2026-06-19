@@ -1,5 +1,7 @@
+import { getDragEventData, itemFromDropData } from "../util/drop-data.mjs";
+
 const { ActorSheetV2 } = foundry.applications.sheets;
-const { HandlebarsApplicationMixin } = foundry.applications.api;
+const { DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static DEFAULT_OPTIONS = {
@@ -35,6 +37,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.inventory = this.#prepareInventory();
     context.inventorySections = this.#prepareInventorySections(context.inventory);
     context.gearSummary = this.#prepareGearSummary(context.inventory.gear);
+    context.skillColumns = this.#prepareSkillColumns();
+    context.manifestationColumns = this.#prepareManifestationColumns();
     context.itemTypeLabels = Object.fromEntries(
       Object.keys(CONFIG.Item.dataModels ?? {}).map(type => [type, game.i18n.localize(`TYPES.Item.${type}`)])
     );
@@ -63,8 +67,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   }
 
   async _onDrop(event) {
-    const data = TextEditor.getDragEventData(event);
-    const item = await Item.implementation.fromDropData(data);
+    const data = getDragEventData(event);
+    const item = await itemFromDropData(data);
 
     if (!item) return false;
 
@@ -84,6 +88,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     for (const panel of this.element.querySelectorAll("[data-ptg-panel]")) {
       panel.hidden = panel.dataset.ptgPanel !== tabName;
+      panel.classList.toggle("active", panel.dataset.ptgPanel === tabName);
     }
   }
 
@@ -155,18 +160,35 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     });
   }
 
+  #prepareSkillColumns() {
+    return [
+      ["athletics", "crafts", "deception", "discipline", "empathy", "fighting", "fortitude"],
+      ["influence", "intuition", "knowledge", "marksman", "medicine", "might", "perception"],
+      ["perform", "speed", "stealth", "survival", "tech", "travel"]
+    ].map(column => column.filter(key => CONFIG.PTG.skills[key]));
+  }
+
+  #prepareManifestationColumns() {
+    return [
+      ["aegis", "beckon", "journey", "minion", "puppetry"],
+      ["oracle", "ruin", "shaping", "soul"]
+    ].map(column => column.filter(key => CONFIG.PTG.manifestations[key]));
+  }
+
   async #onItemAction(button) {
     const item = this.actor.items.get(button.closest("[data-item-id]")?.dataset.itemId);
     const action = button.dataset.itemAction;
 
     if (!item) return;
 
-    if (action === "edit") return item.sheet.render(true);
+    if (action === "edit") return item.sheet.render({ force: true });
 
     if (action === "delete") {
-      const confirmed = await Dialog.confirm({
-        title: `Delete ${item.name}`,
-        content: `<p>Remove <strong>${item.name}</strong> from ${this.actor.name}?</p>`
+      const confirmed = await DialogV2.confirm({
+        window: { title: `Delete ${item.name}` },
+        content: `<p>Remove <strong>${item.name}</strong> from ${this.actor.name}?</p>`,
+        rejectClose: false,
+        modal: true
       });
 
       if (confirmed) await item.delete();

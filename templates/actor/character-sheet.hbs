@@ -1,172 +1,321 @@
-<form class="ptg-sheet" autocomplete="off">
-  <header class="ptg-header">
-    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}">
-    <div class="ptg-title">
-      <input class="ptg-name" name="name" type="text" value="{{actor.name}}" placeholder="Name">
-      <input name="system.identity.concept" type="text" value="{{system.identity.concept}}" placeholder="Concept">
-    </div>
-  </header>
-
-  <section class="ptg-grid ptg-identity">
-    <label>
-      <span>Occupation</span>
-      <input name="system.identity.occupation" type="text" value="{{system.identity.occupation}}">
-    </label>
-    <label>
-      <span>Archetype</span>
-      <input name="system.identity.archetype" type="text" value="{{system.identity.archetype}}">
-    </label>
-    <label>
-      <span>Dominion</span>
-      <input name="system.identity.dominion" type="text" value="{{system.identity.dominion}}">
-    </label>
-    <label>
-      <span>Theology</span>
-      <input name="system.identity.theology" type="text" value="{{system.identity.theology}}">
-    </label>
-  </section>
-
-  <section class="ptg-resources">
-    <label>
-      <span>Health</span>
-      <div class="ptg-pair">
-        <input name="system.resources.health.value" type="number" value="{{system.resources.health.value}}" min="0">
-        <strong>/ {{system.resources.health.max}}</strong>
-      </div>
-    </label>
-    <label>
-      <span>Psyche</span>
-      <div class="ptg-pair">
-        <input name="system.resources.psyche.value" type="number" value="{{system.resources.psyche.value}}" min="0">
-        <strong>/ {{system.resources.psyche.max}}</strong>
-      </div>
-    </label>
-    <label>
-      <span>Fragments</span>
-      <input name="system.resources.fragments.value" type="number" value="{{system.resources.fragments.value}}" min="0">
-    </label>
-    <label>
-      <span>Pantheon</span>
-      <input name="system.resources.pantheon.value" type="number" value="{{system.resources.pantheon.value}}" min="0">
-    </label>
-    <label>
-      <span>Spark</span>
-      <input name="system.resources.spark" type="number" value="{{system.resources.spark}}" min="1">
-    </label>
-    <label>
-      <span>Free Time</span>
-      <input name="system.resources.freeTime" type="number" value="{{system.resources.freeTime}}" min="0">
-    </label>
-    <label>
-      <span>Wealth</span>
-      <input name="system.resources.wealth" type="number" value="{{system.resources.wealth}}" min="0">
-    </label>
-    <label>
-      <span>Occupation FT</span>
-      <input name="system.resources.occupationFreeTime" type="number" value="{{system.resources.occupationFreeTime}}" min="0">
-    </label>
-    <label>
-      <span>Occupation Wealth</span>
-      <input name="system.resources.occupationWealth" type="number" value="{{system.resources.occupationWealth}}" min="0">
-    </label>
-  </section>
-
-  <section class="ptg-derived">
-    <div><span>Initiative</span><strong>{{system.derived.initiative}}</strong></div>
-    <div><span>Strength</span><strong>{{system.derived.strength}}</strong></div>
-    <div><span>Movement</span><strong>{{system.derived.movement}}</strong></div>
-    <div><span>Armor</span><strong>{{system.derived.armor}}</strong></div>
-    <div><span>Carry Wt</span><strong>{{system.derived.carriedWeight}}</strong></div>
-  </section>
-
-  <nav class="ptg-tabs">
-    <button type="button" class="active" data-ptg-tab="skills">Skills</button>
-    <button type="button" data-ptg-tab="manifestations">Manifestations</button>
-    <button type="button" data-ptg-tab="inventory">Inventory</button>
-    <button type="button" data-ptg-tab="notes">Notes</button>
+<form class="ptg-sheet ptg-character-sheet" autocomplete="off">
+  <nav class="ptg-page-tabs tabs" data-group="primary" aria-label="Character sheet pages">
+    <button type="button" class="item active" data-group="primary" data-tab="front" data-ptg-tab="front">Page 1</button>
+    <button type="button" class="item" data-group="primary" data-tab="back" data-ptg-tab="back">Page 2</button>
   </nav>
 
-  <section class="ptg-roll-controls">
-    <label>
-      <span>Second Skill</span>
-      <select data-roll-secondary>
-        {{#each skills as |label key|}}
-          <option value="{{key}}">{{label}}</option>
-        {{/each}}
-      </select>
-    </label>
-    <label>
-      <span>Manifest Skill</span>
-      <select data-roll-manifestation-skill>
-        {{#each skills as |label key|}}
-          <option value="{{key}}" {{#if (eq key "discipline")}}selected{{/if}}>{{label}}</option>
-        {{/each}}
-      </select>
-    </label>
-    <label>
-      <span>Difficulty</span>
-      <select data-roll-difficulty>
-        {{#each difficulties as |value key|}}
-          <option value="{{value}}">{{ptgLabel "difficulties" key}} ({{value}})</option>
-        {{/each}}
-      </select>
-    </label>
-  </section>
-
-  <section data-ptg-panel="skills">
-    <div class="ptg-list">
-      {{#each system.skills as |value key|}}
-        <label class="ptg-row">
-          <span>{{ptgLabel "skills" key}}</span>
-          <input name="system.skills.{{key}}" type="number" value="{{value}}" min="0">
-          <button type="button" data-roll-skill="{{key}}">Roll</button>
+  <section class="ptg-character-page tab active" data-group="primary" data-tab="front" data-ptg-panel="front">
+    <header class="ptg-paper-header">
+      <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}">
+      <div class="ptg-paper-title">
+        <label class="ptg-line-field wide">
+          <span>Name</span>
+          <input class="ptg-name" name="name" type="text" value="{{actor.name}}">
         </label>
-      {{/each}}
-    </div>
-  </section>
-
-  <section data-ptg-panel="manifestations" hidden>
-    <div class="ptg-list">
-      {{#each system.manifestations as |value key|}}
-        <label class="ptg-row">
-          <span>{{ptgLabel "manifestations" key}}</span>
-          <input name="system.manifestations.{{key}}" type="number" value="{{value}}" min="0">
-          <button type="button" data-roll-manifestation="{{key}}">Invoke</button>
+        <label class="ptg-line-field wide">
+          <span>God/dess Of</span>
+          <input name="system.identity.concept" type="text" value="{{system.identity.concept}}">
         </label>
-      {{/each}}
-    </div>
-  </section>
+      </div>
+    </header>
 
-  <section data-ptg-panel="inventory" hidden>
-    <div class="ptg-inventory">
-      <section class="ptg-inventory-group">
-        <h2>Character Creation</h2>
-        {{> "systems/part-time-gods/templates/actor/parts/item-list.hbs" items=inventory.choices mode="choice"}}
+    <div class="ptg-page-one-grid">
+      <section class="ptg-paper-panel ptg-conditions-panel">
+        <label>
+          <span>Conditions</span>
+          <textarea name="system.conditions">{{system.conditions}}</textarea>
+        </label>
+        <label>
+          <span>Failings</span>
+          <textarea name="system.attachments.failings">{{system.attachments.failings}}</textarea>
+        </label>
       </section>
 
-      {{#each inventorySections as |section|}}
-        <section class="ptg-inventory-group" data-item-section="{{section.key}}">
-          <div class="ptg-section-heading">
-            <h2>{{section.title}}</h2>
-            <span>{{section.family}}</span>
-          </div>
-          {{> "systems/part-time-gods/templates/actor/parts/item-list.hbs" items=section.items mode=section.mode}}
-        </section>
-      {{/each}}
+      <section class="ptg-paper-panel ptg-derived-panel">
+        <label class="ptg-line-field">
+          <span>Level</span>
+          <input name="system.resources.spark" type="number" value="{{system.resources.spark}}" min="1">
+        </label>
+        <div class="ptg-readout"><span>Initiative</span><strong>{{system.derived.initiative}}</strong></div>
+        <div class="ptg-readout"><span>Strength</span><strong>{{system.derived.strength}}</strong></div>
+        <div class="ptg-readout"><span>Movement</span><strong>{{system.derived.movement}}</strong></div>
+        <label class="ptg-line-field">
+          <span>Work FT/W</span>
+          <input name="system.resources.occupationFreeTime" type="number" value="{{system.resources.occupationFreeTime}}" min="0">
+        </label>
+      </section>
 
-      <section class="ptg-inventory-group">
-        <h2>Gear</h2>
-        <div class="ptg-inventory-summary">
-          <span>Total Cost {{gearSummary.cost}}</span>
-          <span>Total Wt {{gearSummary.weight}}</span>
-          <span>Equipped Armor {{gearSummary.equippedArmor}}</span>
+      <section class="ptg-paper-panel ptg-resource-panel">
+        <label class="ptg-track">
+          <span>Health</span>
+          <input name="system.resources.health.value" type="number" value="{{system.resources.health.value}}" min="0">
+          <strong>Max {{system.resources.health.max}}</strong>
+          <em>5 + Fortitude</em>
+        </label>
+        <label class="ptg-track">
+          <span>Psyche</span>
+          <input name="system.resources.psyche.value" type="number" value="{{system.resources.psyche.value}}" min="0">
+          <strong>Max {{system.resources.psyche.max}}</strong>
+          <em>5 + Discipline</em>
+        </label>
+        <label class="ptg-track">
+          <span>Free Time</span>
+          <input name="system.resources.freeTime" type="number" value="{{system.resources.freeTime}}" min="0">
+          <input name="system.resources.freeTimeMax" type="number" value="{{system.resources.freeTimeMax}}" min="0" aria-label="Free Time Max">
+          <em>Max</em>
+        </label>
+        <label class="ptg-track">
+          <span>Wealth</span>
+          <input name="system.resources.wealth" type="number" value="{{system.resources.wealth}}" min="0">
+          <input name="system.resources.wealthMax" type="number" value="{{system.resources.wealthMax}}" min="0" aria-label="Wealth Max">
+          <em>Max</em>
+        </label>
+        <label class="ptg-track">
+          <span>Fragments</span>
+          <input name="system.resources.fragments.value" type="number" value="{{system.resources.fragments.value}}" min="0">
+          <strong>Max {{system.resources.fragments.max}}</strong>
+          <em>Spark x3</em>
+        </label>
+        <label>
+          <span>Legendary Acts</span>
+          <textarea name="system.resources.legendaryActs">{{system.resources.legendaryActs}}</textarea>
+        </label>
+      </section>
+    </div>
+
+    <section class="ptg-paper-panel ptg-identity-strip">
+      <label class="ptg-line-field">
+        <span>Occupation</span>
+        <input name="system.identity.occupation" type="text" value="{{system.identity.occupation}}">
+      </label>
+      <label class="ptg-line-field">
+        <span>Archetype</span>
+        <input name="system.identity.archetype" type="text" value="{{system.identity.archetype}}">
+      </label>
+      <label class="ptg-line-field">
+        <span>Age & Ethnicity</span>
+        <input name="system.identity.ageEthnicity" type="text" value="{{system.identity.ageEthnicity}}">
+      </label>
+      <label class="ptg-line-field">
+        <span>Theology</span>
+        <input name="system.identity.theology" type="text" value="{{system.identity.theology}}">
+      </label>
+      <label class="ptg-line-field">
+        <span>Dominion</span>
+        <input name="system.identity.dominion" type="text" value="{{system.identity.dominion}}">
+      </label>
+    </section>
+
+    <section class="ptg-paper-columns">
+      <section class="ptg-paper-panel">
+        <h2>Skills</h2>
+        <div class="ptg-skill-columns">
+          {{#each skillColumns as |column|}}
+            <div class="ptg-score-column">
+              {{#each column as |key|}}
+                <label class="ptg-score-row">
+                  <button type="button" data-roll-skill="{{key}}">{{ptgLabel "skills" key}}</button>
+                  <input name="system.skills.{{key}}" type="number" value="{{lookup @root.system.skills key}}" min="0">
+                </label>
+              {{/each}}
+            </div>
+          {{/each}}
         </div>
-        {{> "systems/part-time-gods/templates/actor/parts/item-list.hbs" items=inventory.gear mode="gear"}}
+        <p class="ptg-sheet-note">Make Skill + Skill combo and roll dice equal to their total value. 7-9 = 1 Success, 10 = 2 successes.</p>
       </section>
-    </div>
+
+      <section class="ptg-paper-panel">
+        <h2>Manifestations</h2>
+        <div class="ptg-manifestation-columns">
+          {{#each manifestationColumns as |column|}}
+            <div class="ptg-score-column">
+              {{#each column as |key|}}
+                <label class="ptg-score-row">
+                  <button type="button" data-roll-manifestation="{{key}}">{{ptgLabel "manifestations" key}}</button>
+                  <input name="system.manifestations.{{key}}" type="number" value="{{lookup @root.system.manifestations key}}" min="0">
+                </label>
+              {{/each}}
+            </div>
+          {{/each}}
+        </div>
+        <p class="ptg-sheet-note">Manifestation + Skill: 7-9 = 1 Success, 10 = 2 successes. Level 0 Manifestations cannot be used.</p>
+        <div class="ptg-roll-controls ptg-paper-rolls">
+          <label>
+            <span>Second Skill</span>
+            <select data-roll-secondary>
+              {{#each skills as |label key|}}
+                <option value="{{key}}">{{label}}</option>
+              {{/each}}
+            </select>
+          </label>
+          <label>
+            <span>Manifest Skill</span>
+            <select data-roll-manifestation-skill>
+              {{#each skills as |label key|}}
+                <option value="{{key}}" {{#if (eq key "discipline")}}selected{{/if}}>{{label}}</option>
+              {{/each}}
+            </select>
+          </label>
+          <label>
+            <span>Difficulty</span>
+            <select data-roll-difficulty>
+              {{#each difficulties as |value key|}}
+                <option value="{{value}}">{{ptgLabel "difficulties" key}} ({{value}})</option>
+              {{/each}}
+            </select>
+          </label>
+        </div>
+      </section>
+    </section>
+
+    <section class="ptg-paper-panel">
+      <label>
+        <span>Specialties</span>
+        <textarea name="system.specialties">{{system.specialties}}</textarea>
+      </label>
+      <div class="ptg-xp-row">
+        <label class="ptg-line-field">
+          <span>XP Gained</span>
+          <input name="system.resources.xpGained" type="number" value="{{system.resources.xpGained}}" min="0">
+        </label>
+        <label class="ptg-line-field">
+          <span>XP Spent</span>
+          <input name="system.resources.xpSpent" type="number" value="{{system.resources.xpSpent}}" min="0">
+        </label>
+      </div>
+    </section>
   </section>
 
-  <section data-ptg-panel="notes" hidden>
-    {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+  <section class="ptg-character-page tab" data-group="primary" data-tab="back" data-ptg-panel="back" hidden>
+    <section class="ptg-back-top">
+      <div class="ptg-paper-panel">
+        <h2>Blessings</h2>
+        <p class="ptg-sheet-note">Bonuses or special abilities.</p>
+        <textarea name="system.attachments.blessings">{{system.attachments.blessings}}</textarea>
+        <div class="ptg-mini-item-list">
+          {{#each inventory.blessings as |item|}}
+            <div class="ptg-mini-item" data-item-id="{{item.id}}">
+              <span>{{item.name}}</span>
+              <button type="button" data-item-action="edit">Edit</button>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+
+      <div class="ptg-paper-panel">
+        <h2>Curses</h2>
+        <p class="ptg-sheet-note">Penalties or negative traits that produce Pantheon Dice.</p>
+        <textarea name="system.attachments.curses">{{system.attachments.curses}}</textarea>
+        <div class="ptg-mini-item-list">
+          {{#each inventory.curses as |item|}}
+            <div class="ptg-mini-item" data-item-id="{{item.id}}">
+              <span>{{item.name}}</span>
+              <button type="button" data-item-action="edit">Edit</button>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    </section>
+
+    <section class="ptg-paper-panel">
+      <h2>Bonds</h2>
+      <textarea name="system.attachments.bonds">{{system.attachments.bonds}}</textarea>
+      <table class="ptg-paper-table">
+        <thead>
+          <tr><th>Name</th><th>Type</th><th>Location</th><th>Level</th><th>Strain</th><th></th></tr>
+        </thead>
+        <tbody>
+          {{#each inventory.bonds as |item|}}
+            <tr data-item-id="{{item.id}}">
+              <td>{{item.name}}</td>
+              <td>{{item.system.kind}}</td>
+              <td>{{item.system.location}}</td>
+              <td>{{item.system.level}}</td>
+              <td>{{item.system.strain.value}} / {{item.system.strain.max}}</td>
+              <td><button type="button" data-item-action="edit">Edit</button></td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="ptg-paper-panel">
+      <h2>Worshippers / Vassals</h2>
+      <div class="ptg-back-text-pair">
+        <textarea name="system.attachments.worshippers">{{system.attachments.worshippers}}</textarea>
+        <textarea name="system.attachments.vassals">{{system.attachments.vassals}}</textarea>
+      </div>
+      <table class="ptg-paper-table">
+        <thead>
+          <tr><th>Name</th><th>Type</th><th>Location</th><th>Level</th><th>Strain</th><th></th></tr>
+        </thead>
+        <tbody>
+          {{#each inventory.worshippers as |item|}}
+            <tr data-item-id="{{item.id}}">
+              <td>{{item.name}}</td>
+              <td>Worshipper</td>
+              <td>{{item.system.group}}</td>
+              <td>{{item.system.level}}</td>
+              <td>{{item.system.strain.value}}</td>
+              <td><button type="button" data-item-action="edit">Edit</button></td>
+            </tr>
+          {{/each}}
+          {{#each inventory.vassals as |item|}}
+            <tr data-item-id="{{item.id}}">
+              <td>{{item.name}}</td>
+              <td>Vassal</td>
+              <td>{{item.system.concept}}</td>
+              <td>{{item.system.level}}</td>
+              <td>{{item.system.loyalty}}</td>
+              <td><button type="button" data-item-action="edit">Edit</button></td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="ptg-back-bottom">
+      <div class="ptg-paper-panel">
+        <h2>Relics</h2>
+        <textarea name="system.attachments.relics">{{system.attachments.relics}}</textarea>
+        <div class="ptg-mini-item-list">
+          {{#each inventory.relics as |item|}}
+            <div class="ptg-mini-item" data-item-id="{{item.id}}">
+              <span>{{item.name}}</span>
+              <span>Level {{item.system.level}}</span>
+              <button type="button" data-item-action="edit">Edit</button>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+
+      <div class="ptg-paper-panel">
+        <h2>Truths</h2>
+        <textarea name="system.attachments.truths">{{system.attachments.truths}}</textarea>
+        <div class="ptg-mini-item-list">
+          {{#each inventory.truths as |item|}}
+            <div class="ptg-mini-item" data-item-id="{{item.id}}">
+              <span>{{item.name}}</span>
+              <span>Rank {{item.system.rank}}</span>
+              <button type="button" data-item-action="use">Use</button>
+              <button type="button" data-item-action="edit">Edit</button>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    </section>
+
+    <section class="ptg-paper-panel">
+      <h2>Gear and Notes</h2>
+      <div class="ptg-inventory-summary">
+        <span>Total Cost {{gearSummary.cost}}</span>
+        <span>Total Wt {{gearSummary.weight}}</span>
+        <span>Equipped Armor {{gearSummary.equippedArmor}}</span>
+      </div>
+      {{> "systems/part-time-gods/templates/actor/parts/item-list.hbs" items=inventory.gear mode="gear"}}
+      <div class="ptg-editor-section">
+        {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+      </div>
+    </section>
   </section>
 </form>

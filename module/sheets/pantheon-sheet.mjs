@@ -9,7 +9,8 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       height: 620
     },
     window: {
-      title: "PTG.Sheet.PantheonSheet"
+      title: "PTG.Sheet.PantheonSheet",
+      resizable: true
     }
   };
 

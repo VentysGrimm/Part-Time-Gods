@@ -1,5 +1,7 @@
 import { PTGDiceEngine } from "../../dice/ptg-dice-engine.mjs";
 
+const { DialogV2 } = foundry.applications.api;
+
 export class PartTimeGodsActor extends Actor {
   prepareDerivedData() {
     super.prepareDerivedData();
@@ -15,8 +17,10 @@ export class PartTimeGodsActor extends Actor {
 
     system.resources.health.max = healthMax;
     system.resources.psyche.max = psycheMax;
+    system.resources.fragments.max = Math.max(0, spark * 3);
     system.resources.health.value = clamp(system.resources.health.value, 0, healthMax);
     system.resources.psyche.value = clamp(system.resources.psyche.value, 0, psycheMax);
+    system.resources.fragments.value = clamp(system.resources.fragments.value, 0, system.resources.fragments.max);
 
     system.derived.initiative = Number(skills.perception ?? 0) + Number(skills.speed ?? 0);
     system.derived.strength = Math.max(1, Number(skills.might ?? 0));
@@ -190,49 +194,35 @@ async function selectOccupationCareer(item) {
     };
   }
 
-  return new Promise(resolve => {
-    let resolved = false;
-    const content = `
-      <form class="ptg-career-dialog">
-        <div class="form-group">
-          <label>Career and Attachment</label>
-          <select name="careerOption">
-            ${options.map((option, index) => `<option value="${index}">${escapeHTML(option.label)}</option>`).join("")}
-          </select>
-        </div>
-      </form>
-    `;
+  const content = `
+    <div class="ptg-career-dialog">
+      <div class="form-group">
+        <label>Career and Attachment</label>
+        <select name="careerOption">
+          ${options.map((option, index) => `<option value="${index}">${escapeHTML(option.label)}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+  `;
 
-    new Dialog({
-      title: `Choose ${item.name} Career`,
-      content,
-      buttons: {
-        apply: {
-          label: "Apply",
-          callback: html => {
-            resolved = true;
-            const index = Number(getDialogValue(html, "careerOption") ?? 0);
-            const option = options[index] ?? options[0];
-            resolve({
-              career: careers[option.careerIndex],
-              attachment: careers[option.careerIndex].attachments?.[option.attachmentIndex] ?? null
-            });
-          }
-        },
-        cancel: {
-          label: "Cancel",
-          callback: () => {
-            resolved = true;
-            resolve(false);
-          }
-        }
-      },
-      default: "apply",
-      close: () => {
-        if (!resolved) resolve(false);
-      }
-    }).render(true);
+  const index = await DialogV2.prompt({
+    window: { title: `Choose ${item.name} Career` },
+    content,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Apply",
+      callback: (event, button) => Number(button.form.elements.careerOption?.value ?? 0)
+    }
   });
+
+  if (index === null || index === undefined) return false;
+
+  const option = options[index] ?? options[0];
+  return {
+    career: careers[option.careerIndex],
+    attachment: careers[option.careerIndex].attachments?.[option.attachmentIndex] ?? null
+  };
 }
 
 function careerAttachmentOptions(careers) {
@@ -248,13 +238,6 @@ function careerAttachmentOptions(careers) {
 
 function attachmentLabel(attachment) {
   return `Level ${attachment.level ?? 1} ${attachment.name} (${kindCode(attachment.kind)})`;
-}
-
-function getDialogValue(html, name) {
-  const selector = `[name="${name}"]`;
-  return html?.find?.(selector)?.[0]?.value
-    ?? html?.[0]?.querySelector?.(selector)?.value
-    ?? html?.querySelector?.(selector)?.value;
 }
 
 function choiceGrants(baseGrants, careerSelection) {

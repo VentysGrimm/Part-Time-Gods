@@ -29,6 +29,11 @@ import { PTG_PREMADE_CHOICES, importPremadeChoices } from "./module/data/premade
 import { populatePremadeCompendiums } from "./module/data/premade-compendiums.mjs";
 import { getPremadeJournals, importRulesJournals } from "./module/data/premade-journals.mjs";
 import { getGodTerritorySceneData, importGodTerritoryScene } from "./module/data/premade-scenes.mjs";
+import { itemFromDropData } from "./module/util/drop-data.mjs";
+
+const { DocumentSheetConfig } = foundry.applications.apps;
+const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
+const { loadTemplates } = foundry.applications.handlebars;
 
 Hooks.once("init", async () => {
   console.log("Part-Time Gods 2E | Initializing");
@@ -72,7 +77,7 @@ Hooks.once("init", async () => {
     armor: PTGArmorData
   };
 
-  if (typeof ActorSheet !== "undefined") Actors.unregisterSheet("core", ActorSheet);
+  if (ActorSheetV2) DocumentSheetConfig.unregisterSheet(Actor, "core", ActorSheetV2);
   DocumentSheetConfig.registerSheet(Actor, "part-time-gods", PTGCharacterSheet, {
     types: ["character"],
     makeDefault: true,
@@ -88,7 +93,7 @@ Hooks.once("init", async () => {
     makeDefault: true,
     label: "PTG.Sheet.PantheonSheet"
   });
-  if (typeof ItemSheet !== "undefined") Items.unregisterSheet("core", ItemSheet);
+  if (ItemSheetV2) DocumentSheetConfig.unregisterSheet(Item, "core", ItemSheetV2);
   DocumentSheetConfig.registerSheet(Item, "part-time-gods", PTGItemSheet, {
     types: Object.keys(CONFIG.Item.dataModels),
     makeDefault: true,
@@ -131,7 +136,7 @@ Hooks.once("ready", async () => {
 Hooks.on("dropCanvasData", async (canvas, data) => {
   if (data?.type !== "Item") return true;
 
-  const item = await Item.implementation.fromDropData(data);
+  const item = await itemFromDropData(data);
   if (!item || !["worshipper", "vassal"].includes(item.type)) return true;
 
   if (!game.user?.isGM) {
@@ -177,11 +182,14 @@ Hooks.on("chatMessage", (chatLog, message) => {
 });
 
 async function getOrCreateFollowerActor(item) {
-  const existing = game.actors.find(actor => actor.getFlag("part-time-gods", "sourceItemUuid") === item.uuid);
-  if (existing) return existing;
+  const sourceUuid = item.uuid;
+  if (sourceUuid) {
+    const existing = game.actors.find(actor => actor.getFlag("part-time-gods", "sourceItemUuid") === sourceUuid);
+    if (existing) return existing;
+  }
 
   const folder = await ensureFollowerActorFolder(item.type);
-  return Actor.create(followerActorData(item, folder), { renderSheet: false });
+  return Actor.create(followerActorData(item, folder, sourceUuid), { renderSheet: false });
 }
 
 async function ensureFollowerActorFolder(type) {
@@ -196,7 +204,7 @@ async function ensureFollowerActorFolder(type) {
   });
 }
 
-function followerActorData(item, folder) {
+function followerActorData(item, folder, sourceUuid) {
   const level = followerLevel(item);
   const img = item.img || followerIcon(item.type);
   const disposition = CONST?.TOKEN_DISPOSITIONS?.FRIENDLY ?? 1;
@@ -224,7 +232,7 @@ function followerActorData(item, folder) {
     },
     flags: {
       "part-time-gods": {
-        sourceItemUuid: item.uuid,
+        sourceItemUuid: sourceUuid ?? null,
         sourceItemType: item.type
       }
     }

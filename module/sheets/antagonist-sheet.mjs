@@ -9,7 +9,8 @@ export class PTGAntagonistSheet extends HandlebarsApplicationMixin(ActorSheetV2)
       height: 620
     },
     window: {
-      title: "PTG.Sheet.AntagonistSheet"
+      title: "PTG.Sheet.AntagonistSheet",
+      resizable: true
     }
   };
 

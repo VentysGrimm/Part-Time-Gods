@@ -9,7 +9,8 @@ export class PTGItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       height: 760
     },
     window: {
-      title: "PTG.Sheet.ItemSheet"
+      title: "PTG.Sheet.ItemSheet",
+      resizable: true
     }
   };
 

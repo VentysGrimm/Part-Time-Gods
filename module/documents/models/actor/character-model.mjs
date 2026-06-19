@@ -5,6 +5,7 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
     return {
       identity: new fields.SchemaField({
         concept: new fields.StringField({ initial: "" }),
+        ageEthnicity: new fields.StringField({ initial: "" }),
         occupation: new fields.StringField({ initial: "" }),
         archetype: new fields.StringField({ initial: "" }),
         dominion: new fields.StringField({ initial: "" }),
@@ -18,9 +19,14 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
         pantheon: resourceField(0),
         spark: new fields.NumberField({ integer: true, min: 1, initial: 1 }),
         freeTime: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
+        freeTimeMax: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
         wealth: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
+        wealthMax: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
         occupationFreeTime: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
-        occupationWealth: new fields.NumberField({ integer: true, min: 0, initial: 0 })
+        occupationWealth: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
+        legendaryActs: new fields.StringField({ initial: "" }),
+        xpGained: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
+        xpSpent: new fields.NumberField({ integer: true, min: 0, initial: 0 })
       }),
 
       derived: new fields.SchemaField({
@@ -50,6 +56,8 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
         curses: new fields.StringField({ initial: "" })
       }),
 
+      conditions: new fields.StringField({ initial: "" }),
+      specialties: new fields.StringField({ initial: "" }),
       notes: new fields.HTMLField({ initial: "" })
     };
   }

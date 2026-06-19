@@ -3,26 +3,15 @@ const TERRITORY_SCENE_NAME = "God Territory Grid";
 const TERRITORY_KIND = "god-territory-grid";
 
 const GRID_SIZE = 100;
-const COLUMNS = 12;
-const ROWS = 8;
+const PLAY_GRID_SIZE = 10;
+const LABEL_BAND_SIZE = 1;
+const COLUMNS = PLAY_GRID_SIZE + LABEL_BAND_SIZE;
+const ROWS = PLAY_GRID_SIZE + LABEL_BAND_SIZE;
 const WIDTH = COLUMNS * GRID_SIZE;
 const HEIGHT = ROWS * GRID_SIZE;
 
-const TERRITORY_ZONES = [
-  zone("sanctum", "Sanctum / Anchor\nsafe ground", 0, 0, 3, 2, "#2f4858", "#9ad1d4"),
-  zone("worshippers", "Worshippers\nfollowers and temples", 0, 2, 3, 2, "#3a5a40", "#a3b18a"),
-  zone("bonds", "Mortal Bonds\npeople and places", 0, 4, 3, 2, "#4a3f35", "#d9b38c"),
-  zone("assets", "Assets\nrelics and resources", 0, 6, 3, 2, "#503a65", "#d7b4ff"),
-  zone("territory-name", "Territory Name\npantheon / god", 3, 0, 5, 1, "#24324f", "#91a7d9", 24),
-  zone("claimed", "Claimed Territory\ncontrolled neighborhoods", 3, 1, 4, 3, "#3b4d2f", "#b7d99a", 22),
-  zone("unclaimed", "Unclaimed Ground\nopportunities", 3, 4, 3, 2, "#564d2f", "#e3d18a"),
-  zone("relic-site", "Relic Site\nomens and gates", 6, 4, 2, 2, "#4b365b", "#d5a6ff"),
-  zone("threat-clock", "Threat Clock\nheat, debt, fallout", 3, 6, 5, 2, "#5b3333", "#f0a0a0", 22),
-  zone("rivals", "Rival Gods\nclaims and bargains", 8, 0, 4, 2, "#55384a", "#e5a5c8", 22),
-  zone("mortal-pressure", "Mortal Pressure\nlaw, media, institutions", 7, 2, 3, 2, "#4d4634", "#e0c878"),
-  zone("outsiders", "Outsider Intrusion\nspirits and monsters", 10, 2, 2, 3, "#354552", "#94c7e8"),
-  zone("trouble", "Open Trouble\ncurrent scene hooks", 8, 5, 4, 3, "#513c31", "#e4b28c", 22)
-];
+const SHEET_BACKGROUND = "#f4f0e8";
+const SHEET_INK = "#1f1a17";
 
 export function getPremadeScenes() {
   return [getGodTerritorySceneData()];
@@ -37,15 +26,15 @@ export function getGodTerritorySceneData({ authorId = getAuthorId(), name = TERR
     width: WIDTH,
     height: HEIGHT,
     padding: 0.05,
-    backgroundColor: "#111318",
+    backgroundColor: SHEET_BACKGROUND,
     grid: {
       type: squareGridType(),
       size: GRID_SIZE,
       distance: 1,
-      units: "zone",
-      color: "#f5ead8",
-      alpha: 0.35,
-      thickness: 1
+      units: "square",
+      color: SHEET_INK,
+      alpha: 0.85,
+      thickness: 2
     },
     initial: {
       x: WIDTH / 2,
@@ -53,13 +42,15 @@ export function getGodTerritorySceneData({ authorId = getAuthorId(), name = TERR
       scale: 0.85
     },
     tokenVision: false,
-    drawings: TERRITORY_ZONES.map(entry => territoryDrawing(entry, authorId)),
+    drawings: territorySheetDrawings(authorId),
     flags: {
       [SYSTEM_ID]: {
         premade: true,
         kind: TERRITORY_KIND,
-        columns: COLUMNS,
-        rows: ROWS
+        source: "Part-Time Gods 2E PDF p. 283 territory grid",
+        columns: PLAY_GRID_SIZE,
+        rows: PLAY_GRID_SIZE,
+        labelBandSize: LABEL_BAND_SIZE
       }
     }
   };
@@ -76,7 +67,8 @@ export async function importGodTerritoryScene({ notify = true, activate = false 
   );
 
   if (existing) {
-    if (notify) ui.notifications.info("The God Territory Scene already exists in this world.");
+    await updateExistingTerritoryScene(existing, getGodTerritorySceneData({ authorId: game.user.id }));
+    if (notify) ui.notifications.info("Updated the God Territory Grid Scene.");
     if (activate) await existing.activate();
     return existing;
   }
@@ -89,40 +81,113 @@ export async function importGodTerritoryScene({ notify = true, activate = false 
   return scene;
 }
 
-function territoryDrawing(entry, authorId) {
+async function updateExistingTerritoryScene(scene, sceneData) {
+  const drawingCollection = scene.drawings?.contents ?? scene.drawings ?? [];
+  const managedDrawings = Array.from(drawingCollection).filter(drawing =>
+    drawing?.getFlag?.(SYSTEM_ID, "territoryZone") || drawing?.getFlag?.(SYSTEM_ID, "territorySheetElement")
+  );
+  const drawingIds = managedDrawings.map(drawing => drawing.id);
+  const { drawings, ...updateData } = sceneData;
+
+  if (drawingIds.length) await scene.deleteEmbeddedDocuments("Drawing", drawingIds);
+  await scene.update(updateData);
+  if (drawings.length) await scene.createEmbeddedDocuments("Drawing", drawings);
+}
+
+function territorySheetDrawings(authorId) {
+  const drawings = [
+    sheetBand("top-number-band", 0, 0, WIDTH, GRID_SIZE, authorId, 1000),
+    sheetBand("side-number-band", 0, 0, GRID_SIZE, HEIGHT, authorId, 1001),
+    sheetLabel("legend", "Legend", 0, GRID_SIZE, GRID_SIZE, GRID_SIZE, authorId, 2000, 22),
+    sheetBorder("play-grid-border", GRID_SIZE, GRID_SIZE, PLAY_GRID_SIZE * GRID_SIZE, PLAY_GRID_SIZE * GRID_SIZE, authorId, 3000)
+  ];
+
+  for (let index = 0; index < PLAY_GRID_SIZE; index += 1) {
+    const number = String(index + 1);
+    drawings.push(sheetLabel(
+      `column-${number}`,
+      number,
+      GRID_SIZE + index * GRID_SIZE,
+      0,
+      GRID_SIZE,
+      GRID_SIZE,
+      authorId,
+      2100 + index,
+      28
+    ));
+    drawings.push(sheetLabel(
+      `row-${number}`,
+      number,
+      0,
+      GRID_SIZE + index * GRID_SIZE,
+      GRID_SIZE,
+      GRID_SIZE,
+      authorId,
+      2200 + index,
+      28
+    ));
+  }
+
+  return drawings;
+}
+
+function sheetBand(key, x, y, width, height, authorId, sort) {
+  return baseDrawing(key, x, y, width, height, authorId, sort, {
+    fillAlpha: 1,
+    strokeAlpha: 0,
+    strokeWidth: 0
+  });
+}
+
+function sheetBorder(key, x, y, width, height, authorId, sort) {
+  return baseDrawing(key, x, y, width, height, authorId, sort, {
+    fillAlpha: 0,
+    strokeAlpha: 1,
+    strokeWidth: 4
+  });
+}
+
+function sheetLabel(key, text, x, y, width, height, authorId, sort, fontSize) {
   return {
-    author: authorId,
-    name: `Territory: ${entry.key}`,
-    x: entry.column * GRID_SIZE,
-    y: entry.row * GRID_SIZE,
-    shape: {
-      type: rectangleShapeType(),
-      width: entry.width * GRID_SIZE,
-      height: entry.height * GRID_SIZE
-    },
-    fillType: solidFillType(),
-    fillColor: entry.fill,
-    fillAlpha: 0.38,
-    strokeColor: entry.stroke,
-    strokeAlpha: 0.9,
-    strokeWidth: 3,
-    text: entry.label,
+    ...baseDrawing(key, x, y, width, height, authorId, sort, {
+      fillAlpha: 0,
+      strokeAlpha: 0,
+      strokeWidth: 0
+    }),
+    text,
     fontFamily: "Signika",
-    fontSize: entry.fontSize,
-    textColor: "#f8f5ee",
-    textAlpha: 1,
-    hidden: false,
-    locked: false,
-    flags: {
-      [SYSTEM_ID]: {
-        territoryZone: entry.key
-      }
-    }
+    fontSize,
+    textColor: SHEET_INK,
+    textAlpha: 1
   };
 }
 
-function zone(key, label, column, row, width, height, fill, stroke, fontSize = 18) {
-  return { key, label, column, row, width, height, fill, stroke, fontSize };
+function baseDrawing(key, x, y, width, height, authorId, sort, options) {
+  return {
+    author: authorId,
+    name: `Territory Grid: ${key}`,
+    x,
+    y,
+    sort,
+    shape: {
+      type: rectangleShapeType(),
+      width,
+      height
+    },
+    fillType: solidFillType(),
+    fillColor: SHEET_BACKGROUND,
+    fillAlpha: options.fillAlpha,
+    strokeColor: SHEET_INK,
+    strokeAlpha: options.strokeAlpha,
+    strokeWidth: options.strokeWidth,
+    hidden: false,
+    locked: true,
+    flags: {
+      [SYSTEM_ID]: {
+        territorySheetElement: key
+      }
+    }
+  };
 }
 
 function getAuthorId() {
