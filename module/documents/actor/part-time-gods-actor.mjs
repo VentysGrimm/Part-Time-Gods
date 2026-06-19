@@ -162,13 +162,21 @@ export class PartTimeGodsActor extends Actor {
       return true;
     }
 
+    const automationResults = item.system.automation?.enabled
+      ? await this.#applyItemAutomation(item)
+      : [];
+
     const rulesSummary = item.system.rules?.summary;
     const effect = item.system.effect ?? item.system.benefit ?? item.system.description ?? "";
+    const resultList = automationResults.length
+      ? `<ul>${automationResults.map(result => `<li>${escapeHTML(result)}</li>`).join("")}</ul>`
+      : "";
     const content = `
       <div class="ptg-chat-card">
         <h3>${item.name}</h3>
         <div>${typeLabel(item.type)}</div>
         ${rulesSummary ? `<p>${escapeHTML(rulesSummary)}</p>` : effect}
+        ${resultList}
       </div>
     `;
 
@@ -178,6 +186,187 @@ export class PartTimeGodsActor extends Actor {
     });
 
     return true;
+  }
+
+  async reduceCondition(item, amount = 1) {
+    if (!item || item.type !== "condition") return false;
+
+    const current = Number(item.system.severity ?? 1);
+    const next = Math.max(0, current - Math.max(1, Number(amount ?? 1)));
+
+    if (next <= 0) {
+      await item.delete();
+      await this.#postAutomationMessage("Condition Removed", [`${item.name} was removed from ${this.name}.`]);
+      return true;
+    }
+
+    await item.update({ "system.severity": next });
+    await this.#postAutomationMessage("Condition Reduced", [`${item.name} reduced to severity ${next}.`]);
+    return true;
+  }
+
+  async #applyItemAutomation(item) {
+    const automation = item.system.automation ?? {};
+    const results = [];
+
+    if (automation.resourceChange) {
+      const result = await this.#applyResourceChange(automation.resourceChange);
+      if (result) results.push(result);
+    }
+
+    if (automation.healing) {
+      results.push(...await this.#applyHealing(automation.healing));
+    }
+
+    if (automation.damage) {
+      const result = await this.#applyDamage(automation.damage);
+      if (result) results.push(result);
+    }
+
+    if (automation.condition) {
+      const result = await this.#applyConditionAutomation(item, automation.condition);
+      if (result) results.push(result);
+    }
+
+    return results;
+  }
+
+  async #applyResourceChange(change) {
+    const resource = normalizeResourceName(change.resource ?? change.key ?? "");
+    const amount = Number(change.amount ?? change.value ?? 0);
+    if (!resource || !Number.isFinite(amount) || amount === 0) return "";
+
+    const path = `system.resources.${resource}`;
+    const current = foundry.utils.getProperty(this, path);
+
+    if (typeof current === "number") {
+      const max = Number(this.system.resources?.[`${resource}Max`] ?? Number.POSITIVE_INFINITY);
+      const next = clamp(current + amount, 0, Number.isFinite(max) ? max : Number.MAX_SAFE_INTEGER);
+      await this.update({ [path]: next });
+      return `${resourceLabel(resource)} ${amount > 0 ? "+" : ""}${amount}.`;
+    }
+
+    const value = Number(current?.value ?? 0);
+    const max = Number(current?.max ?? Number.MAX_SAFE_INTEGER);
+    const next = clamp(value + amount, 0, Number.isFinite(max) ? max : Number.MAX_SAFE_INTEGER);
+    await this.update({ [`${path}.value`]: next });
+    return `${resourceLabel(resource)} ${amount > 0 ? "+" : ""}${amount}.`;
+  }
+
+  async #applyHealing(healing) {
+    const updates = {};
+    const results = [];
+
+    for (const resource of ["health", "psyche"]) {
+      const amount = Number(healing[resource] ?? healing.amount ?? 0);
+      if (!amount) continue;
+
+      const current = this.system.resources?.[resource];
+      const value = Number(current?.value ?? 0);
+      const max = Number(current?.max ?? value);
+      const next = clamp(value + amount, 0, max);
+
+      updates[`system.resources.${resource}.value`] = next;
+      results.push(`${resourceLabel(resource)} healed ${next - value}.`);
+    }
+
+    if (Object.keys(updates).length) await this.update(updates);
+
+    const conditionAmount = Number(healing.conditions ?? healing.condition ?? 0);
+    if (conditionAmount > 0) {
+      const reduced = await this.#reduceOwnedConditions(conditionAmount, healing.category ?? "");
+      if (reduced.length) results.push(...reduced);
+    }
+
+    return results;
+  }
+
+  async #applyDamage(damage) {
+    const resource = damage.resource === "psyche" || damage.type === "mental" ? "psyche" : "health";
+    const rawAmount = Number(damage.amount ?? damage.value ?? 0);
+    if (!rawAmount) return "";
+
+    const armor = resource === "health" && damage.applyArmor !== false ? Number(this.system.derived?.armor ?? 0) : 0;
+    const amount = Math.max(0, rawAmount - armor);
+    const current = this.system.resources?.[resource];
+    const value = Number(current?.value ?? 0);
+    const next = clamp(value - amount, 0, Number(current?.max ?? value));
+
+    await this.update({ [`system.resources.${resource}.value`]: next });
+    return `${resourceLabel(resource)} took ${amount} damage${armor ? ` after ${armor} armor` : ""}.`;
+  }
+
+  async #applyConditionAutomation(item, condition) {
+    const action = condition.action ?? item.system.automation?.action ?? "";
+    const amount = Number(condition.amount ?? condition.severity ?? item.system.severity ?? 1);
+
+    if (action === "remove-condition" || condition.remove) {
+      const removed = await this.#reduceOwnedConditions(amount || 1, condition.category ?? "", condition.name ?? "");
+      return removed.length ? removed.join(" ") : "";
+    }
+
+    if (item.type === "condition") {
+      return `${item.name} is tracked at severity ${Number(item.system.severity ?? 1)}.`;
+    }
+
+    if (!condition.name) return "";
+
+    await this.createEmbeddedDocuments("Item", [{
+      name: condition.name,
+      type: "condition",
+      img: "icons/svg/daze.svg",
+      system: {
+        category: condition.category ?? "",
+        severity: Math.max(1, amount || 1),
+        effect: condition.effect ? paragraph(condition.effect) : "",
+        notes: item.system.notes ?? "",
+        rules: sourceRules(condition.effect ?? `${condition.name} applied by ${item.name}.`, item, "condition"),
+        usage: narrativeUsage("passive"),
+        automation: defaultAutomation()
+      }
+    }]);
+
+    return `${condition.name} condition applied.`;
+  }
+
+  async #reduceOwnedConditions(amount, category = "", name = "") {
+    const matches = this.items
+      .filter(item => item.type === "condition")
+      .filter(item => !category || item.system.category === category)
+      .filter(item => !name || item.name === name)
+      .sort((a, b) => Number(b.system.severity ?? 1) - Number(a.system.severity ?? 1));
+    const results = [];
+    let remaining = Math.max(1, Number(amount ?? 1));
+
+    for (const condition of matches) {
+      if (remaining <= 0) break;
+
+      const current = Number(condition.system.severity ?? 1);
+      const next = Math.max(0, current - remaining);
+      remaining -= current - next;
+
+      if (next <= 0) {
+        await condition.delete();
+        results.push(`${condition.name} removed.`);
+      } else {
+        await condition.update({ "system.severity": next });
+        results.push(`${condition.name} reduced to severity ${next}.`);
+      }
+    }
+
+    return results;
+  }
+
+  async #postAutomationMessage(title, results) {
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this }),
+      content: `
+        <div class="ptg-chat-card">
+          <h3>${escapeHTML(title)}</h3>
+          <ul>${results.map(result => `<li>${escapeHTML(result)}</li>`).join("")}</ul>
+        </div>
+      `
+    });
   }
 }
 
@@ -265,6 +454,26 @@ function choiceGrants(baseGrants, careerSelection) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(Number(value ?? max), min), max);
+}
+
+function normalizeResourceName(resource) {
+  return {
+    freeTime: "freeTime",
+    free_time: "freeTime",
+    pantheonDice: "pantheon",
+    pantheon_dice: "pantheon"
+  }[resource] ?? resource;
+}
+
+function resourceLabel(resource) {
+  return {
+    freeTime: "Free Time",
+    health: "Health",
+    pantheon: "Pantheon Dice",
+    psyche: "Psyche",
+    fragments: "Fragments",
+    wealth: "Wealth"
+  }[resource] ?? resource;
 }
 
 function embeddedAttachmentItems(attachments, sourceItem) {

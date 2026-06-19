@@ -201,6 +201,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (action === "use") return this.actor.useOwnedItem(item);
 
+    if (action === "condition-reduce") return this.actor.reduceCondition(item);
+
     if (action === "equip") {
       await item.update({ "system.equipped": !item.system.equipped });
       return;
