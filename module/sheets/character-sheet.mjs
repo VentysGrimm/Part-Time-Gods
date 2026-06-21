@@ -14,7 +14,12 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       title: "PTG.Sheet.CharacterSheet",
       resizable: true
     },
-    dragDrop: [{ dropSelector: ".ptg-sheet" }]
+    dragDrop: [{ dropSelector: ".ptg-sheet" }],
+    form: {
+      closeOnSubmit: false,
+      submitOnChange: true,
+      handler: PTGCharacterSheet._onSubmit
+    }
   };
 
   static PARTS = {
@@ -22,6 +27,11 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       template: "systems/part-time-gods/templates/actor/character-sheet.hbs"
     }
   };
+
+  static async _onSubmit(event, form, formData) {
+    const data = formData?.object ?? {};
+    return this.actor.update(data);
+  }
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
