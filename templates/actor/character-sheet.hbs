@@ -136,6 +136,32 @@
       </label>
     </section>
 
+    <section class="ptg-paper-panel ptg-dominion-strip">
+      <label class="ptg-line-field">
+        <span>Dominion Title</span>
+        <input name="system.identity.dominionTitle" type="text" value="{{system.identity.dominionTitle}}" placeholder="God of Storms">
+      </label>
+      <label class="ptg-line-field">
+        <span>Specific Portfolio</span>
+        <input name="system.identity.dominionPortfolio" type="text" value="{{system.identity.dominionPortfolio}}">
+      </label>
+      <label class="ptg-line-field">
+        <span>Scope</span>
+        <select name="system.identity.dominionSpecificity">
+          <option value="specific" {{#if (eq system.identity.dominionSpecificity "specific")}}selected{{/if}}>Specific</option>
+          <option value="broad" {{#if (eq system.identity.dominionSpecificity "broad")}}selected{{/if}}>Broad</option>
+        </select>
+      </label>
+      <label class="ptg-line-field">
+        <span>Landmark Bond</span>
+        <input name="system.identity.dominionLandmarkBondName" type="text" value="{{system.identity.dominionLandmarkBondName}}" readonly>
+      </label>
+      <label class="ptg-line-field span-4">
+        <span>Dominion Limits</span>
+        <textarea name="system.identity.dominionLimitations">{{system.identity.dominionLimitations}}</textarea>
+      </label>
+    </section>
+
     <section class="ptg-paper-columns">
       <section class="ptg-paper-panel">
         <h2>Skills</h2>

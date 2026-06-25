@@ -91,7 +91,7 @@
         "htmlFields": ["description", "notes"]
       },
       "domain": {
-        "htmlFields": ["description", "notes"]
+        "htmlFields": ["description", "limitations", "gmNotes", "notes"]
       },
       "theology": {
         "htmlFields": ["description", "notes"]

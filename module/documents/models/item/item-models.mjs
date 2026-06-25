@@ -102,6 +102,13 @@ export class PTGDomainData extends PTGBaseItemData {
       category: this.textField(),
       rank: this.numberField(),
       portfolio: this.textField(),
+      customTitle: this.textField(),
+      specificPortfolio: this.textField(),
+      specificity: new fields.StringField({ initial: "specific" }),
+      limitations: this.htmlField(),
+      gmNotes: this.htmlField(),
+      landmarkBondUuid: this.textField(),
+      landmarkBondName: this.textField(),
       sphere: this.textField(),
       manifestations: this.textField(),
       attachmentOptions: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] }),
@@ -187,6 +194,8 @@ export class PTGBondData extends PTGBaseItemData {
     return {
       ...this.rulesAutomationFields("bond"),
       kind: this.textField(),
+      location: this.textField(),
+      linkedDominionUuid: this.textField(),
       level: this.numberField(1),
       strain: new fields.SchemaField({
         value: this.numberField(),

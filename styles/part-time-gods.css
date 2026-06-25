@@ -848,6 +848,20 @@
   grid-column: 2 / 4;
 }
 
+.ptg-dominion-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.ptg-dominion-strip .span-4 {
+  grid-column: 1 / -1;
+}
+
+.ptg-dominion-strip textarea {
+  min-height: 46px;
+}
+
 .ptg-paper-columns,
 .ptg-back-top,
 .ptg-back-bottom {
@@ -1004,6 +1018,7 @@
   .ptg-paper-columns,
   .ptg-back-top,
   .ptg-back-bottom,
+  .ptg-dominion-strip,
   .ptg-creation-steps {
     grid-template-columns: 1fr;
   }
@@ -1078,6 +1093,7 @@
 
   .ptg-paper-header,
   .ptg-identity-strip,
+  .ptg-dominion-strip,
   .ptg-skill-columns,
   .ptg-manifestation-columns,
   .ptg-back-text-pair,

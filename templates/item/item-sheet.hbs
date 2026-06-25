@@ -84,7 +84,30 @@
         <span>Portfolio</span>
         <input name="system.portfolio" type="text" value="{{system.portfolio}}" placeholder="War, Love, Storms">
       </label>
+      <label>
+        <span>Custom Title</span>
+        <input name="system.customTitle" type="text" value="{{system.customTitle}}" placeholder="God of Storms">
+      </label>
+      <label>
+        <span>Scope</span>
+        <select name="system.specificity">
+          <option value="specific" {{#if (eq system.specificity "specific")}}selected{{/if}}>Specific</option>
+          <option value="broad" {{#if (eq system.specificity "broad")}}selected{{/if}}>Broad</option>
+        </select>
+      </label>
       <label class="span-2">
+        <span>Specific Portfolio</span>
+        <input name="system.specificPortfolio" type="text" value="{{system.specificPortfolio}}">
+      </label>
+      <label>
+        <span>Landmark Bond</span>
+        <input name="system.landmarkBondName" type="text" value="{{system.landmarkBondName}}" readonly>
+      </label>
+      <label class="span-3">
+        <span>Landmark UUID</span>
+        <input name="system.landmarkBondUuid" type="text" value="{{system.landmarkBondUuid}}" readonly>
+      </label>
+      <label class="span-3">
         <span>Sphere</span>
         <input name="system.sphere" type="text" value="{{system.sphere}}">
       </label>
@@ -101,6 +124,14 @@
     <section class="ptg-editor-section">
       <h2>Description</h2>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Limitations</h2>
+      {{editor system.limitations target="system.limitations" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>GM Notes</h2>
+      {{editor system.gmNotes target="system.gmNotes" button=true editable=editable engine="prosemirror"}}
     </section>
     <section class="ptg-editor-section">
       <h2>Notes</h2>
@@ -217,8 +248,16 @@
         </select>
       </label>
       <label>
+        <span>Location</span>
+        <input name="system.location" type="text" value="{{system.location}}">
+      </label>
+      <label>
         <span>Level</span>
         <input name="system.level" type="number" value="{{system.level}}" min="0">
+      </label>
+      <label class="span-3">
+        <span>Linked Dominion UUID</span>
+        <input name="system.linkedDominionUuid" type="text" value="{{system.linkedDominionUuid}}" readonly>
       </label>
       <label>
         <span>Strain</span>

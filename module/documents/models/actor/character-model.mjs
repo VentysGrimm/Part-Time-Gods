@@ -9,6 +9,12 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
         occupation: new fields.StringField({ initial: "" }),
         archetype: new fields.StringField({ initial: "" }),
         dominion: new fields.StringField({ initial: "" }),
+        dominionTitle: new fields.StringField({ initial: "" }),
+        dominionPortfolio: new fields.StringField({ initial: "" }),
+        dominionSpecificity: new fields.StringField({ initial: "specific" }),
+        dominionLimitations: new fields.StringField({ initial: "" }),
+        dominionLandmarkBondUuid: new fields.StringField({ initial: "" }),
+        dominionLandmarkBondName: new fields.StringField({ initial: "" }),
         theology: new fields.StringField({ initial: "" })
       }),
 

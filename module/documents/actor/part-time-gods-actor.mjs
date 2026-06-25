@@ -83,10 +83,13 @@ export class PartTimeGodsActor extends Actor {
     const archetypeSelection = item.type === "archetype" ? await selectArchetypeOptions(item) : null;
     if (archetypeSelection === false) return false;
 
+    const domainSelection = item.type === "domain" ? await selectDomainOptions(item, this) : null;
+    if (domainSelection === false) return false;
+
     const theologySelection = item.type === "theology" && item.system.undecided ? await selectUndecidedTheologyGrants(item) : null;
     if (theologySelection === false) return false;
 
-    const grants = choiceGrants(item.system.grants ?? {}, { careerSelection, archetypeSelection, theologySelection });
+    const grants = choiceGrants(item.system.grants ?? {}, { careerSelection, archetypeSelection, domainSelection, theologySelection });
     const updates = {};
     const identityPath = {
       occupation: "system.identity.occupation",
@@ -95,7 +98,16 @@ export class PartTimeGodsActor extends Actor {
       theology: "system.identity.theology"
     }[item.type];
 
-    updates[identityPath] = careerSelection?.career ? `${careerSelection.career.name} (${item.name})` : item.name;
+    updates[identityPath] = careerSelection?.career ? `${careerSelection.career.name} (${item.name})` : domainSelection?.title || item.name;
+
+    if (domainSelection) {
+      updates["system.identity.concept"] = domainSelection.title;
+      updates["system.identity.dominionTitle"] = domainSelection.title;
+      updates["system.identity.dominionPortfolio"] = domainSelection.portfolio;
+      updates["system.identity.dominionSpecificity"] = domainSelection.specificity;
+      updates["system.identity.dominionLimitations"] = domainSelection.limitations;
+      updates["system.identity.dominionLandmarkBondName"] = domainSelection.landmarkName;
+    }
 
     if (careerSelection?.career) {
       updates["system.resources.occupationFreeTime"] = Number(careerSelection.career.resources?.freeTime ?? 0);
@@ -133,7 +145,27 @@ export class PartTimeGodsActor extends Actor {
     if (grants.blessing) embedded.push(simpleEmbeddedItem("blessing", grants.blessing, item));
     if (grants.curse) embedded.push(simpleEmbeddedItem("curse", grants.curse, item));
 
-    if (embedded.length) await this.createEmbeddedDocuments("Item", embedded);
+    const createdEmbedded = embedded.length ? await this.createEmbeddedDocuments("Item", embedded) : [];
+    const landmarkBond = createdEmbedded.find(created => created.type === "bond" && created.system.kind === "landmark");
+
+    if (landmarkBond) {
+      await this.update({
+        "system.identity.dominionLandmarkBondUuid": landmarkBond.uuid,
+        "system.identity.dominionLandmarkBondName": landmarkBond.name
+      });
+    }
+
+    if (domainSelection && item.parent?.uuid === this.uuid) {
+      await item.update({
+        "system.customTitle": domainSelection.title,
+        "system.specificPortfolio": domainSelection.portfolio,
+        "system.specificity": domainSelection.specificity,
+        "system.limitations": paragraph(domainSelection.limitations),
+        "system.gmNotes": paragraph(domainSelection.gmNotes),
+        "system.landmarkBondUuid": landmarkBond?.uuid ?? "",
+        "system.landmarkBondName": landmarkBond?.name ?? domainSelection.landmarkName
+      });
+    }
 
     await this.setFlag("part-time-gods", "appliedChoices", {
       ...applied,
@@ -520,6 +552,78 @@ async function selectArchetypeOptions(item) {
   };
 }
 
+async function selectDomainOptions(item, actor) {
+  const attachments = normalizeAttachmentGrants(item.system.grants?.attachments ?? {});
+  const landmark = attachments.find(attachment => attachment.kind === "landmark");
+  const defaultTitle = actor.system.identity?.concept || `God/dess of ${item.system.portfolio || item.name}`;
+  const defaultPortfolio = item.system.specificPortfolio || item.system.portfolio || item.name;
+  const defaultLandmark = item.system.landmarkBondName || landmark?.name || `${item.name} Landmark`;
+
+  const content = `
+    <div class="ptg-career-dialog">
+      <div class="form-group">
+        <label>Divine Title</label>
+        <input type="text" name="title" value="${escapeHTML(defaultTitle)}" placeholder="God of Storms">
+      </div>
+      <div class="form-group">
+        <label>Specific Portfolio</label>
+        <input type="text" name="portfolio" value="${escapeHTML(defaultPortfolio)}" placeholder="Storms, snipers, old city gates">
+      </div>
+      <div class="form-group">
+        <label>Dominion Scope</label>
+        <select name="specificity">
+          <option value="specific" ${item.system.specificity !== "broad" ? "selected" : ""}>Specific Dominion</option>
+          <option value="broad" ${item.system.specificity === "broad" ? "selected" : ""}>Broad Dominion</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Limitations</label>
+        <textarea name="limitations">${escapeHTML(htmlToText(item.system.limitations ?? ""))}</textarea>
+      </div>
+      <div class="form-group">
+        <label>GM Notes</label>
+        <textarea name="gmNotes">${escapeHTML(htmlToText(item.system.gmNotes ?? ""))}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Landmark Bond</label>
+        <input type="text" name="landmarkName" value="${escapeHTML(defaultLandmark)}">
+      </div>
+      <div class="form-group">
+        <label>Landmark Location</label>
+        <input type="text" name="landmarkLocation" value="${escapeHTML(landmark?.location ?? "")}">
+      </div>
+    </div>
+  `;
+
+  const selection = await DialogV2.prompt({
+    window: { title: `Define ${item.name} Dominion` },
+    content,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Apply",
+      callback: (event, button) => ({
+        title: button.form.elements.title?.value?.trim() ?? "",
+        portfolio: button.form.elements.portfolio?.value?.trim() ?? "",
+        specificity: button.form.elements.specificity?.value ?? "specific",
+        limitations: button.form.elements.limitations?.value?.trim() ?? "",
+        gmNotes: button.form.elements.gmNotes?.value?.trim() ?? "",
+        landmarkName: button.form.elements.landmarkName?.value?.trim() ?? "",
+        landmarkLocation: button.form.elements.landmarkLocation?.value?.trim() ?? ""
+      })
+    }
+  });
+
+  if (selection === null || selection === undefined) return false;
+
+  if (!selection.title || !selection.portfolio || !selection.landmarkName) {
+    ui.notifications.warn("Dominion title, specific portfolio, and Landmark Bond are required.");
+    return false;
+  }
+
+  return selection;
+}
+
 function selectFieldHTML(name, label, options) {
   if (!options.length) return "";
 
@@ -646,7 +750,7 @@ function concreteAbilityGrant(grant) {
   return grant;
 }
 
-function choiceGrants(baseGrants, { careerSelection = null, archetypeSelection = null, theologySelection = null } = {}) {
+function choiceGrants(baseGrants, { careerSelection = null, archetypeSelection = null, domainSelection = null, theologySelection = null } = {}) {
   const grants = {
     skills: { ...(baseGrants.skills ?? {}) },
     manifestations: { ...(baseGrants.manifestations ?? {}) },
@@ -670,6 +774,29 @@ function choiceGrants(baseGrants, { careerSelection = null, archetypeSelection =
     grants.attachments = archetypeSelection.attachment ? [archetypeSelection.attachment] : [];
     grants.blessing = archetypeSelection.blessing ?? "";
     grants.curse = archetypeSelection.curse ?? "";
+  }
+
+  if (domainSelection) {
+    const domainAttachments = normalizeAttachmentGrants(grants.attachments);
+    if (!domainAttachments.some(attachment => attachment.kind === "landmark")) {
+      domainAttachments.push({
+        kind: "landmark",
+        name: domainSelection.landmarkName,
+        level: 1,
+        label: "Landmark Bond"
+      });
+    }
+
+    grants.attachments = domainAttachments.map(attachment => {
+      if (attachment.kind !== "landmark") return attachment;
+
+      return {
+        ...attachment,
+        name: domainSelection.landmarkName,
+        location: domainSelection.landmarkLocation,
+        linkedDominion: domainSelection.title
+      };
+    });
   }
 
   if (theologySelection) {
@@ -803,12 +930,14 @@ function embeddedAttachmentItems(attachments, sourceItem) {
       img: "icons/sundries/documents/document-sealed-red.webp",
       system: {
         kind: attachment.kind,
+        location: attachment.location ?? "",
+        linkedDominionUuid: sourceItem.uuid ?? "",
         level,
         strain: {
           value: 0,
           max: level
         },
-        description: `<p>${escapeHTML(sourceName)} grants this ${escapeHTML(label.toLowerCase())}.</p>`,
+        description: `<p>${escapeHTML(sourceName)} grants this ${escapeHTML(label.toLowerCase())}.</p>${attachment.linkedDominion ? `<p>Linked Dominion: ${escapeHTML(attachment.linkedDominion)}.</p>` : ""}`,
         notes: sourceNotes(sourceItem),
         rules: sourceRules(`${sourceName} grants ${label.toLowerCase()} ${level}.`, sourceItem, "bond"),
         usage: narrativeUsage(),
@@ -943,6 +1072,20 @@ function escapeHTML(value) {
     '"': "&quot;",
     "'": "&#39;"
   }[char]));
+}
+
+function htmlToText(value) {
+  return String(value ?? "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
 }
 
 function isNumeric(value) {
