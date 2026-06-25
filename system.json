@@ -100,19 +100,19 @@
         "htmlFields": ["effect", "limitations", "notes"]
       },
       "bond": {
-        "htmlFields": ["description", "notes"]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "description", "notes"]
       },
       "truth": {
-        "htmlFields": ["effect", "notes"]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "effect", "notes"]
       },
       "relic": {
-        "htmlFields": ["effect", "description", "notes"]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "effect", "description", "notes"]
       },
       "worshipper": {
-        "htmlFields": ["benefit", "description", "notes"]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "description", "notes"]
       },
       "vassal": {
-        "htmlFields": ["benefit", "description", "notes"]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "description", "notes"]
       },
       "blessing": {
         "htmlFields": ["effect", "notes"]

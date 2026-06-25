@@ -74,6 +74,17 @@ class PTGBaseItemData extends foundry.abstract.TypeDataModel {
     };
   }
 
+  static attachmentDetailFields() {
+    return {
+      relatedBonus: this.htmlField(),
+      relatedDetriment: this.htmlField(),
+      trigger: this.textField(),
+      actionCost: this.textField(),
+      sourcePage: new fields.NumberField({ integer: true, min: 0, nullable: true, initial: null }),
+      automationNotes: this.htmlField()
+    };
+  }
+
   static gearFields() {
     return {
       amount: this.numberField(1),
@@ -193,6 +204,7 @@ export class PTGBondData extends PTGBaseItemData {
   static defineSchema() {
     return {
       ...this.rulesAutomationFields("bond"),
+      ...this.attachmentDetailFields(),
       kind: this.textField(),
       location: this.textField(),
       linkedDominionUuid: this.textField(),
@@ -211,6 +223,7 @@ export class PTGTruthData extends PTGBaseItemData {
   static defineSchema() {
     return {
       ...this.rulesAutomationFields("truth", "active"),
+      ...this.attachmentDetailFields(),
       statement: this.textField(),
       rank: this.numberField(1),
       cost: this.numberField(),
@@ -226,6 +239,7 @@ export class PTGRelicData extends PTGBaseItemData {
   static defineSchema() {
     return {
       ...this.rulesAutomationFields("relic", "active"),
+      ...this.attachmentDetailFields(),
       level: this.numberField(1),
       cost: this.numberField(),
       bonus: this.textField(),
@@ -240,6 +254,7 @@ export class PTGWorshipperData extends PTGBaseItemData {
   static defineSchema() {
     return {
       ...this.rulesAutomationFields("worshipper"),
+      ...this.attachmentDetailFields(),
       level: this.numberField(1),
       group: this.textField(),
       size: this.textField(),
@@ -254,6 +269,7 @@ export class PTGVassalData extends PTGBaseItemData {
   static defineSchema() {
     return {
       ...this.rulesAutomationFields("vassal"),
+      ...this.attachmentDetailFields(),
       level: this.numberField(1),
       concept: this.textField(),
       loyalty: this.numberField(),
