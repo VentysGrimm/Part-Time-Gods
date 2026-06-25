@@ -249,47 +249,102 @@ export const PTG_PREMADE_CHOICES = [
   }),
 
   domainChoice("Bestial", "bestial", 61, "Cats, dogs, horses, elephants, monkeys, bulls, ravens", {
-    skills: { athletics: 1, fighting: 1, fortitude: 1, might: 1, survival: 1 },
-    manifestations: { minion: 1, ruin: 1 },
-    blessing: "Ferocity",
-    curse: "Not My Kind"
+    skills: { athletics: 1, fortitude: 1, stealth: 1, survival: 1, travel: 1 },
+    manifestations: { journey: 1, ruin: 1 },
+    attachments: [attachment("vassal", "Vassal Entitlement", 2), attachment("landmark", "Landmark Bond", 1)],
+    blessings: [
+      blessing("Beast Tongue", "Receive the Beast Tongue Truth as a natural gift."),
+      blessing("Ferocity", "Gain +1 Influence to intimidate people, or +2 Influence when used on animals."),
+      blessing("Frenzy", "Once per Battle, sacrifice 1 Pantheon Die to add current damage as a bonus to the next attack.")
+    ],
+    curses: [
+      curse("Animal Mind", "Gain 1 Pantheon Die when reverting to a semi-animal mentality causes trouble."),
+      curse("Not My Kind", "Gain 1 Pantheon Die when other animals drawn to the god cause problems.")
+    ]
   }),
   domainChoice("Conceptual", "conceptual", 62, "Beauty, vengeance, justice, truth, names, secrets, celebration", {
-    skills: { discipline: 1, intuition: 1, knowledge: 1, perception: 1, perform: 1 },
+    skills: { deception: 1, intuition: 1, knowledge: 1, perform: 1, speed: 1 },
     manifestations: { oracle: 1, soul: 1 },
-    blessing: "Mental Guard",
-    curse: "Abstracted"
+    attachments: [attachment("group", "Group Bond", 1), attachment("landmark", "Landmark Bond", 2)],
+    blessings: [
+      blessing("Beacon", "Take a Level 2 Dazed Condition to ask the GM where the next point of interest containing the concept is."),
+      blessing("Mental Guard", "Treat all Mental Conditions as 1 level lower, except for duration."),
+      blessing("Tongues", "Receive the Tongues Truth.")
+    ],
+    curses: [
+      curse("Bizarro-God", "Gain 1 Pantheon Die when becoming the opposite of the Dominion harms the group."),
+      curse("Led By My Power", "Gain 1 Pantheon Die when succumbing to the Dominion causes trouble.")
+    ]
   }),
   domainChoice("Elemental", "elemental", 63, "Fire, forests, sky, sun, shadow, ocean, mountains, wind, storms", {
-    skills: { crafts: 1, fortitude: 1, marksman: 1, survival: 1, travel: 1 },
-    manifestations: { aegis: 1, ruin: 1 },
-    blessing: "Elemental Strength",
-    curse: "Tech Allergy"
+    skills: { fighting: 1, intuition: 1, might: 1, perception: 1, travel: 1 },
+    manifestations: { ruin: 1, shaping: 1 },
+    attachments: [attachment("landmark", "Landmark Bond", 3)],
+    blessings: [
+      blessing("Destructive Nature", "Gain +1 success toward the Damage Measure when using the element to cause harm."),
+      blessing("Elemental Strength", "Gain +2 Strength around a large amount of the element, or +4 when interacting directly with it."),
+      blessing("In My Element", "Gain +1 Crafts and +1 Survival when interacting with the element.")
+    ],
+    curses: [
+      curse("Connected to the Land", "Gain 1 Pantheon Die if a Landmark Bond takes Strain from an outside source."),
+      curse("Tech Allergy", "Gain 1 Pantheon Die when the god's presence interferes with important machines or tech.")
+    ]
   }),
   domainChoice("Emotional", "emotional", 63, "Fear, ecstasy, love, anger, courage, cruelty, sorrow", {
-    skills: { deception: 1, discipline: 1, empathy: 1, influence: 1, perform: 1 },
-    manifestations: { puppetry: 1, soul: 1 },
-    blessing: "Fuel My Fire",
-    curse: "Overcome with Emotion"
+    skills: { discipline: 1, empathy: 1, influence: 1, medicine: 1, tech: 1 },
+    manifestations: { minion: 1, puppetry: 1 },
+    attachments: [attachment("individual", "Individual Bond", 1), attachment("landmark", "Landmark Bond", 2)],
+    blessings: [
+      blessing("Fuel My Fire", "Gain +1 to any roll made in the heat of the chosen emotion."),
+      blessing("Siphon", "Once per target per scene, lessen a target's associated emotion to add +1 Pantheon Die, to a maximum of +4."),
+      blessing("Soothing Aura", "Receive the Soothing Aura Truth for free.")
+    ],
+    curses: [
+      curse("Apathetic", "Gain 1 Pantheon Die when becoming hardened and unemotional causes trouble."),
+      curse("Overcome with Emotion", "Gain 1 Pantheon Die when the emotional Dominion surges through someone else and causes issues.")
+    ]
   }),
   domainChoice("Patrons", "patron", 65, "Cooks, scribes, fencing, travelers, artists, blacksmiths, dancers", {
-    skills: { crafts: 1, influence: 1, knowledge: 1, perform: 1, travel: 1 },
-    manifestations: { minion: 1, shaping: 1 },
-    blessing: "Patron's Gift",
-    curse: "Demanding Portfolio"
+    skills: { crafts: 1, fighting: 1, marksman: 1, perform: 1, travel: 1 },
+    manifestations: { aegis: 1, minion: 1 },
+    attachments: [attachment("worshipper", "Worshippers Entitlement", 2), attachment("landmark", "Landmark Bond", 1)],
+    blessings: [
+      blessing("Divinely Skilled", "Receive the Divinely Skilled Truth connected to the Dominion."),
+      blessing("Loved and Worshipped", "When devoting a Scene to Worshippers, heal +1 Strain to the Bond once per Session."),
+      blessing("Patron's Blessing", "Grant +2 to a related Skill for targets within Near Range, up to Spark level targets.")
+    ],
+    curses: [
+      curse("Fox in the Henhouse", "Gain 1 Pantheon Die if Worshippers are Strained by an outside source."),
+      curse("Let's See What You Got", "Gain 1 Pantheon Die when a challenge to the god's mantle leads into danger.")
+    ]
   }),
   domainChoice("Tangible", "tangible", 65, "Filth, androgyny, computers, paper, fertility, murder, healing", {
-    skills: { crafts: 1, medicine: 1, perception: 1, tech: 1, travel: 1 },
-    manifestations: { aegis: 1, shaping: 1 },
-    blessing: "Object Affinity",
-    curse: "Material Focus"
+    skills: { crafts: 1, medicine: 1, might: 1, stealth: 1, tech: 1 },
+    manifestations: { beckon: 1, puppetry: 1 },
+    attachments: [attachment("relic", "Relic Entitlement", 2), attachment("landmark", "Landmark Bond", 1)],
+    blessings: [
+      blessing("Call Me Master", "Gain +2 to all checks when interacting with the Dominion."),
+      blessing("Finders Keepers", "Sacrifice 1 Pantheon Die to declare that something related to the Dominion is present in the scene."),
+      blessing("Immunity", "Receive the Immunity Truth tied directly to the Dominion.")
+    ],
+    curses: [
+      curse("Everything's a Nail", "Gain 1 Pantheon Die when use of Manifestations makes things worse during a scene."),
+      curse("Utterly Alone", "Gain 1 Pantheon Die when nothing connected to the Dominion is in the scene during a crucial moment.")
+    ]
   }),
   domainChoice("Crossovers", "crossover", 66, "Death, war, music, trickery, seasons, the hunt, dreams", {
     skills: { discipline: 1, knowledge: 1, marksman: 1, speed: 1, survival: 1 },
     manifestations: { aegis: 1, soul: 1 },
-    attachments: { anyAttachment: 1, landmarkBond: 2 },
-    blessing: "Adaptable",
-    curse: "Unpredictable"
+    attachments: [attachment("choice", "Attachment of choice", 1), attachment("landmark", "Landmark Bond", 2)],
+    blessings: [
+      blessing("Adaptable", "Sacrifice Pantheon Dice to switch one Skill in a check combo; cost increases by 1 per use in the Scene."),
+      blessing("Learning from Others", "Choose one unique Blessing from another Dominion type, except Blessings that only grant a Truth."),
+      blessing("Reactive", "Gain a +2 Initiative bonus.")
+    ],
+    curses: [
+      curse("Prideful", "Gain 1 Pantheon Die when pride or arrogance causes conflict or friction."),
+      curse("Unpredictable", "Gain 1 Pantheon Die when others' uncertainty about trusting the character causes trouble.")
+    ]
   }),
 
   theology("Ascendants", 68, "Exaltants, True Gods, Inhumans", "Holier-than-thou, Snobbish, Deluded", {
@@ -411,7 +466,13 @@ function domainChoice(name, category, page, examples, grants) {
     portfolio: examples,
     sphere: "",
     manifestations: Object.entries(grants.manifestations ?? {}).map(([key, value]) => `${label(key)} +${value}`).join(", "),
-    grants: normalizeGrants(grants),
+    attachmentOptions: grants.attachments ?? [],
+    blessingOptions: grants.blessings ?? [],
+    curseOptions: grants.curses ?? [],
+    grants: normalizeGrants({
+      skills: grants.skills ?? {},
+      manifestations: grants.manifestations ?? {}
+    }),
     description: paragraph(`Dominion category examples: ${examples}.`),
     notes: source(page)
   });

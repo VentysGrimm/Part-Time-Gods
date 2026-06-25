@@ -51,3 +51,22 @@ Implementation notes:
 - Archetype Items now carry all three Blessing options and both Curse options in structured arrays.
 - Archetype Items now carry the two book-listed Attachment options in structured arrays.
 - The application workflow still needs issue #59 to prompt for the selected Blessing and Curse.
+
+## Dominions
+
+Checked against Part-Time Gods Second Edition book pp. 61-66.
+
+| Dominion Category | Source Page | Skill Grants | Manifestation Grants | Attachment Options |
+| --- | ---: | --- | --- | --- |
+| Bestial | 61 | Athletics +1, Fortitude +1, Stealth +1, Survival +1, Travel +1 | Journey +1, Ruin +1 | +2 Vassal Entitlement and Level 1 Landmark Bond |
+| Conceptual | 62 | Deception +1, Intuition +1, Knowledge +1, Perform +1, Speed +1 | Oracle +1, Soul +1 | +1 Group Bond and Level 2 Landmark Bond |
+| Elemental | 63 | Fighting +1, Intuition +1, Might +1, Perception +1, Travel +1 | Ruin +1, Shaping +1 | Level 3 Landmark Bond |
+| Emotional | 63 | Discipline +1, Empathy +1, Influence +1, Medicine +1, Tech +1 | Minion +1, Puppetry +1 | +1 Individual Bond and Level 2 Landmark Bond |
+| Patrons | 65 | Crafts +1, Fighting +1, Marksman +1, Perform +1, Travel +1 | Aegis +1, Minion +1 | +2 Worshippers Entitlement and Level 1 Landmark Bond |
+| Tangible | 65 | Crafts +1, Medicine +1, Might +1, Stealth +1, Tech +1 | Beckon +1, Puppetry +1 | +2 Relic Entitlement and Level 1 Landmark Bond |
+| Crossovers | 66 | Discipline +1, Knowledge +1, Marksman +1, Speed +1, Survival +1 | Aegis +1, Soul +1 | +1 Attachment of choice and Level 2 Landmark Bond |
+
+Implementation notes:
+
+- Dominion Items now carry structured Attachment, Blessing, and Curse option arrays.
+- Base Dominion grants are limited to Skills and Manifestations until the custom Dominion workflow is implemented.

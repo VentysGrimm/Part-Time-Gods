@@ -104,6 +104,9 @@ export class PTGDomainData extends PTGBaseItemData {
       portfolio: this.textField(),
       sphere: this.textField(),
       manifestations: this.textField(),
+      attachmentOptions: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] }),
+      blessingOptions: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] }),
+      curseOptions: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] }),
       grants: this.grantsField(),
       description: this.htmlField(),
       notes: this.htmlField()
