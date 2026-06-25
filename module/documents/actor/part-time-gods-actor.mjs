@@ -83,7 +83,10 @@ export class PartTimeGodsActor extends Actor {
     const archetypeSelection = item.type === "archetype" ? await selectArchetypeOptions(item) : null;
     if (archetypeSelection === false) return false;
 
-    const grants = choiceGrants(item.system.grants ?? {}, { careerSelection, archetypeSelection });
+    const theologySelection = item.type === "theology" && item.system.undecided ? await selectUndecidedTheologyGrants(item) : null;
+    if (theologySelection === false) return false;
+
+    const grants = choiceGrants(item.system.grants ?? {}, { careerSelection, archetypeSelection, theologySelection });
     const updates = {};
     const identityPath = {
       occupation: "system.identity.occupation",
@@ -541,6 +544,64 @@ function archetypeOptionsHTML(title, options) {
   `;
 }
 
+async function selectUndecidedTheologyGrants(item) {
+  const skillPoints = Number(item.system.skillPoints ?? 8);
+  const manifestationPoints = Number(item.system.manifestationPoints ?? 2);
+  const skillEntries = Object.entries(CONFIG.PTG.skills ?? {});
+  const manifestationEntries = Object.entries(CONFIG.PTG.manifestations ?? {});
+
+  const content = `
+    <div class="ptg-career-dialog">
+      <p>Choose ${skillPoints} different Skills and ${manifestationPoints} different Manifestations.</p>
+      <div class="ptg-career-options">
+        <section class="ptg-career-option">
+          <h3>Skills</h3>
+          ${Array.from({ length: skillPoints }, (_, index) => selectFromEntriesHTML(`skill${index}`, skillEntries)).join("")}
+        </section>
+        <section class="ptg-career-option">
+          <h3>Manifestations</h3>
+          ${Array.from({ length: manifestationPoints }, (_, index) => selectFromEntriesHTML(`manifestation${index}`, manifestationEntries)).join("")}
+        </section>
+      </div>
+    </div>
+  `;
+
+  const selection = await DialogV2.prompt({
+    window: { title: `Choose ${item.name} Grants` },
+    content,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Apply",
+      callback: (event, button) => ({
+        skills: Array.from({ length: skillPoints }, (_, index) => button.form.elements[`skill${index}`]?.value).filter(Boolean),
+        manifestations: Array.from({ length: manifestationPoints }, (_, index) => button.form.elements[`manifestation${index}`]?.value).filter(Boolean)
+      })
+    }
+  });
+
+  if (selection === null || selection === undefined) return false;
+
+  if (new Set(selection.skills).size !== skillPoints || new Set(selection.manifestations).size !== manifestationPoints) {
+    ui.notifications.warn("Undecided gods must choose each Skill and Manifestation only once.");
+    return false;
+  }
+
+  return {
+    skills: Object.fromEntries(selection.skills.map(skill => [skill, 1])),
+    manifestations: Object.fromEntries(selection.manifestations.map(manifestation => [manifestation, 1])),
+    resources: { freeTime: 3 }
+  };
+}
+
+function selectFromEntriesHTML(name, entries) {
+  return `
+    <select name="${name}">
+      ${entries.map(([key, label]) => `<option value="${escapeHTML(key)}">${escapeHTML(label)}</option>`).join("")}
+    </select>
+  `;
+}
+
 function careerAttachmentOptions(careers) {
   return careers.flatMap((career, careerIndex) => {
     const attachments = Array.isArray(career.attachments) && career.attachments.length ? career.attachments : [null];
@@ -585,7 +646,7 @@ function concreteAbilityGrant(grant) {
   return grant;
 }
 
-function choiceGrants(baseGrants, { careerSelection = null, archetypeSelection = null } = {}) {
+function choiceGrants(baseGrants, { careerSelection = null, archetypeSelection = null, theologySelection = null } = {}) {
   const grants = {
     skills: { ...(baseGrants.skills ?? {}) },
     manifestations: { ...(baseGrants.manifestations ?? {}) },
@@ -609,6 +670,23 @@ function choiceGrants(baseGrants, { careerSelection = null, archetypeSelection =
     grants.attachments = archetypeSelection.attachment ? [archetypeSelection.attachment] : [];
     grants.blessing = archetypeSelection.blessing ?? "";
     grants.curse = archetypeSelection.curse ?? "";
+  }
+
+  if (theologySelection) {
+    grants.skills = {
+      ...grants.skills,
+      ...(theologySelection.skills ?? {})
+    };
+    grants.manifestations = {
+      ...grants.manifestations,
+      ...(theologySelection.manifestations ?? {})
+    };
+    grants.resources = {
+      ...grants.resources,
+      ...(theologySelection.resources ?? {})
+    };
+    grants.blessing = "";
+    grants.curse = "";
   }
 
   return grants;

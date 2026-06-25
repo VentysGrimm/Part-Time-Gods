@@ -427,6 +427,18 @@ export const PTG_PREMADE_CHOICES = [
     blessingSummary: "Spend 1 Fragment to learn how things are connected; view one connection for free and extra connections by sacrificing Pantheon Dice. Begin with +2 Psyche.",
     curse: "Manipulators",
     curseSummary: "When asking Attachments for help or devoting scenes to Bonds, a 1d10 result of 1-2 adds Strain or prevents Strain healing."
+  }),
+  theology("Undecided", 67, "No Theology, Independent", "Unaligned, Mortal-grounded, Untrained", {
+    undecided: true,
+    skillPoints: 8,
+    manifestationPoints: 2,
+    skills: {},
+    manifestations: {},
+    resources: { freeTime: 3 },
+    blessing: "",
+    blessingSummary: "Undecided gods receive no Theology Blessing.",
+    curse: "",
+    curseSummary: "Undecided gods receive no Theology Curse."
   })
 ];
 
@@ -500,6 +512,9 @@ function theology(name, page, otherNames, stereotype, grants) {
   return choice("theology", name, page, {
     otherNames,
     stereotype,
+    undecided: grants.undecided ?? false,
+    skillPoints: grants.skillPoints ?? 0,
+    manifestationPoints: grants.manifestationPoints ?? 0,
     blessingSummary: paragraph(grants.blessingSummary ?? ""),
     curseSummary: paragraph(grants.curseSummary ?? ""),
     grants: normalizeGrants(grants),

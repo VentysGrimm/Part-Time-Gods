@@ -87,9 +87,10 @@ Checked against Part-Time Gods Second Edition book pp. 67-69, 72-73, 76-77,
 | Phoenix Society | 92 | Athletics +1, Empathy +1, Perform +1, Stealth +1, Tech +1 | Aegis +2, Oracle +1, Ruin +1 | +2 / +1 | Linked to Humanity / Intimacy Addiction |
 | Puck-Eaters | 96 | Athletics +1, Deception +1, Fighting +1, Influence +1, Travel +1 | Journey +1, Minion +1, Ruin +2 | +2 / +1 | Cannibal Behavior / Unceasing Appetite |
 | Warlock's Fate | 100 | Crafts +1, Empathy +1, Influence +1, Knowledge +1, Perception +1 | Beckon +1, Journey +1, Puppetry +2 | +1 / +2 | See Connections / Manipulators |
+| Undecided | 67 | 8 flexible Skill points, max +1 per Skill | 2 flexible Manifestation points, max +1 per Manifestation | +3 / +0 | No Theology Blessing / No Theology Curse |
 
 Implementation notes:
 
 - Theology Items now include source-backed `blessingSummary` and `curseSummary` fields.
 - Corrected Kunitsukami and Order of Meskhenet grants, which were the largest drift from the source data.
-- The Undecided / No Theology option remains a separate slice in issue #63.
+- The Undecided / No Theology option uses a picker workflow because its grants are flexible.
