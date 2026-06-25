@@ -19,7 +19,7 @@ const OCCUPATION_CAREERS = {
     career("Sex Worker", 3, 4, [attachment("individual", "My Handler/Muscle", 1), attachment("group", "Other Workers", 1)], blessing("Spot the Creep", "Gain +1 Empathy to spot potentially dangerous intentions quickly."), curse("On the Brain", "Gain 1 Pantheon Die when flirtatious behavior creates social tension or conflict.")),
     career("Small Time", 4, 2, [attachment("group", "The Gang", 2), attachment("landmark", "Our Turf", 2)], blessing("The Muscle", "Gain +1 Might to break things."), curse("Klepto", "Gain 1 Pantheon Die when taking something wanted causes serious consequences."))
   ],
-  "The Fringe": [
+  "Fringe": [
     career("Homeless", 5, 0, [attachment("group", "Homeless Community", 3), attachment("landmark", "The Fringes", 3)], blessing("Friends in Low Places", "Gain +1 Influence when negotiating with outcasts or pariahs."), curse("Like a Sore Thumb", "Gain 1 Pantheon Die when seeming out of place causes a scene.")),
     career("Religious", 4, 2, [attachment("group", "My Congregation", 2), attachment("landmark", "My Church", 2)], blessing("Higher Learning", "Gain +1 Knowledge for myth, doctrine, or historical facts."), curse("Held to a Code", "Gain 1 Pantheon Die when a code of behavior causes problems.")),
     career("Rural", 3, 3, [attachment("individual", "My Partner", 2), attachment("landmark", "My Land", 2)], blessing("Stand My Ground", "Gain +1 Marksman when defending land or territory."), curse("Missed the Cues", "Gain 1 Pantheon Die when blunt behavior hurts the group."))
@@ -58,81 +58,37 @@ const OCCUPATION_CAREERS = {
 
 export const PTG_PREMADE_CHOICES = [
   occupation("Academic", 37, {
-    skills: { knowledge: 1, perception: 1, tech: 1 },
-    resources: { freeTime: 2, wealth: 1 },
-    attachments: { groupBond: "Academic Community" },
-    blessing: "Book Learning",
-    curse: "Analysis Paralysis"
+    skills: { crafts: 1, discipline: 1, knowledge: 1, perception: 1, stealth: 1 }
   }),
   occupation("Blue Collar", 38, {
-    skills: { crafts: 1, fortitude: 1, might: 1 },
-    resources: { freeTime: 1, wealth: 2 },
-    attachments: { groupBond: "Work Crew" },
-    blessing: "Practical Know-How",
-    curse: "Overworked"
+    skills: { fighting: 1, fortitude: 1, might: 1, survival: 1, travel: 1 }
   }),
   occupation("Creative", 40, {
-    skills: { crafts: 1, empathy: 1, perform: 1 },
-    resources: { freeTime: 2, wealth: 1 },
-    attachments: { groupBond: "Creative Community" },
-    blessing: "Creative Spark",
-    curse: "Temperamental"
+    skills: { crafts: 1, empathy: 1, marksman: 1, perform: 1, speed: 1 }
   }),
   occupation("Criminal", 41, {
-    skills: { deception: 1, marksman: 1, stealth: 1 },
-    resources: { freeTime: 2, wealth: 1 },
-    attachments: { groupBond: "Underworld Contacts" },
-    blessing: "Streetwise",
-    curse: "Known by the Wrong People"
+    skills: { deception: 1, influence: 1, marksman: 1, speed: 1, stealth: 1 }
   }),
-  occupation("The Fringe", 42, {
-    skills: { intuition: 1, stealth: 1, survival: 1 },
-    resources: { freeTime: 3, wealth: 0 },
-    attachments: { landmarkBond: "The Fringes" },
-    blessing: "Off the Grid",
-    curse: "Outside the System"
+  occupation("Fringe", 42, {
+    skills: { athletics: 1, empathy: 1, fortitude: 1, stealth: 1, survival: 1 }
   }),
   occupation("Medical", 43, {
-    skills: { discipline: 1, knowledge: 1, medicine: 1 },
-    resources: { freeTime: 1, wealth: 2 },
-    attachments: { groupBond: "Medical Community" },
-    blessing: "My Medical Opinion",
-    curse: "Call It"
+    skills: { discipline: 1, empathy: 1, intuition: 1, medicine: 1, might: 1 }
   }),
   occupation("Peacekeepers", 45, {
-    skills: { fighting: 1, influence: 1, perception: 1 },
-    resources: { freeTime: 1, wealth: 2 },
-    attachments: { groupBond: "Peacekeepers" },
-    blessing: "Authority Figure",
-    curse: "By the Book"
+    skills: { athletics: 1, influence: 1, intuition: 1, perception: 1, speed: 1 }
   }),
   occupation("Physical", 46, {
-    skills: { athletics: 1, fortitude: 1, might: 1 },
-    resources: { freeTime: 2, wealth: 1 },
-    attachments: { groupBond: "Physical Community" },
-    blessing: "Built for This",
-    curse: "No Pain, No Gain"
+    skills: { athletics: 1, discipline: 1, fighting: 1, might: 1, perform: 1 }
   }),
   occupation("Public Life", 47, {
-    skills: { empathy: 1, influence: 1, perform: 1 },
-    resources: { freeTime: 1, wealth: 2 },
-    attachments: { groupBond: "Public Following" },
-    blessing: "Recognized",
-    curse: "Public Scrutiny"
+    skills: { deception: 1, fortitude: 1, influence: 1, perform: 1, tech: 1 }
   }),
   occupation("Unemployed", 48, {
-    skills: { intuition: 1, survival: 1, travel: 1 },
-    resources: { freeTime: 4, wealth: 0 },
-    attachments: { individualBond: "Personal Support" },
-    blessing: "Flexible Schedule",
-    curse: "Broke"
+    skills: { fighting: 1, medicine: 1, perception: 1, tech: 1, travel: 1 }
   }),
   occupation("White Collar", 49, {
-    skills: { influence: 1, knowledge: 1, tech: 1 },
-    resources: { freeTime: 1, wealth: 3 },
-    attachments: { groupBond: "Professional Network" },
-    blessing: "Corporate Fluency",
-    curse: "Work Comes First"
+    skills: { deception: 1, knowledge: 1, marksman: 1, medicine: 1, tech: 1 }
   }),
 
   archetype("The Caregiver", "Generosity", 51, "First-Aid", "Mess with Them and You Mess with Me"),
