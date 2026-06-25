@@ -70,3 +70,26 @@ Implementation notes:
 
 - Dominion Items now carry structured Attachment, Blessing, and Curse option arrays.
 - Base Dominion grants are limited to Skills and Manifestations until the custom Dominion workflow is implemented.
+
+## Theologies
+
+Checked against Part-Time Gods Second Edition book pp. 67-69, 72-73, 76-77,
+80-81, 84-85, 88-89, 92-93, 96-97, and 100-101.
+
+| Theology | Source Page | Skill Grants | Manifestation Grants | Free Time / Wealth | Blessing / Curse |
+| --- | ---: | --- | --- | --- | --- |
+| Ascendants | 68 | Athletics +1, Fighting +1, Fortitude +1, Might +1, Survival +1 | Minion +1, Ruin +1, Shaping +2 | +2 / +1 | Inhuman Visage / Cut Off from the World |
+| Cult of the Saints | 72 | Discipline +1, Empathy +1, Intuition +1, Perception +1, Survival +1 | Beckon +1, Oracle +2, Soul +1 | +2 / +1 | Divine Words / Follow the Voices |
+| Drifting Kingdoms | 76 | Crafts +1, Fortitude +1, Marksman +1, Medicine +1, Travel +1 | Aegis +1, Journey +2, Shaping +1 | +3 / +0 | Instant Domain / Wanderlust |
+| Kunitsukami | 80 | Discipline +1, Intuition +1, Medicine +1, Perception +1, Speed +1 | Puppetry +1, Oracle +1, Soul +2 | +2 / +1 | Eight Million Spirits / In the Middle |
+| Masks of Jana | 84 | Deception +1, Knowledge +1, Speed +1, Stealth +1, Survival +1 | Aegis +1, Beckon +2, Shaping +1 | +1 / +2 | Forgotten / Disconnection |
+| Order of Meskhenet | 88 | Deception +1, Influence +1, Knowledge +1, Perform +1, Tech +1 | Minion +2, Puppetry +1, Soul +1 | +0 / +4 | Divine Inheritance / Family Loyalty |
+| Phoenix Society | 92 | Athletics +1, Empathy +1, Perform +1, Stealth +1, Tech +1 | Aegis +2, Oracle +1, Ruin +1 | +2 / +1 | Linked to Humanity / Intimacy Addiction |
+| Puck-Eaters | 96 | Athletics +1, Deception +1, Fighting +1, Influence +1, Travel +1 | Journey +1, Minion +1, Ruin +2 | +2 / +1 | Cannibal Behavior / Unceasing Appetite |
+| Warlock's Fate | 100 | Crafts +1, Empathy +1, Influence +1, Knowledge +1, Perception +1 | Beckon +1, Journey +1, Puppetry +2 | +1 / +2 | See Connections / Manipulators |
+
+Implementation notes:
+
+- Theology Items now include source-backed `blessingSummary` and `curseSummary` fields.
+- Corrected Kunitsukami and Order of Meskhenet grants, which were the largest drift from the source data.
+- The Undecided / No Theology option remains a separate slice in issue #63.

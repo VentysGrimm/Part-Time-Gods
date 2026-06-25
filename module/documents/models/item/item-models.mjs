@@ -149,6 +149,8 @@ export class PTGTheologyData extends PTGBaseItemData {
       ...this.rulesAutomationFields("theology"),
       otherNames: this.textField(),
       stereotype: this.textField(),
+      blessingSummary: this.htmlField(),
+      curseSummary: this.htmlField(),
       grants: this.grantsField(),
       description: this.htmlField(),
       notes: this.htmlField()

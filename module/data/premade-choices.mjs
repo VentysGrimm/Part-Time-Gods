@@ -352,63 +352,81 @@ export const PTG_PREMADE_CHOICES = [
     manifestations: { minion: 1, ruin: 1, shaping: 2 },
     resources: { freeTime: 2, wealth: 1 },
     blessing: "Inhuman Visage",
-    curse: "Cut Off from the World"
+    blessingSummary: "Receive Aura of Influence, one other Truth of choice, and activate body-altering Truths without spending Fragments.",
+    curse: "Cut Off from the World",
+    curseSummary: "Maximum Bonds are reduced to 5 - Spark, and the god begins play with a Level 2 Failing of choice."
   }),
   theology("Cult of the Saints", 72, "Saints, Nutjobs, Messengers", "Zealous, Spiritual, Protective", {
     skills: { discipline: 1, empathy: 1, intuition: 1, perception: 1, survival: 1 },
     manifestations: { beckon: 1, oracle: 2, soul: 1 },
     resources: { freeTime: 2, wealth: 1 },
-    blessing: "Divine Guidance",
-    curse: "Voice of God"
+    blessing: "Divine Words",
+    blessingSummary: "Spend 1 Fragment to ask the GM one truthful divine question, with extra questions costing Pantheon Dice; in Battle, spend 1 Fragment and a Quick Action for +5 to the next attack.",
+    curse: "Follow the Voices",
+    curseSummary: "Once per Session the GM may command an act in the higher power's name; resisting requires Discipline + Intuition."
   }),
   theology("Drifting Kingdoms", 76, "Wanderers, Missionaries, Flip-Floppers", "Nomadic, Wayward, Infuriating", {
     skills: { crafts: 1, fortitude: 1, marksman: 1, medicine: 1, travel: 1 },
     manifestations: { aegis: 1, journey: 2, shaping: 1 },
     resources: { freeTime: 3, wealth: 0 },
     blessing: "Instant Domain",
-    curse: "Never Stay Long"
+    blessingSummary: "Use a Standard Action and 1 Fragment to make the current point of interest a temporary Landmark Bond for the Scene; Drifters can also move diagonally on the Territory Grid.",
+    curse: "Wanderlust",
+    curseSummary: "Starting a Scene in the same location as the previous Scene deals 1 Psyche damage and adds a Level 1 Confused Condition."
   }),
   theology("Kunitsukami", 80, "Kami, Traditionalists", "Respectful, Spiritual, Hierarchical", {
-    skills: { discipline: 1, intuition: 1, knowledge: 1, perception: 1, travel: 1 },
-    manifestations: { beckon: 1, oracle: 1, soul: 2 },
+    skills: { discipline: 1, intuition: 1, medicine: 1, perception: 1, speed: 1 },
+    manifestations: { puppetry: 1, oracle: 1, soul: 2 },
     resources: { freeTime: 2, wealth: 1 },
-    blessing: "Hierarchy of Spirits",
-    curse: "Bound by Tradition"
+    blessing: "Eight Million Spirits",
+    blessingSummary: "Spend 1 Fragment to sense and speak with active spirits, animals, and objects; sacrifice Pantheon Dice to compel answers or favors from spirits.",
+    curse: "In the Middle",
+    curseSummary: "Receive a Level 3 Spirit Community Group Bond instead of spending 5 Attachment points; its Strain inflicts Broken (Influence) consequences."
   }),
   theology("Masks of Jana", 84, "Masks, Veils, The Obscure", "Mysterious, Secretive, Cowards", {
     skills: { deception: 1, knowledge: 1, speed: 1, stealth: 1, survival: 1 },
     manifestations: { aegis: 1, beckon: 2, shaping: 1 },
     resources: { freeTime: 1, wealth: 2 },
-    blessing: "Hidden Among Mortals",
-    curse: "Keeper of Secrets"
+    blessing: "Forgotten",
+    blessingSummary: "Spend 1 Fragment to go unnoticed by mortals for the Scene, with options to hide memories or obscure divine traces in Territory.",
+    curse: "Disconnection",
+    curseSummary: "Bonds and Worshippers count as 1 level lower for dice pools and effects due to the Mask's enforced secrecy."
   }),
-  theology("Order of Meskhenet", 88, "Keepers, Bloodlines, Traditionalists", "Proud, Traditional, Judgmental", {
-    skills: { discipline: 1, empathy: 1, fortitude: 1, knowledge: 1, medicine: 1 },
-    manifestations: { oracle: 1, shaping: 1, soul: 2 },
-    resources: { freeTime: 1, wealth: 2 },
-    blessing: "Pure Spark",
-    curse: "Lineage Bound"
+  theology("Order of Meskhenet", 88, "Blue Bloods, Suits, Inheritors", "Loyal, Well-connected, Built on Nepotism", {
+    skills: { deception: 1, influence: 1, knowledge: 1, perform: 1, tech: 1 },
+    manifestations: { minion: 2, puppetry: 1, soul: 1 },
+    resources: { freeTime: 0, wealth: 4 },
+    blessing: "Divine Inheritance",
+    blessingSummary: "Begin with a free Level 2 Relic and Level 2 Worshippers Entitlement; use Worshipper special ability without Strain Spark times per Session.",
+    curse: "Family Loyalty",
+    curseSummary: "Receive a Level 3 Watcher Individual Bond instead of spending 5 Bond points; the Watcher monitors service to the Order."
   }),
   theology("Phoenix Society", 92, "Phoenixes, Birdies, Mortal Lovers", "Partiers, Protective, Cunning", {
     skills: { athletics: 1, empathy: 1, perform: 1, stealth: 1, tech: 1 },
     manifestations: { aegis: 2, oracle: 1, ruin: 1 },
     resources: { freeTime: 2, wealth: 1 },
     blessing: "Linked to Humanity",
-    curse: "Intimacy Addiction"
+    blessingSummary: "Maximum Bonds are raised to 7 - Spark, receive a free Level 2 Group Bond, and Bonds/Worshippers act as 1 level higher.",
+    curse: "Intimacy Addiction",
+    curseSummary: "After a Scene without personal interaction with humanity, take 1 Psyche damage and a Level 1 Deprived Condition."
   }),
   theology("Puck-Eaters", 96, "Hunters, Cannibals, Predators", "Savage, Pragmatic, Dangerous", {
     skills: { athletics: 1, deception: 1, fighting: 1, influence: 1, travel: 1 },
     manifestations: { journey: 1, minion: 1, ruin: 2 },
     resources: { freeTime: 2, wealth: 1 },
     blessing: "Cannibal Behavior",
-    curse: "Unceasing Appetite"
+    blessingSummary: "Eat mortals, Outsiders, or greater gods to gain temporary abilities; begin with +2 Health and immunity to raw-meat sickness.",
+    curse: "Unceasing Appetite",
+    curseSummary: "When offered something never eaten before, resist the urge with Fortitude + Discipline; repeated resistance raises Difficulty."
   }),
   theology("Warlock's Fate", 100, "Warlocks, Wizards, Conjurers", "Analytical, Obsessed, Know-it-alls", {
     skills: { crafts: 1, empathy: 1, influence: 1, knowledge: 1, perception: 1 },
     manifestations: { beckon: 1, journey: 1, puppetry: 2 },
     resources: { freeTime: 1, wealth: 2 },
-    blessing: "Web of Connections",
-    curse: "Compulsive Meddling"
+    blessing: "See Connections",
+    blessingSummary: "Spend 1 Fragment to learn how things are connected; view one connection for free and extra connections by sacrificing Pantheon Dice. Begin with +2 Psyche.",
+    curse: "Manipulators",
+    curseSummary: "When asking Attachments for help or devoting scenes to Bonds, a 1d10 result of 1-2 adds Strain or prevents Strain healing."
   })
 ];
 
@@ -482,6 +500,8 @@ function theology(name, page, otherNames, stereotype, grants) {
   return choice("theology", name, page, {
     otherNames,
     stereotype,
+    blessingSummary: paragraph(grants.blessingSummary ?? ""),
+    curseSummary: paragraph(grants.curseSummary ?? ""),
     grants: normalizeGrants(grants),
     description: paragraph(`${name} is a Theology choice for newly awakened gods.`),
     notes: source(page)
