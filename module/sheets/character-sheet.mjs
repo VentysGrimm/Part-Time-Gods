@@ -122,10 +122,16 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (!selection) return;
 
+    if (selection.pantheonDice > 0) {
+      const spent = await this.actor.spendResource("pantheon", selection.pantheonDice);
+      if (!spent) return;
+    }
+
     await this.actor.rollSkillCombo(selection.primary, selection.secondary, {
       difficulty: selection.difficulty,
       bonus: selection.bonus,
-      penalty: selection.penalty
+      penalty: selection.penalty,
+      modifierDetails: selection.modifierDetails
     });
   }
 
@@ -487,6 +493,26 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
         <label>Penalty</label>
         <input type="number" name="penalty" value="0">
       </div>
+      <div class="form-group">
+        <label>Pantheon Dice</label>
+        <input type="number" name="pantheonDice" value="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>Specialty</label>
+        <input type="text" name="specialtyName" value="" placeholder="Specialty name">
+      </div>
+      <div class="form-group">
+        <label>Specialty Bonus</label>
+        <input type="number" name="specialtyBonus" value="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>Tool Modifier</label>
+        <input type="number" name="toolModifier" value="0">
+      </div>
+      <div class="form-group">
+        <label>Support Bonus</label>
+        <input type="number" name="supportBonus" value="0" min="0">
+      </div>
       <p class="ptg-sheet-note" data-pool-preview>${skillPoolPreview(actor, primary, secondary, 0, 0)}</p>
     </div>
   `;
@@ -502,6 +528,12 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
       callback: (event, button) => {
         const form = button.form;
         const difficultyValue = form.elements.difficulty?.value;
+        const pantheonDice = Math.max(0, Number(form.elements.pantheonDice?.value ?? 0));
+        const specialtyBonus = Math.max(0, Number(form.elements.specialtyBonus?.value ?? 0));
+        const toolModifier = Number(form.elements.toolModifier?.value ?? 0);
+        const supportBonus = Math.max(0, Number(form.elements.supportBonus?.value ?? 0));
+        const specialtyName = form.elements.specialtyName?.value?.trim();
+
         return {
           primary: form.elements.primary?.value ?? primary,
           secondary: form.elements.secondary?.value ?? secondary,
@@ -509,7 +541,14 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
             ? Number(form.elements.customDifficulty?.value ?? 0)
             : Number(difficultyValue ?? 0),
           bonus: Number(form.elements.bonus?.value ?? 0),
-          penalty: Number(form.elements.penalty?.value ?? 0)
+          penalty: Number(form.elements.penalty?.value ?? 0),
+          pantheonDice,
+          modifierDetails: {
+            "Pantheon Dice": pantheonDice,
+            [specialtyName ? `Specialty (${specialtyName})` : "Specialty"]: specialtyBonus,
+            "Tool": toolModifier,
+            "Support": supportBonus
+          }
         };
       }
     }
@@ -530,11 +569,17 @@ function wireSkillPoolPreview(element, actor) {
       form.elements.primary?.value,
       form.elements.secondary?.value,
       Number(form.elements.bonus?.value ?? 0),
-      Number(form.elements.penalty?.value ?? 0)
+      Number(form.elements.penalty?.value ?? 0),
+      {
+        pantheonDice: Number(form.elements.pantheonDice?.value ?? 0),
+        specialtyBonus: Number(form.elements.specialtyBonus?.value ?? 0),
+        toolModifier: Number(form.elements.toolModifier?.value ?? 0),
+        supportBonus: Number(form.elements.supportBonus?.value ?? 0)
+      }
     );
   };
 
-  for (const name of ["primary", "secondary", "bonus", "penalty"]) {
+  for (const name of ["primary", "secondary", "bonus", "penalty", "pantheonDice", "specialtyBonus", "toolModifier", "supportBonus"]) {
     form.elements[name]?.addEventListener("change", update);
     form.elements[name]?.addEventListener("input", update);
   }
@@ -542,14 +587,18 @@ function wireSkillPoolPreview(element, actor) {
   update();
 }
 
-function skillPoolPreview(actor, primary, secondary, bonus, penalty) {
+function skillPoolPreview(actor, primary, secondary, bonus, penalty, extra = {}) {
   const primaryRank = Number(actor.system.skills?.[primary] ?? 0);
   const secondaryRank = Number(actor.system.skills?.[secondary] ?? 0);
   const basePool = primaryRank + secondaryRank;
-  const finalPool = basePool + Number(bonus ?? 0) - Number(penalty ?? 0);
+  const extraTotal = Number(extra.pantheonDice ?? 0)
+    + Number(extra.specialtyBonus ?? 0)
+    + Number(extra.toolModifier ?? 0)
+    + Number(extra.supportBonus ?? 0);
+  const finalPool = basePool + Number(bonus ?? 0) - Number(penalty ?? 0) + extraTotal;
   const fate = finalPool <= 0 ? " Fate Die" : "";
 
-  return `Pool: ${primaryRank} + ${secondaryRank} + ${Number(bonus ?? 0)} - ${Number(penalty ?? 0)} = ${finalPool}${fate}`;
+  return `Pool: ${primaryRank} + ${secondaryRank} + ${Number(bonus ?? 0)} - ${Number(penalty ?? 0)} + ${extraTotal} = ${finalPool}${fate}`;
 }
 
 function labelCase(key) {

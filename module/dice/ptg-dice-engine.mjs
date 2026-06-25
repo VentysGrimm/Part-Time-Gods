@@ -6,6 +6,7 @@ export class PTGDiceEngine {
     const basePool = Number(options.basePool ?? poolSize);
     const bonus = Number(options.bonus ?? 0);
     const penalty = Number(options.penalty ?? 0);
+    const modifierDetails = options.modifierDetails ?? {};
     const finalPool = Number(poolSize);
     const fateDie = finalPool <= 0;
     const dice = fateDie ? 1 : Math.max(1, finalPool);
@@ -31,6 +32,7 @@ export class PTGDiceEngine {
       basePool,
       bonus,
       penalty,
+      modifierDetails,
       dice,
       fateDie,
       successes,
@@ -51,14 +53,17 @@ export class PTGDiceEngine {
     const basePool = primary + secondary;
     const bonus = Number(options.bonus ?? 0);
     const penalty = Number(options.penalty ?? 0);
+    const modifierDetails = sanitizeModifierDetails(options.modifierDetails);
+    const modifierTotal = Object.values(modifierDetails).reduce((total, value) => total + Number(value ?? 0), 0);
     const primaryLabel = CONFIG.PTG.skills[primarySkill] ?? primarySkill;
     const secondaryLabel = CONFIG.PTG.skills[secondarySkill] ?? secondarySkill;
 
-    return this.rollPool(basePool + bonus - penalty, {
+    return this.rollPool(basePool + bonus - penalty + modifierTotal, {
       ...options,
       basePool,
       bonus,
       penalty,
+      modifierDetails,
       flavor: `${actor.name}: ${primaryLabel} + ${secondaryLabel}`
     });
   }
@@ -69,14 +74,17 @@ export class PTGDiceEngine {
     const basePool = divine + mortal;
     const bonus = Number(options.bonus ?? 0);
     const penalty = Number(options.penalty ?? 0);
+    const modifierDetails = sanitizeModifierDetails(options.modifierDetails);
+    const modifierTotal = Object.values(modifierDetails).reduce((total, value) => total + Number(value ?? 0), 0);
     const manifestationLabel = CONFIG.PTG.manifestations[manifestation] ?? manifestation;
     const skillLabel = CONFIG.PTG.skills[skill] ?? skill;
 
-    return this.rollPool(basePool + bonus - penalty, {
+    return this.rollPool(basePool + bonus - penalty + modifierTotal, {
       ...options,
       basePool,
       bonus,
       penalty,
+      modifierDetails,
       flavor: `${actor.name}: ${manifestationLabel} + ${skillLabel}`
     });
   }
@@ -87,12 +95,17 @@ export class PTGDiceEngine {
       : outcome.passed
         ? "Success"
         : "Failure";
+    const modifierRows = Object.entries(outcome.modifierDetails ?? {})
+      .filter(([, value]) => Number(value ?? 0) !== 0)
+      .map(([label, value]) => `<div>${escapeHTML(label)}: ${Number(value) >= 0 ? "+" : ""}${Number(value)}</div>`)
+      .join("");
 
     const content = `
       <div class="ptg-chat-card">
         <h3>${flavor}</h3>
         <div>Base Pool: ${outcome.basePool}d10</div>
         <div>Modifiers: +${outcome.bonus} / -${outcome.penalty}</div>
+        ${modifierRows}
         <div>Final Pool: ${outcome.poolSize}d10${outcome.fateDie ? " (Fate Die)" : ""}</div>
         <div>Successes: ${outcome.successes}</div>
         <div>Difficulty: ${outcome.difficulty}</div>
@@ -107,4 +120,22 @@ export class PTGDiceEngine {
       rolls: [outcome.roll]
     });
   }
+}
+
+function sanitizeModifierDetails(details = {}) {
+  return Object.fromEntries(
+    Object.entries(details)
+      .map(([key, value]) => [key, Number(value ?? 0)])
+      .filter(([, value]) => Number.isFinite(value) && value !== 0)
+  );
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
 }
