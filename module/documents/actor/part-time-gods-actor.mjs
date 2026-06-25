@@ -446,6 +446,9 @@ async function selectOccupationCareer(item) {
           ${options.map((option, index) => `<option value="${index}">${escapeHTML(option.label)}</option>`).join("")}
         </select>
       </div>
+      <div class="ptg-career-options">
+        ${careers.map(careerSummaryHTML).join("")}
+      </div>
     </div>
   `;
 
@@ -482,6 +485,35 @@ function careerAttachmentOptions(careers) {
 
 function attachmentLabel(attachment) {
   return `Level ${attachment.level ?? 1} ${attachment.name} (${kindCode(attachment.kind)})`;
+}
+
+function careerSummaryHTML(career) {
+  const attachments = Array.isArray(career.attachments) && career.attachments.length
+    ? career.attachments.map(attachment => `<li>${escapeHTML(attachmentLabel(attachment))}</li>`).join("")
+    : "<li>No Attachment</li>";
+  const blessing = concreteAbilityGrant(career.blessing);
+  const curse = concreteAbilityGrant(career.curse);
+
+  return `
+    <section class="ptg-career-option">
+      <h3>${escapeHTML(career.name)}</h3>
+      <dl>
+        <div><dt>Free Time</dt><dd>${Number(career.resources?.freeTime ?? 0)}</dd></div>
+        <div><dt>Wealth</dt><dd>${Number(career.resources?.wealth ?? 0)}</dd></div>
+      </dl>
+      <strong>Attachments</strong>
+      <ul>${attachments}</ul>
+      ${blessing ? `<p><strong>Blessing - ${escapeHTML(blessing.name)}:</strong> ${escapeHTML(blessing.effect)}</p>` : ""}
+      ${curse ? `<p><strong>Curse - ${escapeHTML(curse.name)}:</strong> ${escapeHTML(curse.effect)}</p>` : ""}
+    </section>
+  `;
+}
+
+function concreteAbilityGrant(grant) {
+  if (!grant || typeof grant !== "object") return null;
+  if (!grant.name || !grant.effect) return null;
+
+  return grant;
 }
 
 function choiceGrants(baseGrants, careerSelection) {
