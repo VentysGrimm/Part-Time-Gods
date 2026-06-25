@@ -20,7 +20,10 @@
     </header>
 
     <section class="ptg-paper-panel ptg-creation-panel">
-      <h2>Character Creation</h2>
+      <div class="ptg-panel-heading">
+        <h2>Character Creation</h2>
+        <button type="button" data-character-creator>Creator</button>
+      </div>
       <ol class="ptg-creation-steps">
         {{#each creationSteps as |step|}}
           <li class="ptg-creation-step{{#if step.complete}} complete{{/if}}">

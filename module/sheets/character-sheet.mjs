@@ -75,6 +75,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     for (const button of this.element.querySelectorAll("[data-item-action]")) {
       button.addEventListener("click", event => this.#onItemAction(event.currentTarget));
     }
+
+    this.element.querySelector("[data-character-creator]")?.addEventListener("click", () => this.#openCharacterCreator());
   }
 
   async _onDrop(event) {
@@ -297,4 +299,124 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       await item.update({ "system.strain.value": Math.clamp(current + delta, 0, max) });
     }
   }
+
+  async #openCharacterCreator() {
+    const choices = await this.#loadCreationChoices();
+    const types = ["occupation", "archetype", "domain", "theology"];
+    const identity = this.actor.system.identity ?? {};
+    const identityKeys = {
+      occupation: "occupation",
+      archetype: "archetype",
+      domain: "dominion",
+      theology: "theology"
+    };
+
+    const content = `
+      <div class="ptg-creator-dialog">
+        ${types.map(type => {
+          const current = identity[identityKeys[type]] || "";
+          const options = choices[type] ?? [];
+
+          return `
+            <div class="form-group">
+              <label>${escapeHTML(creatorTypeLabel(type))}</label>
+              <select name="${type}">
+                <option value="">${current ? `Keep ${escapeHTML(current)}` : `Choose ${escapeHTML(creatorTypeLabel(type))}`}</option>
+                ${options.map(option => `<option value="${escapeHTML(option.uuid)}">${escapeHTML(option.name)}</option>`).join("")}
+              </select>
+              <p class="hint">${current ? `Current: ${escapeHTML(current)}` : "No selection applied yet."}</p>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+
+    const selections = await DialogV2.prompt({
+      window: { title: `${this.actor.name}: Character Creator` },
+      content,
+      rejectClose: false,
+      modal: true,
+      ok: {
+        label: "Apply Choices",
+        callback: (event, button) => Object.fromEntries(
+          types.map(type => [type, button.form.elements[type]?.value ?? ""])
+        )
+      }
+    });
+
+    if (!selections) return;
+
+    const selectedTypes = types.filter(type => selections[type]);
+    if (!selectedTypes.length) {
+      ui.notifications.info("No character creation choices selected.");
+      return;
+    }
+
+    for (const type of selectedTypes) {
+      if (identity[identityKeys[type]]) {
+        ui.notifications.warn(`${creatorTypeLabel(type)} is already set for ${this.actor.name}.`);
+        continue;
+      }
+
+      const uuid = selections[type];
+      const sourceItem = await fromUuid(uuid);
+      if (!sourceItem) continue;
+
+      const source = sourceItem.toObject();
+      delete source._id;
+
+      const [ownedItem] = await this.actor.createEmbeddedDocuments("Item", [source]);
+      const applied = await this.actor.applyChoice(ownedItem);
+      if (!applied) await ownedItem.delete();
+    }
+  }
+
+  async #loadCreationChoices() {
+    const byType = {
+      occupation: [],
+      archetype: [],
+      domain: [],
+      theology: []
+    };
+    const pack = game.packs.get("part-time-gods.character-creation");
+    let documents = [];
+
+    if (pack) {
+      documents = await pack.getDocuments();
+    }
+
+    if (!documents.length) {
+      documents = game.items.filter(item => item.getFlag("part-time-gods", "premadeChoice"));
+    }
+
+    for (const item of documents) {
+      if (!byType[item.type]) continue;
+      byType[item.type].push(item);
+    }
+
+    for (const options of Object.values(byType)) {
+      options.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return byType;
+  }
+}
+
+function creatorTypeLabel(type) {
+  return {
+    occupation: "Occupation",
+    archetype: "Archetype",
+    domain: "Dominion",
+    theology: "Theology"
+  }[type] ?? type;
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
 }

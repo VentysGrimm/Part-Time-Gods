@@ -481,6 +481,31 @@
   padding-bottom: 10px;
 }
 
+.ptg-panel-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 6px;
+}
+
+.ptg-paper-panel .ptg-panel-heading h2 {
+  margin: 0;
+  text-align: left;
+}
+
+.ptg-panel-heading button {
+  min-height: 26px;
+  border: 1px solid #8d74b8;
+  border-radius: 3px;
+  padding: 2px 8px;
+  background: #e8def6;
+  color: #21162d;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 .ptg-creation-steps {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -553,6 +578,19 @@
 .ptg-creation-step small {
   grid-column: 1 / -1;
   font-weight: 700;
+}
+
+.ptg-creator-dialog {
+  display: grid;
+  gap: 10px;
+}
+
+.ptg-creator-dialog .form-group {
+  margin: 0;
+}
+
+.ptg-creator-dialog select {
+  width: 100%;
 }
 
 .ptg-character-sheet label span,
