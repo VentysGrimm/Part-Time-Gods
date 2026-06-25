@@ -159,6 +159,12 @@ export class PartTimeGodsActor extends Actor {
         difficulty,
         flavor: `${this.name}: ${item.name}`
       });
+
+      if (item.system.automation?.enabled) {
+        const automationResults = await this.#applyItemAutomation(item);
+        if (automationResults.length) await this.#postAutomationMessage(item.name, automationResults);
+      }
+
       return true;
     }
 
@@ -210,50 +216,70 @@ export class PartTimeGodsActor extends Actor {
     const results = [];
 
     if (automation.resourceChange) {
-      const result = await this.#applyResourceChange(automation.resourceChange);
-      if (result) results.push(result);
+      const actors = this.#automationActors(item, automation.resourceChange);
+      for (const actor of actors) {
+        const result = await this.#applyResourceChange(actor, automation.resourceChange);
+        if (result) results.push(result);
+      }
     }
 
     if (automation.healing) {
-      results.push(...await this.#applyHealing(automation.healing));
+      const actors = this.#automationActors(item, automation.healing);
+      for (const actor of actors) {
+        results.push(...await this.#applyHealing(actor, automation.healing));
+      }
     }
 
     if (automation.damage) {
-      const result = await this.#applyDamage(automation.damage);
-      if (result) results.push(result);
+      const actors = this.#automationActors(item, automation.damage);
+      for (const actor of actors) {
+        const result = await this.#applyDamage(actor, automation.damage);
+        if (result) results.push(result);
+      }
     }
 
     if (automation.condition) {
-      const result = await this.#applyConditionAutomation(item, automation.condition);
-      if (result) results.push(result);
+      const actors = this.#automationActors(item, automation.condition);
+      for (const actor of actors) {
+        const result = await this.#applyConditionAutomation(actor, item, automation.condition);
+        if (result) results.push(result);
+      }
     }
 
     return results;
   }
 
-  async #applyResourceChange(change) {
+  #automationActors(item, detail = {}) {
+    const targetMode = String(detail.target ?? item.system.usage?.target ?? item.system.automation?.target ?? "self").toLowerCase();
+    const wantsTargets = ["target", "targeted", "targets", "ally", "enemy", "enemies"].includes(targetMode);
+
+    if (!wantsTargets) return [this];
+
+    const actors = Array.from(game.user?.targets ?? [])
+      .map(token => token.actor)
+      .filter(actor => actor?.update);
+
+    if (!actors.length) {
+      ui.notifications.warn(`${item.name} needs at least one targeted token.`);
+    }
+
+    return actors;
+  }
+
+  async #applyResourceChange(actor, change) {
     const resource = normalizeResourceName(change.resource ?? change.key ?? "");
     const amount = Number(change.amount ?? change.value ?? 0);
     if (!resource || !Number.isFinite(amount) || amount === 0) return "";
 
-    const path = `system.resources.${resource}`;
-    const current = foundry.utils.getProperty(this, path);
+    const current = actorResource(actor, resource);
+    if (!current) return "";
 
-    if (typeof current === "number") {
-      const max = Number(this.system.resources?.[`${resource}Max`] ?? Number.POSITIVE_INFINITY);
-      const next = clamp(current + amount, 0, Number.isFinite(max) ? max : Number.MAX_SAFE_INTEGER);
-      await this.update({ [path]: next });
-      return `${resourceLabel(resource)} ${amount > 0 ? "+" : ""}${amount}.`;
-    }
-
-    const value = Number(current?.value ?? 0);
-    const max = Number(current?.max ?? Number.MAX_SAFE_INTEGER);
-    const next = clamp(value + amount, 0, Number.isFinite(max) ? max : Number.MAX_SAFE_INTEGER);
-    await this.update({ [`${path}.value`]: next });
-    return `${resourceLabel(resource)} ${amount > 0 ? "+" : ""}${amount}.`;
+    const next = clamp(current.value + amount, 0, current.max);
+    await actor.update({ [current.path]: next });
+    return `${actor.name}: ${resourceLabel(resource)} ${amount > 0 ? "+" : ""}${amount}.`;
   }
 
-  async #applyHealing(healing) {
+  async #applyHealing(actor, healing) {
     const updates = {};
     const results = [];
 
@@ -261,57 +287,56 @@ export class PartTimeGodsActor extends Actor {
       const amount = Number(healing[resource] ?? healing.amount ?? 0);
       if (!amount) continue;
 
-      const current = this.system.resources?.[resource];
-      const value = Number(current?.value ?? 0);
-      const max = Number(current?.max ?? value);
-      const next = clamp(value + amount, 0, max);
+      const current = actorResource(actor, resource);
+      if (!current) continue;
 
-      updates[`system.resources.${resource}.value`] = next;
-      results.push(`${resourceLabel(resource)} healed ${next - value}.`);
+      const next = clamp(current.value + amount, 0, current.max);
+      updates[current.path] = next;
+      results.push(`${actor.name}: ${resourceLabel(resource)} healed ${next - current.value}.`);
     }
 
-    if (Object.keys(updates).length) await this.update(updates);
+    if (Object.keys(updates).length) await actor.update(updates);
 
     const conditionAmount = Number(healing.conditions ?? healing.condition ?? 0);
     if (conditionAmount > 0) {
-      const reduced = await this.#reduceOwnedConditions(conditionAmount, healing.category ?? "");
+      const reduced = await this.#reduceOwnedConditions(actor, conditionAmount, healing.category ?? "");
       if (reduced.length) results.push(...reduced);
     }
 
     return results;
   }
 
-  async #applyDamage(damage) {
+  async #applyDamage(actor, damage) {
     const resource = damage.resource === "psyche" || damage.type === "mental" ? "psyche" : "health";
     const rawAmount = Number(damage.amount ?? damage.value ?? 0);
     if (!rawAmount) return "";
 
-    const armor = resource === "health" && damage.applyArmor !== false ? Number(this.system.derived?.armor ?? 0) : 0;
+    const armor = resource === "health" && damage.applyArmor !== false ? Number(actor.system.derived?.armor ?? 0) : 0;
     const amount = Math.max(0, rawAmount - armor);
-    const current = this.system.resources?.[resource];
-    const value = Number(current?.value ?? 0);
-    const next = clamp(value - amount, 0, Number(current?.max ?? value));
+    const current = actorResource(actor, resource);
+    if (!current) return "";
 
-    await this.update({ [`system.resources.${resource}.value`]: next });
-    return `${resourceLabel(resource)} took ${amount} damage${armor ? ` after ${armor} armor` : ""}.`;
+    const next = clamp(current.value - amount, 0, current.max);
+    await actor.update({ [current.path]: next });
+    return `${actor.name}: ${resourceLabel(resource)} took ${amount} damage${armor ? ` after ${armor} armor` : ""}.`;
   }
 
-  async #applyConditionAutomation(item, condition) {
+  async #applyConditionAutomation(actor, item, condition) {
     const action = condition.action ?? item.system.automation?.action ?? "";
     const amount = Number(condition.amount ?? condition.severity ?? item.system.severity ?? 1);
 
     if (action === "remove-condition" || condition.remove) {
-      const removed = await this.#reduceOwnedConditions(amount || 1, condition.category ?? "", condition.name ?? "");
+      const removed = await this.#reduceOwnedConditions(actor, amount || 1, condition.category ?? "", condition.name ?? "");
       return removed.length ? removed.join(" ") : "";
     }
 
     if (item.type === "condition") {
-      return `${item.name} is tracked at severity ${Number(item.system.severity ?? 1)}.`;
+      return `${actor.name}: ${item.name} is tracked at severity ${Number(item.system.severity ?? 1)}.`;
     }
 
     if (!condition.name) return "";
 
-    await this.createEmbeddedDocuments("Item", [{
+    await actor.createEmbeddedDocuments("Item", [{
       name: condition.name,
       type: "condition",
       img: "icons/svg/daze.svg",
@@ -326,11 +351,11 @@ export class PartTimeGodsActor extends Actor {
       }
     }]);
 
-    return `${condition.name} condition applied.`;
+    return `${actor.name}: ${condition.name} condition applied.`;
   }
 
-  async #reduceOwnedConditions(amount, category = "", name = "") {
-    const matches = this.items
+  async #reduceOwnedConditions(actor, amount, category = "", name = "") {
+    const matches = actor.items
       .filter(item => item.type === "condition")
       .filter(item => !category || item.system.category === category)
       .filter(item => !name || item.name === name)
@@ -347,10 +372,10 @@ export class PartTimeGodsActor extends Actor {
 
       if (next <= 0) {
         await condition.delete();
-        results.push(`${condition.name} removed.`);
+        results.push(`${actor.name}: ${condition.name} removed.`);
       } else {
         await condition.update({ "system.severity": next });
-        results.push(`${condition.name} reduced to severity ${next}.`);
+        results.push(`${actor.name}: ${condition.name} reduced to severity ${next}.`);
       }
     }
 
@@ -474,6 +499,39 @@ function resourceLabel(resource) {
     fragments: "Fragments",
     wealth: "Wealth"
   }[resource] ?? resource;
+}
+
+function actorResource(actor, resource) {
+  const nested = actor.system.resources?.[resource];
+
+  if (typeof nested === "number") {
+    const max = Number(actor.system.resources?.[`${resource}Max`] ?? Number.MAX_SAFE_INTEGER);
+    return {
+      path: `system.resources.${resource}`,
+      value: Number(nested ?? 0),
+      max: Number.isFinite(max) ? max : Number.MAX_SAFE_INTEGER
+    };
+  }
+
+  if (nested && typeof nested === "object") {
+    const value = Number(nested.value ?? 0);
+    const max = Number(nested.max ?? Number.MAX_SAFE_INTEGER);
+    return {
+      path: `system.resources.${resource}.value`,
+      value,
+      max: Number.isFinite(max) ? max : Number.MAX_SAFE_INTEGER
+    };
+  }
+
+  if (typeof actor.system?.[resource] === "number") {
+    return {
+      path: `system.${resource}`,
+      value: Number(actor.system[resource] ?? 0),
+      max: Number.MAX_SAFE_INTEGER
+    };
+  }
+
+  return null;
 }
 
 function embeddedAttachmentItems(attachments, sourceItem) {
