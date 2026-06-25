@@ -70,7 +70,9 @@
       "character": {
         "htmlFields": ["notes"]
       },
-      "antagonist": {},
+      "antagonist": {
+        "htmlFields": ["description", "powers", "notes"]
+      },
       "pantheon": {}
     },
 

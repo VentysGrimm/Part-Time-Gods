@@ -3,14 +3,33 @@
     <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}">
     <div class="ptg-title">
       <input class="ptg-name" name="name" type="text" value="{{actor.name}}" placeholder="Antagonist Name">
-      <div class="ptg-subtitle">Antagonist</div>
+      <div class="ptg-subtitle">Antagonist{{#if system.rank}} - {{system.rank}}{{/if}}</div>
     </div>
   </header>
+
+  <section class="ptg-item-fields three">
+    <label>
+      <span>Type</span>
+      <input name="system.antagonistType" type="text" value="{{system.antagonistType}}" placeholder="Outsider, Mortal, Spirit">
+    </label>
+    <label>
+      <span>Rank</span>
+      <input name="system.rank" type="text" value="{{system.rank}}" placeholder="Warrior, Master, Grand Master">
+    </label>
+    <label>
+      <span>Source Page</span>
+      <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
+    </label>
+  </section>
 
   <section class="ptg-stat-grid">
     <label>
       <span>Threat</span>
       <input name="system.threat" type="number" value="{{system.threat}}" min="1">
+    </label>
+    <label>
+      <span>Threshold</span>
+      <input name="system.threshold" type="number" value="{{system.threshold}}" min="0">
     </label>
     <label>
       <span>Health</span>
@@ -19,6 +38,26 @@
     <label>
       <span>Psyche</span>
       <input name="system.psyche" type="number" value="{{system.psyche}}" min="0">
+    </label>
+    <label>
+      <span>Armor</span>
+      <input name="system.armor" type="number" value="{{system.armor}}" min="0">
+    </label>
+    <label>
+      <span>Spark</span>
+      <input name="system.spark" type="number" value="{{system.spark}}" min="0">
+    </label>
+    <label>
+      <span>Fragments</span>
+      <input name="system.fragments" type="number" value="{{system.fragments}}" min="0">
+    </label>
+    <label>
+      <span>Attack</span>
+      <input name="system.attack" type="number" value="{{system.attack}}" min="0">
+    </label>
+    <label>
+      <span>Defense</span>
+      <input name="system.defense" type="number" value="{{system.defense}}" min="0">
     </label>
     <label>
       <span>Initiative</span>
@@ -30,8 +69,25 @@
     </label>
   </section>
 
+  <section class="ptg-item-fields">
+    <label>
+      <span>Skills</span>
+      <input name="system.skills" type="text" value="{{system.skills}}" placeholder="Athletics, Fighting, Fortitude">
+    </label>
+  </section>
+
   <section class="ptg-editor-section">
     <h2>Description</h2>
     {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+  </section>
+
+  <section class="ptg-editor-section">
+    <h2>Powers</h2>
+    {{editor system.powers target="system.powers" button=true editable=editable engine="prosemirror"}}
+  </section>
+
+  <section class="ptg-editor-section">
+    <h2>Notes</h2>
+    {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
   </section>
 </form>
