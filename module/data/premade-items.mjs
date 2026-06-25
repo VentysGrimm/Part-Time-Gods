@@ -391,53 +391,66 @@ function choiceAbilityGrants(choice) {
   const grants = choice.system?.grants ?? {};
   const abilities = [];
 
-  if (grants.blessing) {
+  const blessingGrant = concreteAbilityGrant(grants.blessing);
+  const curseGrant = concreteAbilityGrant(grants.curse);
+
+  if (blessingGrant) {
     abilities.push({
       type: "blessing",
-      name: grants.blessing,
+      name: blessingGrant.name,
       sourceName,
       page,
-      effect: `${grants.blessing} is a book-referenced blessing option granted by ${choice.name}.`
+      effect: blessingGrant.effect
     });
   }
 
-  if (grants.curse) {
+  if (curseGrant) {
     abilities.push({
       type: "curse",
-      name: grants.curse,
+      name: curseGrant.name,
       sourceName,
       page,
       pantheonDice: 1,
-      effect: `${grants.curse} is a book-referenced curse option granted by ${choice.name}.`
+      effect: curseGrant.effect
     });
   }
 
   for (const career of choice.system?.careerOptions ?? []) {
     const careerSource = `${career.name} (${choice.name})`;
 
-    if (career.blessing?.name) {
+    const careerBlessing = concreteAbilityGrant(career.blessing);
+    const careerCurse = concreteAbilityGrant(career.curse);
+
+    if (careerBlessing) {
       abilities.push({
         type: "blessing",
-        name: career.blessing.name,
+        name: careerBlessing.name,
         sourceName: careerSource,
         page,
-        effect: career.blessing.effect ?? `${career.blessing.name} is a book-referenced blessing option granted by ${careerSource}.`
+        effect: careerBlessing.effect
       });
     }
 
-    if (career.curse?.name) {
+    if (careerCurse) {
       abilities.push({
         type: "curse",
-        name: career.curse.name,
+        name: careerCurse.name,
         sourceName: careerSource,
         page,
-        pantheonDice: career.curse.pantheonDice ?? 1,
-        effect: career.curse.effect ?? `${career.curse.name} is a book-referenced curse option granted by ${careerSource}.`
+        pantheonDice: careerCurse.pantheonDice ?? 1,
+        effect: careerCurse.effect
       });
     }
   }
 
   return abilities;
+}
+
+function concreteAbilityGrant(grant) {
+  if (!grant || typeof grant !== "object") return null;
+  if (!grant.name || !grant.effect) return null;
+
+  return grant;
 }
 
 function baseItem(type, name, page, system) {
