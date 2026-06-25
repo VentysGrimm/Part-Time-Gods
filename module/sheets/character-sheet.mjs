@@ -131,7 +131,10 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       difficulty: selection.difficulty,
       bonus: selection.bonus,
       penalty: selection.penalty,
-      modifierDetails: selection.modifierDetails
+      modifierDetails: selection.modifierDetails,
+      checkMode: selection.checkMode,
+      extended: selection.extended,
+      boostChoice: selection.boostChoice
     });
   }
 
@@ -486,6 +489,26 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
         <input type="number" name="customDifficulty" value="${Number(difficulty)}" min="0">
       </div>
       <div class="form-group">
+        <label>Check Mode</label>
+        <select name="checkMode">
+          <option value="standard">Standard</option>
+          <option value="opposed">Opposed</option>
+          <option value="extended">Extended</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Opposing Successes</label>
+        <input type="number" name="opposingSuccesses" value="${Number(difficulty)}" min="0">
+      </div>
+      <div class="form-group">
+        <label>Extended Target</label>
+        <input type="number" name="extendedTarget" value="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>Current Progress</label>
+        <input type="number" name="extendedCurrent" value="0" min="0">
+      </div>
+      <div class="form-group">
         <label>Bonus</label>
         <input type="number" name="bonus" value="0">
       </div>
@@ -513,6 +536,10 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
         <label>Support Bonus</label>
         <input type="number" name="supportBonus" value="0" min="0">
       </div>
+      <div class="form-group">
+        <label>Boost Choice</label>
+        <input type="text" name="boostChoice" value="" placeholder="Optional planned Boost">
+      </div>
       <p class="ptg-sheet-note" data-pool-preview>${skillPoolPreview(actor, primary, secondary, 0, 0)}</p>
     </div>
   `;
@@ -533,16 +560,27 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
         const toolModifier = Number(form.elements.toolModifier?.value ?? 0);
         const supportBonus = Math.max(0, Number(form.elements.supportBonus?.value ?? 0));
         const specialtyName = form.elements.specialtyName?.value?.trim();
+        const checkMode = form.elements.checkMode?.value ?? "standard";
+        const baseDifficulty = difficultyValue === "custom"
+          ? Number(form.elements.customDifficulty?.value ?? 0)
+          : Number(difficultyValue ?? 0);
+        const extendedTarget = Math.max(0, Number(form.elements.extendedTarget?.value ?? 0));
 
         return {
           primary: form.elements.primary?.value ?? primary,
           secondary: form.elements.secondary?.value ?? secondary,
-          difficulty: difficultyValue === "custom"
-            ? Number(form.elements.customDifficulty?.value ?? 0)
-            : Number(difficultyValue ?? 0),
+          difficulty: checkMode === "opposed"
+            ? Number(form.elements.opposingSuccesses?.value ?? 0)
+            : baseDifficulty,
           bonus: Number(form.elements.bonus?.value ?? 0),
           penalty: Number(form.elements.penalty?.value ?? 0),
           pantheonDice,
+          checkMode,
+          extended: checkMode === "extended" && extendedTarget > 0 ? {
+            target: extendedTarget,
+            current: Math.max(0, Number(form.elements.extendedCurrent?.value ?? 0))
+          } : null,
+          boostChoice: form.elements.boostChoice?.value?.trim() ?? "",
           modifierDetails: {
             "Pantheon Dice": pantheonDice,
             [specialtyName ? `Specialty (${specialtyName})` : "Specialty"]: specialtyBonus,

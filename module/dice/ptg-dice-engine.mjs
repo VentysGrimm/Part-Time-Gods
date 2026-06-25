@@ -39,7 +39,10 @@ export class PTGDiceEngine {
       difficulty,
       passed: successes >= difficulty,
       margin: successes - difficulty,
-      criticalFailure: successes === 0 && ones > 0
+      criticalFailure: successes === 0 && ones > 0,
+      checkMode: options.checkMode ?? "standard",
+      extended: options.extended ?? null,
+      boostChoice: options.boostChoice ?? ""
     };
 
     if (sendToChat) await this.createChatCard(outcome, flavor);
@@ -99,10 +102,26 @@ export class PTGDiceEngine {
       .filter(([, value]) => Number(value ?? 0) !== 0)
       .map(([label, value]) => `<div>${escapeHTML(label)}: ${Number(value) >= 0 ? "+" : ""}${Number(value)}</div>`)
       .join("");
+    const extendedProgress = outcome.extended
+      ? Number(outcome.extended.current ?? 0) + outcome.successes
+      : 0;
+    const extendedRows = outcome.extended
+      ? `
+        <div>Extended Progress: ${extendedProgress} / ${Number(outcome.extended.target ?? 0)}</div>
+        <div>Extended Result: ${extendedProgress >= Number(outcome.extended.target ?? 0) ? "Complete" : "In Progress"}</div>
+      `
+      : "";
+    const boostRows = outcome.margin > 0
+      ? `<div>Boost: ${escapeHTML(outcome.boostChoice || `${outcome.margin} extra success${outcome.margin === 1 ? "" : "es"} available`)}</div>`
+      : "";
+    const criticalRows = outcome.criticalFailure
+      ? "<div>Consequence: The GM may introduce a complication, Condition, Strain, lost time, or other PTG2E setback.</div>"
+      : "";
 
     const content = `
       <div class="ptg-chat-card">
         <h3>${flavor}</h3>
+        <div>Mode: ${escapeHTML(labelCase(outcome.checkMode))}</div>
         <div>Base Pool: ${outcome.basePool}d10</div>
         <div>Modifiers: +${outcome.bonus} / -${outcome.penalty}</div>
         ${modifierRows}
@@ -110,6 +129,9 @@ export class PTGDiceEngine {
         <div>Successes: ${outcome.successes}</div>
         <div>Difficulty: ${outcome.difficulty}</div>
         <div>Margin: ${outcome.margin}</div>
+        ${extendedRows}
+        ${boostRows}
+        ${criticalRows}
         <strong>${resultText}</strong>
       </div>
     `;
@@ -138,4 +160,11 @@ function escapeHTML(value) {
     '"': "&quot;",
     "'": "&#39;"
   }[char]));
+}
+
+function labelCase(key) {
+  return String(key ?? "")
+    .replace(/([A-Z])/g, " $1")
+    .replace(/[-_]/g, " ")
+    .replace(/^./, char => char.toUpperCase());
 }
