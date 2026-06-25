@@ -90,7 +90,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     const source = item.toObject();
     delete source._id;
 
-    await this.actor.createEmbeddedDocuments("Item", [source]);
+    const [created] = await this.actor.createEmbeddedDocuments("Item", [source]);
+
+    if (["occupation", "archetype", "domain", "theology"].includes(created.type)) {
+      const applied = await this.actor.applyChoice(created);
+      if (!applied) await created.delete();
+    }
+
     return false;
   }
 
