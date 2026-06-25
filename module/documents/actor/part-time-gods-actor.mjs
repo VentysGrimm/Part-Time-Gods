@@ -80,7 +80,10 @@ export class PartTimeGodsActor extends Actor {
     const careerSelection = item.type === "occupation" ? await selectOccupationCareer(item) : null;
     if (careerSelection === false) return false;
 
-    const grants = choiceGrants(item.system.grants ?? {}, careerSelection);
+    const archetypeSelection = item.type === "archetype" ? await selectArchetypeOptions(item) : null;
+    if (archetypeSelection === false) return false;
+
+    const grants = choiceGrants(item.system.grants ?? {}, { careerSelection, archetypeSelection });
     const updates = {};
     const identityPath = {
       occupation: "system.identity.occupation",
@@ -472,6 +475,72 @@ async function selectOccupationCareer(item) {
   };
 }
 
+async function selectArchetypeOptions(item) {
+  const attachments = Array.from(item.system.attachmentOptions ?? []);
+  const blessings = Array.from(item.system.blessingOptions ?? []);
+  const curses = Array.from(item.system.curseOptions ?? []);
+  if (!attachments.length && !blessings.length && !curses.length) return null;
+
+  const content = `
+    <div class="ptg-career-dialog">
+      ${selectFieldHTML("attachmentOption", "Attachment", attachments.map(attachmentLabel))}
+      ${selectFieldHTML("blessingOption", "Blessing", blessings.map(option => option.name ?? "Blessing"))}
+      ${selectFieldHTML("curseOption", "Curse", curses.map(option => option.name ?? "Curse"))}
+      <div class="ptg-career-options">
+        ${archetypeOptionsHTML("Blessings", blessings)}
+        ${archetypeOptionsHTML("Curses", curses)}
+      </div>
+    </div>
+  `;
+
+  const selection = await DialogV2.prompt({
+    window: { title: `Choose ${item.name} Options` },
+    content,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Apply",
+      callback: (event, button) => ({
+        attachmentIndex: Number(button.form.elements.attachmentOption?.value ?? 0),
+        blessingIndex: Number(button.form.elements.blessingOption?.value ?? 0),
+        curseIndex: Number(button.form.elements.curseOption?.value ?? 0)
+      })
+    }
+  });
+
+  if (selection === null || selection === undefined) return false;
+
+  return {
+    attachment: attachments[selection.attachmentIndex] ?? null,
+    blessing: blessings[selection.blessingIndex] ?? null,
+    curse: curses[selection.curseIndex] ?? null
+  };
+}
+
+function selectFieldHTML(name, label, options) {
+  if (!options.length) return "";
+
+  return `
+    <div class="form-group">
+      <label>${escapeHTML(label)}</label>
+      <select name="${name}">
+        ${options.map((option, index) => `<option value="${index}">${escapeHTML(option)}</option>`).join("")}
+      </select>
+    </div>
+  `;
+}
+
+function archetypeOptionsHTML(title, options) {
+  if (!options.length) return "";
+
+  return `
+    <section class="ptg-career-option">
+      <h3>${escapeHTML(title)}</h3>
+      ${options.map(option => `<p><strong>${escapeHTML(option.name ?? "")}:</strong> ${escapeHTML(option.effect ?? "")}</p>`).join("")}
+    </section>
+  `;
+}
+
 function careerAttachmentOptions(careers) {
   return careers.flatMap((career, careerIndex) => {
     const attachments = Array.isArray(career.attachments) && career.attachments.length ? career.attachments : [null];
@@ -516,7 +585,7 @@ function concreteAbilityGrant(grant) {
   return grant;
 }
 
-function choiceGrants(baseGrants, careerSelection) {
+function choiceGrants(baseGrants, { careerSelection = null, archetypeSelection = null } = {}) {
   const grants = {
     skills: { ...(baseGrants.skills ?? {}) },
     manifestations: { ...(baseGrants.manifestations ?? {}) },
@@ -526,15 +595,21 @@ function choiceGrants(baseGrants, careerSelection) {
     curse: baseGrants.curse ?? ""
   };
 
-  if (!careerSelection?.career) return grants;
+  if (careerSelection?.career) {
+    grants.resources = {
+      ...grants.resources,
+      ...(careerSelection.career.resources ?? {})
+    };
+    grants.attachments = careerSelection.attachment ? [careerSelection.attachment] : [];
+    grants.blessing = careerSelection.career.blessing ?? "";
+    grants.curse = careerSelection.career.curse ?? "";
+  }
 
-  grants.resources = {
-    ...grants.resources,
-    ...(careerSelection.career.resources ?? {})
-  };
-  grants.attachments = careerSelection.attachment ? [careerSelection.attachment] : [];
-  grants.blessing = careerSelection.career.blessing ?? "";
-  grants.curse = careerSelection.career.curse ?? "";
+  if (archetypeSelection) {
+    grants.attachments = archetypeSelection.attachment ? [archetypeSelection.attachment] : [];
+    grants.blessing = archetypeSelection.blessing ?? "";
+    grants.curse = archetypeSelection.curse ?? "";
+  }
 
   return grants;
 }
