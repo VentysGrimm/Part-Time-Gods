@@ -113,10 +113,20 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
   async #rollSkill(button) {
     const primary = button.dataset.rollSkill;
-    const secondary = this.element.querySelector("[data-roll-secondary]")?.value ?? primary;
-    const difficulty = Number(this.element.querySelector("[data-roll-difficulty]")?.value ?? 1);
+    const selection = await selectSkillComboRollOptions({
+      actor: this.actor,
+      primary,
+      secondary: this.element.querySelector("[data-roll-secondary]")?.value ?? primary,
+      difficulty: Number(this.element.querySelector("[data-roll-difficulty]")?.value ?? 1)
+    });
 
-    await this.actor.rollSkillCombo(primary, secondary, { difficulty });
+    if (!selection) return;
+
+    await this.actor.rollSkillCombo(selection.primary, selection.secondary, {
+      difficulty: selection.difficulty,
+      bonus: selection.bonus,
+      penalty: selection.penalty
+    });
   }
 
   async #rollManifestation(button) {
@@ -437,6 +447,115 @@ function creatorTypeLabel(type) {
     domain: "Dominion",
     theology: "Theology"
   }[type] ?? type;
+}
+
+async function selectSkillComboRollOptions({ actor, primary, secondary, difficulty }) {
+  const skillEntries = Object.entries(CONFIG.PTG.skills ?? {});
+  const difficulties = Object.entries(CONFIG.PTG.difficulties ?? {});
+  const skillOption = ([key, label]) => `<option value="${escapeHTML(key)}" data-rank="${Number(actor.system.skills?.[key] ?? 0)}">${escapeHTML(label)} (${Number(actor.system.skills?.[key] ?? 0)})</option>`;
+  const difficultyOptions = difficulties
+    .map(([key, value]) => `<option value="${Number(value)}" ${Number(value) === Number(difficulty) ? "selected" : ""}>${escapeHTML(CONFIG.PTG.difficulties[key] ? `${labelCase(key)} (${value})` : String(value))}</option>`)
+    .join("");
+
+  const content = `
+    <div class="ptg-roll-dialog">
+      <div class="form-group">
+        <label>Primary Skill</label>
+        <select name="primary">
+          ${skillEntries.map(entry => skillOption(entry).replace(`value="${escapeHTML(primary)}"`, `value="${escapeHTML(primary)}" selected`)).join("")}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Secondary Skill</label>
+        <select name="secondary">
+          ${skillEntries.map(entry => skillOption(entry).replace(`value="${escapeHTML(secondary)}"`, `value="${escapeHTML(secondary)}" selected`)).join("")}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Difficulty</label>
+        <select name="difficulty">${difficultyOptions}<option value="custom">Custom</option></select>
+      </div>
+      <div class="form-group">
+        <label>Custom Difficulty</label>
+        <input type="number" name="customDifficulty" value="${Number(difficulty)}" min="0">
+      </div>
+      <div class="form-group">
+        <label>Bonus</label>
+        <input type="number" name="bonus" value="0">
+      </div>
+      <div class="form-group">
+        <label>Penalty</label>
+        <input type="number" name="penalty" value="0">
+      </div>
+      <p class="ptg-sheet-note" data-pool-preview>${skillPoolPreview(actor, primary, secondary, 0, 0)}</p>
+    </div>
+  `;
+
+  return DialogV2.prompt({
+    window: { title: "Skill Combo Check" },
+    content,
+    rejectClose: false,
+    modal: true,
+    render: (event, dialog) => wireSkillPoolPreview(dialog.element ?? dialog, actor),
+    ok: {
+      label: "Roll",
+      callback: (event, button) => {
+        const form = button.form;
+        const difficultyValue = form.elements.difficulty?.value;
+        return {
+          primary: form.elements.primary?.value ?? primary,
+          secondary: form.elements.secondary?.value ?? secondary,
+          difficulty: difficultyValue === "custom"
+            ? Number(form.elements.customDifficulty?.value ?? 0)
+            : Number(difficultyValue ?? 0),
+          bonus: Number(form.elements.bonus?.value ?? 0),
+          penalty: Number(form.elements.penalty?.value ?? 0)
+        };
+      }
+    }
+  });
+}
+
+function wireSkillPoolPreview(element, actor) {
+  const root = element instanceof HTMLElement ? element : element?.querySelector?.(".ptg-roll-dialog")?.closest("form");
+  const form = root?.querySelector?.("form") ?? root;
+  if (!form?.elements) return;
+
+  const update = () => {
+    const preview = form.querySelector("[data-pool-preview]");
+    if (!preview) return;
+
+    preview.textContent = skillPoolPreview(
+      actor,
+      form.elements.primary?.value,
+      form.elements.secondary?.value,
+      Number(form.elements.bonus?.value ?? 0),
+      Number(form.elements.penalty?.value ?? 0)
+    );
+  };
+
+  for (const name of ["primary", "secondary", "bonus", "penalty"]) {
+    form.elements[name]?.addEventListener("change", update);
+    form.elements[name]?.addEventListener("input", update);
+  }
+
+  update();
+}
+
+function skillPoolPreview(actor, primary, secondary, bonus, penalty) {
+  const primaryRank = Number(actor.system.skills?.[primary] ?? 0);
+  const secondaryRank = Number(actor.system.skills?.[secondary] ?? 0);
+  const basePool = primaryRank + secondaryRank;
+  const finalPool = basePool + Number(bonus ?? 0) - Number(penalty ?? 0);
+  const fate = finalPool <= 0 ? " Fate Die" : "";
+
+  return `Pool: ${primaryRank} + ${secondaryRank} + ${Number(bonus ?? 0)} - ${Number(penalty ?? 0)} = ${finalPool}${fate}`;
+}
+
+function labelCase(key) {
+  return String(key ?? "")
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, char => char.toUpperCase());
 }
 
 function escapeHTML(value) {

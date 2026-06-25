@@ -3,8 +3,12 @@ export class PTGDiceEngine {
     const difficulty = Number(options.difficulty ?? 0);
     const flavor = options.flavor ?? "";
     const sendToChat = options.sendToChat ?? true;
-    const fateDie = Number(poolSize) <= 0;
-    const dice = fateDie ? 1 : Math.max(1, Number(poolSize));
+    const basePool = Number(options.basePool ?? poolSize);
+    const bonus = Number(options.bonus ?? 0);
+    const penalty = Number(options.penalty ?? 0);
+    const finalPool = Number(poolSize);
+    const fateDie = finalPool <= 0;
+    const dice = fateDie ? 1 : Math.max(1, finalPool);
     const roll = await new Roll(`${dice}d10`).evaluate({ async: true });
 
     let successes = 0;
@@ -23,7 +27,10 @@ export class PTGDiceEngine {
 
     const outcome = {
       roll,
-      poolSize: Number(poolSize),
+      poolSize: finalPool,
+      basePool,
+      bonus,
+      penalty,
       dice,
       fateDie,
       successes,
@@ -41,11 +48,17 @@ export class PTGDiceEngine {
   static async rollSkillCombo(actor, primarySkill, secondarySkill, options = {}) {
     const primary = Number(actor.system.skills?.[primarySkill] ?? 0);
     const secondary = Number(actor.system.skills?.[secondarySkill] ?? 0);
+    const basePool = primary + secondary;
+    const bonus = Number(options.bonus ?? 0);
+    const penalty = Number(options.penalty ?? 0);
     const primaryLabel = CONFIG.PTG.skills[primarySkill] ?? primarySkill;
     const secondaryLabel = CONFIG.PTG.skills[secondarySkill] ?? secondarySkill;
 
-    return this.rollPool(primary + secondary, {
+    return this.rollPool(basePool + bonus - penalty, {
       ...options,
+      basePool,
+      bonus,
+      penalty,
       flavor: `${actor.name}: ${primaryLabel} + ${secondaryLabel}`
     });
   }
@@ -53,11 +66,17 @@ export class PTGDiceEngine {
   static async rollManifestation(actor, manifestation, skill, options = {}) {
     const divine = Number(actor.system.manifestations?.[manifestation] ?? 0);
     const mortal = Number(actor.system.skills?.[skill] ?? 0);
+    const basePool = divine + mortal;
+    const bonus = Number(options.bonus ?? 0);
+    const penalty = Number(options.penalty ?? 0);
     const manifestationLabel = CONFIG.PTG.manifestations[manifestation] ?? manifestation;
     const skillLabel = CONFIG.PTG.skills[skill] ?? skill;
 
-    return this.rollPool(divine + mortal, {
+    return this.rollPool(basePool + bonus - penalty, {
       ...options,
+      basePool,
+      bonus,
+      penalty,
       flavor: `${actor.name}: ${manifestationLabel} + ${skillLabel}`
     });
   }
@@ -72,7 +91,9 @@ export class PTGDiceEngine {
     const content = `
       <div class="ptg-chat-card">
         <h3>${flavor}</h3>
-        <div>Pool: ${outcome.poolSize}d10${outcome.fateDie ? " (Fate Die)" : ""}</div>
+        <div>Base Pool: ${outcome.basePool}d10</div>
+        <div>Modifiers: +${outcome.bonus} / -${outcome.penalty}</div>
+        <div>Final Pool: ${outcome.poolSize}d10${outcome.fateDie ? " (Fate Die)" : ""}</div>
         <div>Successes: ${outcome.successes}</div>
         <div>Difficulty: ${outcome.difficulty}</div>
         <div>Margin: ${outcome.margin}</div>
