@@ -19,6 +19,22 @@
       </div>
     </header>
 
+    <section class="ptg-paper-panel ptg-creation-panel">
+      <h2>Character Creation</h2>
+      <ol class="ptg-creation-steps">
+        {{#each creationSteps as |step|}}
+          <li class="ptg-creation-step{{#if step.complete}} complete{{/if}}">
+            <span class="ptg-step-number">{{step.number}}</span>
+            <div class="ptg-step-main">
+              <strong>{{step.title}}</strong>
+              <span>{{step.detail}}</span>
+            </div>
+            <small>{{step.source}}</small>
+          </li>
+        {{/each}}
+      </ol>
+    </section>
+
     <div class="ptg-page-one-grid">
       <section class="ptg-paper-panel ptg-conditions-panel">
         <label>

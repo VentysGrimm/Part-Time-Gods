@@ -46,6 +46,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.items = this.actor.items;
     context.inventory = this.#prepareInventory();
     context.inventorySections = this.#prepareInventorySections(context.inventory);
+    context.creationSteps = this.#prepareCreationSteps(context.inventory);
     context.gearSummary = this.#prepareGearSummary(context.inventory.gear);
     context.skillColumns = this.#prepareSkillColumns();
     context.manifestationColumns = this.#prepareManifestationColumns();
@@ -155,6 +156,72 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       { key: "conditions", title: "Conditions", family: "Character State", mode: "usable", items: inventory.conditions },
       { key: "blessings", title: "Blessings", family: "Boons and Burdens", mode: "usable", items: inventory.blessings },
       { key: "curses", title: "Curses", family: "Boons and Burdens", mode: "usable", items: inventory.curses }
+    ];
+  }
+
+  #prepareCreationSteps(inventory) {
+    const identity = this.actor.system.identity ?? {};
+    const resources = this.actor.system.resources ?? {};
+    const hasChoice = type => inventory.choices.some(item => item.type === type);
+    const hasIdentity = key => Boolean(String(identity[key] ?? "").trim());
+    const countItems = groups => groups.reduce((total, group) => total + (inventory[group]?.length ?? 0), 0);
+    const formatCount = (count, singular, plural = `${singular}s`) => count === 1 ? `1 ${singular}` : `${count} ${plural}`;
+
+    const attachmentCount = countItems(["bonds", "worshippers", "vassals", "relics", "truths"]);
+    const blessingCount = inventory.blessings?.length ?? 0;
+    const curseCount = inventory.curses?.length ?? 0;
+    const hasCoreChoices = ["occupation", "archetype", "dominion", "theology"].every(key => hasIdentity(key));
+    const hasFinalDetails = Boolean(
+      String(this.actor.system.specialties ?? "").trim()
+      || String(resources.legendaryActs ?? "").trim()
+      || Number(resources.xpGained ?? 0)
+      || Number(resources.xpSpent ?? 0)
+      || Number(resources.spark ?? 1) > 1
+    );
+
+    return [
+      {
+        number: 1,
+        title: "Occupation",
+        source: "Book pp. 37-50",
+        complete: hasIdentity("occupation") || hasChoice("occupation"),
+        detail: identity.occupation || "No occupation selected"
+      },
+      {
+        number: 2,
+        title: "Archetype",
+        source: "Book pp. 51-59",
+        complete: hasIdentity("archetype") || hasChoice("archetype"),
+        detail: identity.archetype || "No archetype selected"
+      },
+      {
+        number: 3,
+        title: "Dominion",
+        source: "Book pp. 60-66",
+        complete: hasIdentity("dominion") || hasChoice("domain"),
+        detail: identity.dominion || "No dominion selected"
+      },
+      {
+        number: 4,
+        title: "Theology",
+        source: "Book pp. 67-100",
+        complete: hasIdentity("theology") || hasChoice("theology"),
+        detail: identity.theology || "No theology selected"
+      },
+      {
+        number: 5,
+        title: "Attachments",
+        source: "Book pp. 105-124",
+        complete: attachmentCount > 0,
+        detail: attachmentCount > 0 ? formatCount(attachmentCount, "attachment") : "No attachments added"
+      },
+      {
+        number: 6,
+        title: "Final Touches",
+        source: "Book pp. 125-128",
+        complete: hasFinalDetails || (hasCoreChoices && attachmentCount > 0),
+        detail: `${formatCount(blessingCount, "blessing")} / ${formatCount(curseCount, "curse")}`
+      }
     ];
   }
 

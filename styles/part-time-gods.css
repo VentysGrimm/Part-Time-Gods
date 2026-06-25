@@ -477,6 +477,84 @@
   text-transform: uppercase;
 }
 
+.ptg-creation-panel {
+  padding-bottom: 10px;
+}
+
+.ptg-creation-steps {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ptg-creation-step {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #b49bd8;
+  background: #faf7ff;
+}
+
+.ptg-creation-step.complete {
+  border-color: #6f5aa0;
+  background: #e8def6;
+}
+
+.ptg-step-number {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #8d74b8;
+  border-radius: 50%;
+  color: #21162d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.ptg-creation-step.complete .ptg-step-number {
+  background: #6f5aa0;
+  color: #ffffff;
+}
+
+.ptg-step-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ptg-step-main strong,
+.ptg-step-main span,
+.ptg-creation-step small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ptg-step-main strong {
+  color: #21162d;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ptg-step-main span,
+.ptg-creation-step small {
+  color: #4e3971;
+  font-size: 11px;
+}
+
+.ptg-creation-step small {
+  grid-column: 1 / -1;
+  font-weight: 700;
+}
+
 .ptg-character-sheet label span,
 .ptg-character-sheet .ptg-readout span {
   color: #35214b;
@@ -736,7 +814,8 @@
   .ptg-page-one-grid,
   .ptg-paper-columns,
   .ptg-back-top,
-  .ptg-back-bottom {
+  .ptg-back-bottom,
+  .ptg-creation-steps {
     grid-template-columns: 1fr;
   }
 
