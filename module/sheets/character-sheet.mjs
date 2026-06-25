@@ -304,6 +304,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     const choices = await this.#loadCreationChoices();
     const types = ["occupation", "archetype", "domain", "theology"];
     const identity = this.actor.system.identity ?? {};
+    const attachments = this.actor.system.attachments ?? {};
+    const resources = this.actor.system.resources ?? {};
     const identityKeys = {
       occupation: "occupation",
       archetype: "archetype",
@@ -313,21 +315,34 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     const content = `
       <div class="ptg-creator-dialog">
-        ${types.map(type => {
+        ${types.map((type, index) => {
           const current = identity[identityKeys[type]] || "";
           const options = choices[type] ?? [];
 
           return `
-            <div class="form-group">
-              <label>${escapeHTML(creatorTypeLabel(type))}</label>
+            <fieldset>
+              <legend>Step ${index + 1}: ${escapeHTML(creatorTypeLabel(type))}</legend>
               <select name="${type}">
                 <option value="">${current ? `Keep ${escapeHTML(current)}` : `Choose ${escapeHTML(creatorTypeLabel(type))}`}</option>
                 ${options.map(option => `<option value="${escapeHTML(option.uuid)}">${escapeHTML(option.name)}</option>`).join("")}
               </select>
               <p class="hint">${current ? `Current: ${escapeHTML(current)}` : "No selection applied yet."}</p>
-            </div>
+            </fieldset>
           `;
         }).join("")}
+        <fieldset>
+          <legend>Step 5: Attachments</legend>
+          <label>Bonds <textarea name="attachments.bonds">${escapeHTML(attachments.bonds ?? "")}</textarea></label>
+          <label>Worshippers <textarea name="attachments.worshippers">${escapeHTML(attachments.worshippers ?? "")}</textarea></label>
+          <label>Vassals <textarea name="attachments.vassals">${escapeHTML(attachments.vassals ?? "")}</textarea></label>
+        </fieldset>
+        <fieldset>
+          <legend>Step 6: Final Touches</legend>
+          <label>God/dess Of <input type="text" name="identity.concept" value="${escapeHTML(identity.concept ?? "")}"></label>
+          <label>Age & Ethnicity <input type="text" name="identity.ageEthnicity" value="${escapeHTML(identity.ageEthnicity ?? "")}"></label>
+          <label>Specialties <textarea name="specialties">${escapeHTML(this.actor.system.specialties ?? "")}</textarea></label>
+          <label>Legendary Acts <textarea name="resources.legendaryActs">${escapeHTML(resources.legendaryActs ?? "")}</textarea></label>
+        </fieldset>
       </div>
     `;
 
@@ -338,19 +353,25 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       modal: true,
       ok: {
         label: "Apply Choices",
-        callback: (event, button) => Object.fromEntries(
-          types.map(type => [type, button.form.elements[type]?.value ?? ""])
-        )
+        callback: (event, button) => ({
+          choices: Object.fromEntries(types.map(type => [type, button.form.elements[type]?.value ?? ""])),
+          updates: {
+            "system.attachments.bonds": button.form.elements["attachments.bonds"]?.value ?? "",
+            "system.attachments.worshippers": button.form.elements["attachments.worshippers"]?.value ?? "",
+            "system.attachments.vassals": button.form.elements["attachments.vassals"]?.value ?? "",
+            "system.identity.concept": button.form.elements["identity.concept"]?.value ?? "",
+            "system.identity.ageEthnicity": button.form.elements["identity.ageEthnicity"]?.value ?? "",
+            "system.specialties": button.form.elements.specialties?.value ?? "",
+            "system.resources.legendaryActs": button.form.elements["resources.legendaryActs"]?.value ?? ""
+          }
+        })
       }
     });
 
     if (!selections) return;
 
-    const selectedTypes = types.filter(type => selections[type]);
-    if (!selectedTypes.length) {
-      ui.notifications.info("No character creation choices selected.");
-      return;
-    }
+    const selectedTypes = types.filter(type => selections.choices[type]);
+    await this.actor.update(selections.updates);
 
     for (const type of selectedTypes) {
       if (identity[identityKeys[type]]) {
@@ -358,7 +379,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         continue;
       }
 
-      const uuid = selections[type];
+      const uuid = selections.choices[type];
       const sourceItem = await fromUuid(uuid);
       if (!sourceItem) continue;
 
@@ -369,6 +390,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       const applied = await this.actor.applyChoice(ownedItem);
       if (!applied) await ownedItem.delete();
     }
+
+    if (!selectedTypes.length) ui.notifications.info("Updated character creator details.");
   }
 
   async #loadCreationChoices() {
