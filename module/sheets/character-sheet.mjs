@@ -141,7 +141,6 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         group,
         types
           .flatMap(type => this.actor.items.filter(item => item.type === type))
-          .filter(item => group !== "gear" || item.system.held !== false || item.system.equipped)
           .sort((a, b) => a.name.localeCompare(b.name))
       ])
     );
@@ -231,7 +230,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     return items.reduce((summary, item) => {
       const amount = Number(item.system.amount ?? 1);
       summary.cost += Number(item.system.cost ?? 0) * amount;
-      summary.weight += Number(item.system.weight ?? 0) * amount;
+      summary.weight += item.system.held !== false || item.system.equipped ? Number(item.system.weight ?? 0) * amount : 0;
       summary.equippedArmor += item.type === "armor" && item.system.equipped ? Number(item.system.rating ?? 0) : 0;
       return summary;
     }, {
