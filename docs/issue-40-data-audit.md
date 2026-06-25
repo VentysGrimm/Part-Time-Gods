@@ -26,3 +26,28 @@ Implementation notes:
 - Base Occupation Items now grant only the book-listed Occupation Skills.
 - Career data remains responsible for Free Time, Wealth, Attachment choice, Blessing, and Curse.
 - The broad Occupation label is normalized to `Fringe`, matching the book and random table source text.
+
+## Archetypes
+
+Checked against Part-Time Gods Second Edition book pp. 51-59.
+
+| Archetype | Source Page | Skill Grants | Attachment Options |
+| --- | ---: | --- | --- |
+| The Caregiver | 51 | Empathy +1, Fighting +1, Medicine +1, Perception +1, Travel +1 | +2 Individual Bond or +2 Landmark Bond |
+| The Companion | 52 | Empathy +1, Influence +1, Medicine +1, Might +1, Speed +1 | +2 Individual Bond or +2 Worshipper Entitlement |
+| The Dreamer | 52 | Crafts +1, Discipline +1, Perception +1, Perform +1, Tech +1 | +2 Landmark Bond or +2 Relic Entitlement |
+| The Fool | 53 | Fortitude +1, Intuition +1, Marksman +1, Speed +1, Survival +1 | +2 Individual Bond or +2 Group Bond |
+| The Hero | 54 | Athletics +1, Crafts +1, Fighting +1, Perform +1, Survival +1 | +2 Individual Bond or +2 Landmark Bond |
+| The Innocent | 54 | Crafts +1, Intuition +1, Knowledge +1, Perform +1, Stealth +1 | +2 Group Bond or +2 Landmark Bond |
+| The Lover | 55 | Deception +1, Influence +1, Marksman +1, Stealth +1, Tech +1 | +2 Individual Bond or +2 Group Bond |
+| The Rebel | 56 | Fortitude +1, Influence +1, Marksman +1, Might +1, Stealth +1 | +2 Group Bond or +2 Vassal Entitlement |
+| The Sage | 57 | Crafts +1, Empathy +1, Intuition +1, Knowledge +1, Perception +1 | +2 Group Bond or +2 Worshipper Entitlement |
+| The Tyrant | 57 | Athletics +1, Deception +1, Discipline +1, Might +1, Speed +1 | +2 Group Bond or +2 Vassal Entitlement |
+| The Visionary | 58 | Discipline +1, Fortitude +1, Intuition +1, Tech +1, Travel +1 | +2 Individual Bond or +2 Worshipper Entitlement |
+| The Wanderer | 59 | Athletics +1, Fighting +1, Knowledge +1, Survival +1, Travel +1 | +2 Group Bond or +2 Relic Entitlement |
+
+Implementation notes:
+
+- Archetype Items now carry all three Blessing options and both Curse options in structured arrays.
+- Archetype Items now carry the two book-listed Attachment options in structured arrays.
+- The application workflow still needs issue #59 to prompt for the selected Blessing and Curse.

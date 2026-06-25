@@ -91,18 +91,162 @@ export const PTG_PREMADE_CHOICES = [
     skills: { deception: 1, knowledge: 1, marksman: 1, medicine: 1, tech: 1 }
   }),
 
-  archetype("The Caregiver", "Generosity", 51, "First-Aid", "Mess with Them and You Mess with Me"),
-  archetype("The Companion", "Empathy", 52, "Making Friends", "Identity Crisis"),
-  archetype("The Dreamer", "Imagination", 52, "Keep on Creating", "Daydreaming"),
-  archetype("The Fool", "Joy", 53, "For You", "Like a Grasshopper, Not an Ant"),
-  archetype("The Hero", "Courage", 54, "I'm Your Opponent Now", "A Hero's Plight"),
-  archetype("The Innocent", "Optimism", 54, "Average Joe", "Trust First"),
-  archetype("The Lover", "Passion", 55, "As You Wish", "I Want What You Have"),
-  archetype("The Rebel", "Defiance", 56, "Against the Grain", "Loner"),
-  archetype("The Sage", "Wisdom", 57, "All Planned Out", "Contemplative"),
-  archetype("The Tyrant", "Control", 57, "Entitled", "Sand Through My Fingers"),
-  archetype("The Visionary", "Ambition", 58, "Opportunity Knocks", "Remember Me?"),
-  archetype("The Wanderer", "Autonomy", 59, "This is My Town", "Nomadic Tendencies"),
+  archetype("The Caregiver", "Generosity", 51, {
+    skills: { empathy: 1, fighting: 1, medicine: 1, perception: 1, travel: 1 },
+    attachments: [attachment("individual", "Individual Bond", 2), attachment("landmark", "Landmark Bond", 2)],
+    blessings: [
+      blessing("Adrenaline Kicks In", "Gain +2 Strength when needing to protect or help someone else."),
+      blessing("Gift for the Team", "When adding dice to the Pantheon Pool from a Boost, add +1 Pantheon Die as well."),
+      blessing("First-Aid", "Gain +1 Medicine when making a healing roll.")
+    ],
+    curses: [
+      curse("I Know Best", "Gain 1 Pantheon Die when seeming to know best leads to conflict and tension."),
+      curse("Mess with Them and You Mess with Me", "Gain 1 Pantheon Die when an Individual Bond is dealt Strain by an outside source.")
+    ]
+  }),
+  archetype("The Companion", "Empathy", 52, {
+    skills: { empathy: 1, influence: 1, medicine: 1, might: 1, speed: 1 },
+    attachments: [attachment("individual", "Individual Bond", 2), attachment("worshipper", "Worshipper Entitlement", 2)],
+    blessings: [
+      blessing("Community Leader", "Get the first Lead Follow-up per Session from a Group Bond for free."),
+      blessing("Fairness", "Gain +1 Influence when arguing against inequality or injustice, or fighting for fairness."),
+      blessing("Making Friends", "Reduce XP costs for purchasing Individual or Group Bonds by 1.")
+    ],
+    curses: [
+      curse("Identity Crisis", "Gain 1 Pantheon Die when dangerous peer pressure or crowd identity causes trouble."),
+      curse("Loyal to a Fault", "Gain 1 Pantheon Die when choosing between loyalties costs something.")
+    ]
+  }),
+  archetype("The Dreamer", "Imagination", 52, {
+    skills: { crafts: 1, discipline: 1, perception: 1, perform: 1, tech: 1 },
+    attachments: [attachment("landmark", "Landmark Bond", 2), attachment("relic", "Relic Entitlement", 2)],
+    blessings: [
+      blessing("Freedom in All Things", "Gain +1 to any roll made to resist losing freedom."),
+      blessing("Keep on Creating", "Gain +2 Crafts to create something that stands the test of time."),
+      blessing("Stroke of Genius", "Once per Session, Pantheon Dice taken for a roll count double, then take a Level 3 Dazed Condition.")
+    ],
+    curses: [
+      curse("Daydreaming", "Gain 1 Pantheon Die by sacrificing 1 Free Time when distraction stretches a task."),
+      curse("Perfectionist", "Gain 1 Pantheon Die when repeating a task until utter defeat or a Style Boost.")
+    ]
+  }),
+  archetype("The Fool", "Joy", 53, {
+    skills: { fortitude: 1, intuition: 1, marksman: 1, speed: 1, survival: 1 },
+    attachments: [attachment("individual", "Individual Bond", 2), attachment("group", "Group Bond", 2)],
+    blessings: [
+      blessing("For You", "Gain +1 to any check made to bring a smile to someone's face."),
+      blessing("Life O' the Party", "Throw a party and roll Influence + Perform to heal Psyche or reduce mental Conditions."),
+      blessing("Road Trip!", "Roll 1d10 when spending Free Time to pass scenes; on a success, spend 1 less Free Time.")
+    ],
+    curses: [
+      curse("Big Mouth", "Gain 1 Pantheon Die when loose lips cause trouble."),
+      curse("Like a Grasshopper, Not an Ant", "Gain 1 Pantheon Die when missing a key item or tool would have helped.")
+    ]
+  }),
+  archetype("The Hero", "Courage", 54, {
+    skills: { athletics: 1, crafts: 1, fighting: 1, perform: 1, survival: 1 },
+    attachments: [attachment("individual", "Individual Bond", 2), attachment("landmark", "Landmark Bond", 2)],
+    blessings: [
+      blessing("I'm Your Opponent Now", "Gain +1 Fighting when protecting someone else, or +2 Fighting to protect strangers."),
+      blessing("Made of Sturdy Stuff", "Once per Battle, roll Fortitude reflexively to negate physical damage successes."),
+      blessing("Final Blow", "After a successful physical attack, take Broken 3 to sacrifice Pantheon Dice for +1 damage each.")
+    ],
+    curses: [
+      curse("A Hero's Plight", "Gain 2 Pantheon Dice when choosing between further Straining a Bond or leaving the current Scene."),
+      curse("Overconfident", "Gain 1 Pantheon Die when walking into overwhelming danger without a second thought.")
+    ]
+  }),
+  archetype("The Innocent", "Optimism", 54, {
+    skills: { crafts: 1, intuition: 1, knowledge: 1, perform: 1, stealth: 1 },
+    attachments: [attachment("group", "Group Bond", 2), attachment("landmark", "Landmark Bond", 2)],
+    blessings: [
+      blessing("Average Joe", "Gain +1 Stealth when mixing in with large groups of people."),
+      blessing("Martyrdom", "Add 1 Pantheon Die when taking 3 or more damage from a single attack."),
+      blessing("Trying New Things", "Gain +1 to a Skill when performing something for the first time.")
+    ],
+    curses: [
+      curse("Out of My Depth", "Gain 1 Pantheon Die by taking Confused 2 after encountering the strange or wondrous."),
+      curse("Trust First", "Gain 1 Pantheon Die when believing something untrue leads the group into danger.")
+    ]
+  }),
+  archetype("The Lover", "Passion", 55, {
+    skills: { deception: 1, influence: 1, marksman: 1, stealth: 1, tech: 1 },
+    attachments: [attachment("individual", "Individual Bond", 2), attachment("group", "Group Bond", 2)],
+    blessings: [
+      blessing("As You Wish", "Once per Session, ask one Individual Bond for one Favor or Lead Follow-up without Strain."),
+      blessing("Beyond Pleasurable", "After intimacy, roll Empathy + Fortitude to heal Health/Psyche or reduce Conditions."),
+      blessing("Inviting Nature", "Gain +1 Influence to seduce, or +2 after spending at least two scenes around the target.")
+    ],
+    curses: [
+      curse("I Want What You Have", "Gain 1 Pantheon Die when obsession, jealousy, or envy creates danger."),
+      curse("You Don't Like It?", "Gain 1 Pantheon Die when an unnoticed or spurned gesture sends the character into depression.")
+    ]
+  }),
+  archetype("The Rebel", "Radical Freedom", 56, {
+    skills: { fortitude: 1, influence: 1, marksman: 1, might: 1, stealth: 1 },
+    attachments: [attachment("group", "Group Bond", 2), attachment("vassal", "Vassal Entitlement", 2)],
+    blessings: [
+      blessing("Disrupt the System", "Sacrifice Pantheon Dice to give a target -1 penalty per die sacrificed."),
+      blessing("Hoarder", "Store Pantheon Dice in a personal Hoard up to Intuition + 1."),
+      blessing("Revolutionary", "Gain +1 to rolls that aid the battle against an obviously greater target or cause.")
+    ],
+    curses: [
+      curse("Chaotic", "Gain 1 Pantheon Die when a random act of chaos disrupts the group and causes trouble."),
+      curse("Loner", "Gain 1 Pantheon Die when running off alone creates danger.")
+    ]
+  }),
+  archetype("The Sage", "Wisdom", 57, {
+    skills: { crafts: 1, empathy: 1, intuition: 1, knowledge: 1, perception: 1 },
+    attachments: [attachment("group", "Group Bond", 2), attachment("worshipper", "Worshipper Entitlement", 2)],
+    blessings: [
+      blessing("All Planned Out", "Gain +1 to planning rolls for Bond Lead Follow-up or the Portal stage when traveling to other worlds."),
+      blessing("Genius", "Reduce XP costs for standard Skills by 1."),
+      blessing("Outthink the Enemy", "Once per Battle, roll Discipline reflexively to negate mental damage successes.")
+    ],
+    curses: [
+      curse("All This Knowledge, For What?", "Gain 1 Pantheon Die when being stumped leaves the character useless and insecure."),
+      curse("Contemplative", "Gain 1 Pantheon Die when spending +1 Free Time to travel between Scenes due to over-planning.")
+    ]
+  }),
+  archetype("The Tyrant", "Control", 57, {
+    skills: { athletics: 1, deception: 1, discipline: 1, might: 1, speed: 1 },
+    attachments: [attachment("group", "Group Bond", 2), attachment("vassal", "Vassal Entitlement", 2)],
+    blessings: [
+      blessing("Authoritarian", "Gain +1 Influence to give orders, or +2 when holding actual authority over the target."),
+      blessing("Entitled", "Raise any Relic, Vassal, or Worshipper by +2 levels."),
+      blessing("Fate's Compliance", "On any roll, take 1 damage to reroll a die showing 1.")
+    ],
+    curses: [
+      curse("Home to Roost", "Gain 1 Pantheon Die when someone manipulated in the past returns for revenge."),
+      curse("Sand Through My Fingers", "Gain 1 Pantheon Die when losing control of a situation causes a breakdown.")
+    ]
+  }),
+  archetype("The Visionary", "Solutions", 58, {
+    skills: { discipline: 1, fortitude: 1, intuition: 1, tech: 1, travel: 1 },
+    attachments: [attachment("individual", "Individual Bond", 2), attachment("worshipper", "Worshipper Entitlement", 2)],
+    blessings: [
+      blessing("Make Things Happen", "Gain +1 to execution rolls for Bond Lead Follow-up or the Crossroads stage when traveling to other worlds."),
+      blessing("Opportunity Knocks", "Sacrifice 1 Pantheon Die during a contested check to reroll dice showing 1 up to the opponent's number of 1s."),
+      blessing("Scope Out", "Gain +1 to rolls made to assess a situation or read a room.")
+    ],
+    curses: [
+      curse("Not a Mind Reader", "Gain 1 Pantheon Die after devoting a scene to a Bond that does not heal Strain."),
+      curse("Remember Me?", "Gain 1 Pantheon Die when a manipulative choice comes back to haunt the character.")
+    ]
+  }),
+  archetype("The Wanderer", "Autonomy", 59, {
+    skills: { athletics: 1, fighting: 1, knowledge: 1, survival: 1, travel: 1 },
+    attachments: [attachment("group", "Group Bond", 2), attachment("relic", "Relic Entitlement", 2)],
+    blessings: [
+      blessing("I Know a Shortcut", "When traveling around the city, spend Free Time in increments of 5 instead of 4."),
+      blessing("This is My Town", "Gain +1 to any check made to operate in the character's town."),
+      blessing("Testing Limits", "After failing a roll, sacrifice 1 Pantheon Die to add the failed roll's number of 1s as a bonus to the next roll.")
+    ],
+    curses: [
+      curse("Holes in My Pockets", "Gain 1 Pantheon Die by sacrificing 1 Wealth when traveling between scenes."),
+      curse("Nomadic Tendencies", "Gain 1 Pantheon Die when the need to keep moving leads the group into danger.")
+    ]
+  }),
 
   domainChoice("Bestial", "bestial", 61, "Cats, dogs, horses, elephants, monkeys, bulls, ravens", {
     skills: { athletics: 1, fighting: 1, fortitude: 1, might: 1, survival: 1 },
@@ -248,10 +392,13 @@ function occupation(name, page, grants) {
   });
 }
 
-function archetype(name, definingTrait, page, blessing, curseName) {
+function archetype(name, definingTrait, page, options) {
   return choice("archetype", name, page, {
     definingTrait,
-    grants: normalizeGrants({ blessing, curse: curseName }),
+    attachmentOptions: options.attachments ?? [],
+    blessingOptions: options.blessings ?? [],
+    curseOptions: options.curses ?? [],
+    grants: normalizeGrants({ skills: options.skills ?? {} }),
     description: paragraph(`${name} is an archetype choice defined by ${definingTrait.toLowerCase()}.`),
     notes: source(page)
   });
