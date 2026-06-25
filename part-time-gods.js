@@ -122,7 +122,8 @@ Hooks.once("init", async () => {
   Handlebars.registerHelper("json", value => JSON.stringify(value ?? {}, null, 2));
 
   await loadTemplates([
-    "systems/part-time-gods/templates/actor/parts/item-list.hbs"
+    "systems/part-time-gods/templates/actor/parts/item-list.hbs",
+    "systems/part-time-gods/templates/chat/item-use-card.hbs"
   ]);
 });
 

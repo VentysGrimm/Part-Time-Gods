@@ -1,0 +1,59 @@
+<div class="ptg-chat-card ptg-item-use-card">
+  <header>
+    <h3>{{title}}</h3>
+    {{#if itemType}}<div class="ptg-chat-subtitle">{{itemType}} used by {{actorName}}</div>{{/if}}
+  </header>
+
+  {{#if summary}}
+    <p>{{summary}}</p>
+  {{else if effect}}
+    <div class="ptg-chat-effect">{{{effect}}}</div>
+  {{/if}}
+
+  {{#if source}}
+    <p class="ptg-chat-source">
+      {{source.book}}{{#if source.page}}, p. {{source.page}}{{/if}}{{#if source.section}} - {{source.section}}{{/if}}
+    </p>
+  {{/if}}
+
+  {{#if usage}}
+    <dl class="ptg-chat-details">
+      {{#if usage.kind}}<div><dt>Use</dt><dd>{{usage.kind}}</dd></div>{{/if}}
+      {{#if usage.trigger}}<div><dt>Trigger</dt><dd>{{usage.trigger}}</dd></div>{{/if}}
+      {{#if usage.target}}<div><dt>Target</dt><dd>{{usage.target}}</dd></div>{{/if}}
+    </dl>
+  {{/if}}
+
+  {{#if costs.length}}
+    <section>
+      <h4>Cost</h4>
+      <ul>
+        {{#each costs as |cost|}}
+          <li>{{cost.label}} {{cost.amount}}</li>
+        {{/each}}
+      </ul>
+    </section>
+  {{/if}}
+
+  {{#if results.length}}
+    <section>
+      <h4>Applied Changes</h4>
+      <ul>
+        {{#each results as |result|}}
+          <li>{{result.text}}</li>
+        {{/each}}
+      </ul>
+    </section>
+  {{/if}}
+
+  {{#if remaining.length}}
+    <section>
+      <h4>Remaining</h4>
+      <ul>
+        {{#each remaining as |resource|}}
+          <li>{{resource.label}} {{resource.value}}{{#if resource.max}} / {{resource.max}}{{/if}}</li>
+        {{/each}}
+      </ul>
+    </section>
+  {{/if}}
+</div>

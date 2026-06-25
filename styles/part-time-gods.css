@@ -252,6 +252,51 @@
   margin: 0 0 4px;
 }
 
+.ptg-item-use-card header {
+  border-bottom: 1px solid rgba(141, 116, 184, 0.45);
+  padding-bottom: 4px;
+}
+
+.ptg-chat-subtitle,
+.ptg-chat-source {
+  color: var(--ptg-muted);
+  font-size: 12px;
+}
+
+.ptg-chat-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+}
+
+.ptg-chat-details div {
+  min-width: 0;
+}
+
+.ptg-chat-details dt {
+  color: var(--ptg-muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ptg-chat-details dd {
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.ptg-item-use-card h4 {
+  margin: 4px 0 2px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.ptg-item-use-card ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
 .ptg-inventory-summary,
 .ptg-item-meta,
 .ptg-item-actions {

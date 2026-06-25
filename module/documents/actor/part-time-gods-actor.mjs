@@ -162,7 +162,7 @@ export class PartTimeGodsActor extends Actor {
 
       if (item.system.automation?.enabled) {
         const automationResults = await this.#applyItemAutomation(item);
-        if (automationResults.length) await this.#postAutomationMessage(item.name, automationResults);
+        if (automationResults.length) await this.#postAutomationMessage(item.name, automationResults, item);
       }
 
       return true;
@@ -172,23 +172,9 @@ export class PartTimeGodsActor extends Actor {
       ? await this.#applyItemAutomation(item)
       : [];
 
-    const rulesSummary = item.system.rules?.summary;
-    const effect = item.system.effect ?? item.system.benefit ?? item.system.description ?? "";
-    const resultList = automationResults.length
-      ? `<ul>${automationResults.map(result => `<li>${escapeHTML(result)}</li>`).join("")}</ul>`
-      : "";
-    const content = `
-      <div class="ptg-chat-card">
-        <h3>${item.name}</h3>
-        <div>${typeLabel(item.type)}</div>
-        ${rulesSummary ? `<p>${escapeHTML(rulesSummary)}</p>` : effect}
-        ${resultList}
-      </div>
-    `;
-
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      content
+      content: await this.#renderItemUseCard({ item, results: automationResults })
     });
 
     return true;
@@ -202,12 +188,12 @@ export class PartTimeGodsActor extends Actor {
 
     if (next <= 0) {
       await item.delete();
-      await this.#postAutomationMessage("Condition Removed", [`${item.name} was removed from ${this.name}.`]);
+      await this.#postAutomationMessage("Condition Removed", [`${item.name} was removed from ${this.name}.`], item);
       return true;
     }
 
     await item.update({ "system.severity": next });
-    await this.#postAutomationMessage("Condition Reduced", [`${item.name} reduced to severity ${next}.`]);
+    await this.#postAutomationMessage("Condition Reduced", [`${item.name} reduced to severity ${next}.`], item);
     return true;
   }
 
@@ -382,15 +368,57 @@ export class PartTimeGodsActor extends Actor {
     return results;
   }
 
-  async #postAutomationMessage(title, results) {
+  async #postAutomationMessage(title, results, item = null) {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      content: `
-        <div class="ptg-chat-card">
-          <h3>${escapeHTML(title)}</h3>
-          <ul>${results.map(result => `<li>${escapeHTML(result)}</li>`).join("")}</ul>
-        </div>
-      `
+      content: await this.#renderItemUseCard({ item, title, results })
+    });
+  }
+
+  async #renderItemUseCard({ item = null, title = "", results = [] } = {}) {
+    const usage = item?.system.usage ?? {};
+    const rules = item?.system.rules ?? {};
+    const source = rules.source ?? {};
+    const costs = Object.entries(usage.cost ?? {})
+      .map(([resource, amount]) => ({
+        resource: normalizeResourceName(resource),
+        label: resourceLabel(normalizeResourceName(resource)),
+        amount: Number(amount ?? 0)
+      }))
+      .filter(cost => cost.amount > 0);
+    const remaining = costs
+      .map(cost => {
+        const resource = actorResource(this, cost.resource);
+        if (!resource) return null;
+
+        return {
+          label: cost.label,
+          value: resource.value,
+          max: resource.max === Number.MAX_SAFE_INTEGER ? null : resource.max
+        };
+      })
+      .filter(Boolean);
+
+    return renderTemplate("systems/part-time-gods/templates/chat/item-use-card.hbs", {
+      title: title || item?.name || "Part-Time Gods",
+      actorName: this.name,
+      itemName: item?.name ?? "",
+      itemType: item ? typeLabel(item.type) : "",
+      summary: rules.summary ?? "",
+      effect: item?.system.effect ?? item?.system.benefit ?? item?.system.description ?? "",
+      source: source.book ? {
+        book: source.book,
+        page: source.page ?? null,
+        section: source.section ?? ""
+      } : null,
+      usage: usage.kind ? {
+        kind: usage.kind,
+        trigger: usage.trigger ?? "",
+        target: usage.target ?? ""
+      } : null,
+      costs,
+      remaining,
+      results: results.map(result => ({ text: result }))
     });
   }
 }
