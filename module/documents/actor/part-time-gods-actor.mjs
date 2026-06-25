@@ -113,6 +113,8 @@ export class PartTimeGodsActor extends Actor {
       else updates[`${path}.value`] = Number(current?.value ?? 0) + Number(bonus);
     }
 
+    syncStartingValues(updates, this.system);
+
     await this.update(updates);
 
     if (careerSelection?.career && item.parent?.uuid === this.uuid) {
@@ -503,6 +505,45 @@ function choiceGrants(baseGrants, careerSelection) {
   grants.curse = careerSelection.career.curse ?? "";
 
   return grants;
+}
+
+function syncStartingValues(updates, system) {
+  for (const resource of ["freeTime", "wealth"]) {
+    const valuePath = `system.resources.${resource}`;
+    if (!(valuePath in updates)) continue;
+
+    const nextValue = Number(updates[valuePath] ?? 0);
+    const maxPath = `system.resources.${resource}Max`;
+    const currentMax = Number(system.resources?.[`${resource}Max`] ?? 0);
+    updates[maxPath] = Math.max(currentMax, nextValue);
+  }
+
+  const nextSpark = Number(updates["system.resources.spark"] ?? system.resources?.spark ?? 1);
+  const fragmentMax = Math.max(0, nextSpark * 3);
+  const currentFragments = system.resources?.fragments ?? {};
+
+  updates["system.resources.fragments.max"] = Math.max(Number(currentFragments.max ?? 0), fragmentMax);
+
+  if (!("system.resources.fragments.value" in updates) && Number(currentFragments.value ?? 0) === 0) {
+    updates["system.resources.fragments.value"] = fragmentMax;
+  }
+
+  syncDerivedPool(updates, system, "health", "fortitude", nextSpark);
+  syncDerivedPool(updates, system, "psyche", "discipline", nextSpark);
+}
+
+function syncDerivedPool(updates, system, resource, skill, spark) {
+  const current = system.resources?.[resource] ?? {};
+  const currentValue = Number(current.value ?? 0);
+  const currentMax = Number(current.max ?? 0);
+  const nextSkill = Number(updates[`system.skills.${skill}`] ?? system.skills?.[skill] ?? 0);
+  const nextMax = Math.max(1, nextSkill + spark + 5);
+
+  updates[`system.resources.${resource}.max`] = nextMax;
+
+  if (currentValue >= currentMax) {
+    updates[`system.resources.${resource}.value`] = nextMax;
+  }
 }
 
 function clamp(value, min, max) {
