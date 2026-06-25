@@ -3,6 +3,8 @@ import { PTG_PREMADE_ITEMS } from "./premade-items.mjs";
 import { getPremadeJournals } from "./premade-journals.mjs";
 import { getPremadeScenes } from "./premade-scenes.mjs";
 
+const SYSTEM_ID = "part-time-gods";
+
 const PACKS = {
   choices: "part-time-gods.character-creation",
   items: "part-time-gods.premade-items",
@@ -14,12 +16,15 @@ export async function populatePremadeCompendiums({ notify = true } = {}) {
   const choices = await populatePack(PACKS.choices, PTG_PREMADE_CHOICES, choiceFolderLabels, "Item");
   const items = await populatePack(PACKS.items, PTG_PREMADE_ITEMS, itemFolderLabels, "Item");
   const maps = await populatePack(PACKS.maps, getPremadeScenes(), sceneFolderLabels, "Scene");
-  const rules = await populatePack(PACKS.rules, await getPremadeJournals(), ruleFolderLabels, "JournalEntry");
+  const rules = await populatePack(PACKS.rules, await getPremadeJournals(), ruleFolderLabels, "JournalEntry", {
+    removeStale: true,
+    stalePredicate: isPremadeRulesJournal
+  });
   const total = choices + items + maps + rules;
 
   if (notify) {
     const message = total > 0
-      ? `Added ${total} Part-Time Gods entries to system compendiums.`
+      ? `Updated ${total} Part-Time Gods compendium entries.`
       : "Part-Time Gods compendiums are already populated.";
 
     ui.notifications.info(message);
@@ -28,7 +33,7 @@ export async function populatePremadeCompendiums({ notify = true } = {}) {
   return total;
 }
 
-async function populatePack(packId, documents, folderLabels, documentName) {
+async function populatePack(packId, documents, folderLabels, documentName, { removeStale = false, stalePredicate = null } = {}) {
   const pack = game.packs.get(packId);
 
   if (!pack) {
@@ -59,11 +64,21 @@ async function populatePack(packId, documents, folderLabels, documentName) {
     })), { pack: pack.collection });
   }
 
-  await organizeExistingDocuments(pack, folders, documentName);
+  let packDocuments = await pack.getDocuments();
+  const removed = removeStale
+    ? await removeStaleDocuments(documentClass, pack, packDocuments, documents, documentName, stalePredicate)
+    : 0;
+
+  if (removed) {
+    const staleKeys = new Set(documents.map(document => documentKey(document, documentName)));
+    packDocuments = packDocuments.filter(document => staleKeys.has(documentKey(document, documentName)) || !isPremadeRulesJournal(document));
+  }
+
+  const moved = await organizeExistingDocuments(packDocuments, folders, documentName);
 
   if (wasLocked) await pack.configure({ locked: true });
 
-  return missing.length;
+  return missing.length + removed + moved;
 }
 
 async function ensurePackFolders(pack, documents, folderLabels, documentName) {
@@ -89,8 +104,19 @@ async function ensurePackFolders(pack, documents, folderLabels, documentName) {
   return folders;
 }
 
-async function organizeExistingDocuments(pack, folders, documentName) {
-  const documents = await pack.getDocuments();
+async function removeStaleDocuments(documentClass, pack, packDocuments, sourceDocuments, documentName, stalePredicate) {
+  const expected = new Set(sourceDocuments.map(document => documentKey(document, documentName)));
+  const staleDocuments = packDocuments.filter(document =>
+    !expected.has(documentKey(document, documentName)) && stalePredicate?.(document)
+  );
+
+  if (!staleDocuments.length) return 0;
+
+  await documentClass.deleteDocuments(staleDocuments.map(document => document.id), { pack: pack.collection });
+  return staleDocuments.length;
+}
+
+async function organizeExistingDocuments(documents, folders, documentName) {
   const updates = [];
 
   for (const document of documents) {
@@ -101,6 +127,7 @@ async function organizeExistingDocuments(pack, folders, documentName) {
   }
 
   await Promise.all(updates);
+  return updates.length;
 }
 
 function getPackFolders(pack) {
@@ -125,6 +152,13 @@ function documentKey(document, documentName) {
 
 function documentTypeKey(document, documentName) {
   return document.type ?? documentName.toLowerCase();
+}
+
+function isPremadeRulesJournal(document) {
+  const premade = document.getFlag?.(SYSTEM_ID, "premade") ?? document.flags?.[SYSTEM_ID]?.premade;
+  const kind = document.getFlag?.(SYSTEM_ID, "kind") ?? document.flags?.[SYSTEM_ID]?.kind;
+
+  return premade === true && ["complete-rules", "rules-reference"].includes(kind);
 }
 
 const choiceFolderLabels = {

@@ -252,6 +252,87 @@
   margin: 0 0 4px;
 }
 
+.ptg2e-journal-page,
+.ptg-source-page {
+  display: block;
+  margin: 0 0 1rem;
+  padding: 0.85rem;
+  border: 1px solid #b49bd8;
+  background: #faf7ff;
+  color: #21162d;
+}
+
+.ptg2e-page-header,
+.ptg-source-page-label {
+  margin: 0 0 0.65rem;
+  border-bottom: 2px solid #8d74b8;
+  color: #35214b;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ptg2e-journal-page h1,
+.ptg2e-journal-page h2,
+.ptg-source-page h1,
+.ptg-source-page h2 {
+  color: #21162d;
+  font-weight: 800;
+}
+
+.ptg2e-journal-page h1,
+.ptg-source-page h1 {
+  font-size: 1.35rem;
+}
+
+.ptg2e-journal-page h2,
+.ptg-source-page h2 {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.ptg2e-page-body,
+.ptg2e-rule-block,
+.ptg2e-curse-block,
+.ptg2e-sidebar-note,
+.ptg2e-callout {
+  display: block;
+}
+
+.ptg2e-rule-block,
+.ptg2e-curse-block,
+.ptg2e-sidebar-note,
+.ptg2e-callout {
+  margin: 0.75rem 0;
+  padding: 0.65rem;
+  border-left: 4px solid #8d74b8;
+  background: #f3edfb;
+}
+
+.ptg2e-curse-block {
+  border-left-color: #7b4d68;
+}
+
+.ptg2e-sidebar-note,
+.ptg2e-callout {
+  border-style: solid;
+  border-width: 1px 1px 1px 4px;
+}
+
+.ptg2e-journal-page table,
+.ptg-source-page table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ptg2e-journal-page th,
+.ptg2e-journal-page td,
+.ptg-source-page th,
+.ptg-source-page td {
+  padding: 0.35rem;
+  border-bottom: 1px solid #b49bd8;
+  vertical-align: top;
+}
+
 .ptg-item-use-card header {
   border-bottom: 1px solid rgba(141, 116, 184, 0.45);
   padding-bottom: 4px;
