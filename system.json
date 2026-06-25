@@ -57,6 +57,13 @@
       "system": "part-time-gods"
     },
     {
+      "name": "roll-tables",
+      "label": "Part-Time Gods Roll Tables",
+      "path": "packs/roll-tables",
+      "type": "RollTable",
+      "system": "part-time-gods"
+    },
+    {
       "name": "rules-reference",
       "label": "Part-Time Gods Rules Reference",
       "path": "packs/rules-reference",
