@@ -32,7 +32,8 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
         occupationWealth: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
         legendaryActs: new fields.StringField({ initial: "" }),
         xpGained: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
-        xpSpent: new fields.NumberField({ integer: true, min: 0, initial: 0 })
+        xpSpent: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
+        xpPurchases: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] })
       }),
 
       derived: new fields.SchemaField({

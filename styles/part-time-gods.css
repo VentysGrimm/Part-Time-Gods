@@ -442,6 +442,52 @@
   resize: vertical;
 }
 
+.ptg-xp-dialog {
+  min-width: min(680px, calc(100vw - 80px));
+}
+
+.ptg-xp-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #72559e;
+  background: #f4effa;
+}
+
+.ptg-xp-purchase-list {
+  display: grid;
+  gap: 8px;
+}
+
+.ptg-xp-purchase-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  padding: 8px;
+  border: 1px solid #c9badf;
+  background: #fff;
+}
+
+.ptg-xp-purchase-controls {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ptg-xp-purchase-controls label {
+  display: grid;
+  gap: 3px;
+}
+
+.ptg-xp-purchase-controls select,
+.ptg-xp-purchase-controls input {
+  width: 100%;
+}
+
 .ptg2e-journal-page,
 .ptg-source-page {
   display: block;

@@ -50,7 +50,9 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.creationSteps = this.#prepareCreationSteps(context.inventory);
     context.gearSummary = this.#prepareGearSummary(context.inventory.gear);
     context.pantheonMembership = this.#preparePantheonMembership();
-    context.xpUnspent = Math.max(0, Number(context.system.resources?.xpGained ?? 0) - Number(context.system.resources?.xpSpent ?? 0));
+    context.xpPurchases = xpPurchaseHistoryWithLegacy(context.system.resources);
+    context.xpSpent = xpSpentFromPurchases(context.xpPurchases);
+    context.xpUnspent = Math.max(0, Number(context.system.resources?.xpGained ?? 0) - context.xpSpent);
     context.skillColumns = this.#prepareSkillColumns();
     context.manifestationColumns = this.#prepareManifestationColumns();
     context.itemTypeLabels = Object.fromEntries(
@@ -252,125 +254,73 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   async #openAdvancementPurchase() {
     const resources = this.actor.system.resources ?? {};
     const xpGained = Number(resources.xpGained ?? 0);
-    const xpSpent = Number(resources.xpSpent ?? 0);
+    const existingPurchases = xpPurchaseHistoryWithLegacy(resources);
+    const xpSpent = xpSpentFromPurchases(existingPurchases);
     const xpAvailable = Math.max(0, xpGained - xpSpent);
-    const categoryOptions = Object.entries(ADVANCEMENT_CATEGORIES)
-      .map(([key, label]) => `<option value="${key}">${escapeHTML(label)}</option>`)
-      .join("");
-    const skillOptions = Object.entries(CONFIG.PTG.skills ?? {})
-      .map(([key, label]) => `<option value="${key}">${escapeHTML(label)} (${Number(this.actor.system.skills?.[key] ?? 0)})</option>`)
-      .join("");
-    const manifestationOptions = Object.entries(CONFIG.PTG.manifestations ?? {})
-      .map(([key, label]) => `<option value="${key}">${escapeHTML(label)} (${Number(this.actor.system.manifestations?.[key] ?? 0)})</option>`)
-      .join("");
-    const itemOptions = this.actor.items
-      .filter(item => ["bond", "relic", "truth", "vassal", "worshipper", "blessing", "curse", "domain", "occupation", "archetype", "theology"].includes(item.type))
-      .map(item => `<option value="${item.id}" data-type="${item.type}">${escapeHTML(item.name)} (${escapeHTML(game.i18n.localize(`TYPES.Item.${item.type}`))})</option>`)
-      .join("");
 
     const content = `
-      <div class="ptg-advancement-dialog">
-        <p class="ptg-sheet-note">Available XP: ${xpAvailable}</p>
+      <div class="ptg-advancement-dialog ptg-xp-dialog">
+        <div class="ptg-xp-summary">
+          <span>Total XP: ${xpGained}</span>
+          <span>Spent XP: ${xpSpent}</span>
+          <strong>Available XP: ${xpAvailable}</strong>
+        </div>
         <p class="ptg-sheet-note">Costs use the PTG2E Experience Spending Chart on book pp. 130 and 135.</p>
+        ${buildXpPurchaseRows(this.actor)}
         <div class="form-group">
-          <label>Purchase Type</label>
-          <select name="category">${categoryOptions}</select>
-        </div>
-        <div class="form-group">
-          <label>Skill</label>
-          <select name="skill">${skillOptions}</select>
-        </div>
-        <div class="form-group">
-          <label>Manifestation</label>
-          <select name="manifestation">${manifestationOptions}</select>
-        </div>
-        <div class="form-group">
-          <label>Embedded Item / Choice</label>
-          <select name="itemId"><option value="">Create / record by name</option>${itemOptions}</select>
-        </div>
-        <div class="form-group">
-          <label>Name / Note</label>
-          <input type="text" name="name" value="" placeholder="New Truth, new Dominion, changed Choice, or story note">
-        </div>
-        <div class="form-group">
-          <label>Target Level</label>
-          <input type="number" name="targetLevel" value="1" min="0">
-        </div>
-        <div class="form-group">
-          <label>XP Discount / Modifier</label>
-          <input type="number" name="discount" value="0" min="0">
-        </div>
-        <label class="ptg-checkbox">
-          <input type="checkbox" name="freeUpgrade">
-          <span>Story upgrade without spending XP</span>
-        </label>
-        <label class="ptg-checkbox">
-          <input type="checkbox" name="choiceRefund">
-          <span>Changing Choice refund / occupation XP loss applies</span>
-        </label>
-        <div class="form-group">
-          <label>Story Justification</label>
-          <textarea name="justification" rows="4" placeholder="Downtime, story event, changed Choice, free upgrade reason, or Blessing discount"></textarea>
+          <label>Source / Downtime Note</label>
+          <textarea name="sourceNote" rows="3" placeholder="Optional story, downtime, training, or GM audit note"></textarea>
         </div>
       </div>
     `;
 
     const purchase = await DialogV2.prompt({
-      window: { title: `${this.actor.name}: Advancement Purchase` },
+      window: { title: `${this.actor.name}: Spend XP`, resizable: true },
       content,
       rejectClose: false,
       modal: true,
       ok: {
         label: "Spend XP",
-        callback: (event, button) => {
-          const form = button.form;
-          const category = form.elements.category?.value ?? "skill";
-          const targetLevel = Math.max(0, Number(form.elements.targetLevel?.value ?? 0));
-          const freeUpgrade = Boolean(form.elements.freeUpgrade?.checked);
-          const discount = Math.max(0, Number(form.elements.discount?.value ?? 0));
-          const baseCost = advancementBaseCost(category, targetLevel);
-          const finalCost = freeUpgrade ? 0 : Math.max(0, baseCost - discount);
-
-          return {
-            category,
-            skill: form.elements.skill?.value ?? "",
-            manifestation: form.elements.manifestation?.value ?? "",
-            itemId: form.elements.itemId?.value ?? "",
-            name: form.elements.name?.value?.trim() ?? "",
-            targetLevel,
-            baseCost,
-            discount,
-            cost: finalCost,
-            freeUpgrade,
-            choiceRefund: Boolean(form.elements.choiceRefund?.checked),
-            justification: form.elements.justification?.value?.trim() ?? ""
-          };
-        }
+        callback: (event, button) => collectXpPurchases(button.form, this.actor)
       }
     });
 
-    if (!purchase) return;
+    if (!purchase?.length) return;
 
-    purchase.name = advancementPurchaseName(this.actor, purchase);
-
-    if (!purchase.name) {
-      ui.notifications.warn("Advancement purchase needs a name or note.");
+    const validation = validateXpPurchases(this.actor, purchase, xpAvailable);
+    if (!validation.valid) {
+      ui.notifications.warn(validation.message);
       return;
     }
 
-    if (purchase.cost > xpAvailable) {
-      ui.notifications.warn(`Not enough XP. ${this.actor.name} has ${xpAvailable} unspent XP.`);
-      return;
+    for (const entry of purchase) {
+      await this.#applyAdvancementPurchase(entry);
+      await this.#recordAdvancementLog("purchase", {
+        ...entry,
+        remainingXP: xpAvailable - xpSpentFromPurchases(purchase.filter(item => item.order <= entry.order))
+      });
     }
+
+    const nextPurchases = [
+      ...existingPurchases,
+      ...purchase.map(entry => ({
+        id: entry.id,
+        type: entry.type,
+        category: entry.category,
+        label: entry.label,
+        targetId: entry.itemId || entry.targetKey || "",
+        targetName: entry.name,
+        targetLevel: entry.targetLevel,
+        cost: entry.cost,
+        source: entry.sourceNote,
+        createdAt: entry.createdAt
+      }))
+    ];
+    const nextSpent = xpSpentFromPurchases(nextPurchases);
 
     await this.actor.update({
-      "system.resources.xpSpent": xpSpent + purchase.cost
-    });
-
-    await this.#applyAdvancementPurchase(purchase);
-    await this.#recordAdvancementLog("purchase", {
-      ...purchase,
-      remainingXP: xpAvailable - purchase.cost
+      "system.resources.xpPurchases": nextPurchases,
+      "system.resources.xpSpent": nextSpent
     });
 
     await ChatMessage.create({
@@ -378,14 +328,11 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       content: `
         <div class="ptg-chat-card">
           <h3>Advancement Purchase</h3>
-          <div>${escapeHTML(this.actor.name)} purchased ${escapeHTML(ADVANCEMENT_CATEGORIES[purchase.category] ?? purchase.category)}: ${escapeHTML(purchase.name)}.</div>
-          <div>Base Cost: ${purchase.baseCost} XP</div>
-          ${purchase.discount ? `<div>Discount / Modifier: -${purchase.discount} XP</div>` : ""}
-          ${purchase.freeUpgrade ? "<div>Story upgrade: no XP spent.</div>" : ""}
-          ${purchase.choiceRefund ? "<div>Changing Choice note: refund or occupation XP loss should be reviewed.</div>" : ""}
-          <div>XP Spent: ${purchase.cost}</div>
-          <div>Remaining XP: ${xpAvailable - purchase.cost}</div>
-          ${purchase.justification ? `<div>Justification: ${escapeHTML(purchase.justification)}</div>` : ""}
+          <div>${escapeHTML(this.actor.name)} spent ${xpSpentFromPurchases(purchase)} XP.</div>
+          <ul>${purchase.map(entry => `<li>${escapeHTML(entry.label)}: ${escapeHTML(entry.name)} (${entry.cost} XP)</li>`).join("")}</ul>
+          <div>XP Spent Total: ${nextSpent}</div>
+          <div>Remaining XP: ${Math.max(0, xpGained - nextSpent)}</div>
+          ${purchase[0]?.sourceNote ? `<div>Source: ${escapeHTML(purchase[0].sourceNote)}</div>` : ""}
         </div>
       `
     });
@@ -486,6 +433,10 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (purchase.category === "truth" && !item) {
       await this.actor.createEmbeddedDocuments("Item", [sparkTruthItem(purchase.name, this.actor.system.resources?.spark ?? 1)]);
+    }
+
+    if (["bond", "vassal", "worshipper"].includes(purchase.category) && !item) {
+      await this.actor.createEmbeddedDocuments("Item", [advancementAttachmentItem(purchase)]);
     }
 
     if (["dominion", "choiceChange", "storyUpgrade"].includes(purchase.category)) {
@@ -671,7 +622,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       String(this.actor.system.specialties ?? "").trim()
       || String(resources.legendaryActs ?? "").trim()
       || Number(resources.xpGained ?? 0)
-      || Number(resources.xpSpent ?? 0)
+      || xpSpentFromPurchases(xpPurchaseHistoryWithLegacy(resources))
       || Number(resources.spark ?? 1) > 1
     );
 
@@ -1822,6 +1773,223 @@ const ADVANCEMENT_CATEGORIES = {
   storyUpgrade: "Story Upgrade"
 };
 
+const XP_PURCHASE_OPTIONS = [
+  { key: "skill14", category: "skill", label: "Skill Level 1-4", cost: 4, target: "skill", levels: [1, 2, 3, 4] },
+  { key: "skill5", category: "skill", label: "Skill Level 5", cost: 8, target: "skill", levels: [5] },
+  { key: "manifestation14", category: "manifestation", label: "Manifestation Level 1-4", cost: 8, target: "manifestation", levels: [1, 2, 3, 4] },
+  { key: "manifestation5", category: "manifestation", label: "Manifestation Level 5", cost: 15, target: "manifestation", levels: [5] },
+  { key: "specialty", category: "specialty", label: "New Specialty", cost: 3, target: "specialty", levels: [1] },
+  { key: "blessing", category: "blessing", label: "+1 to Blessing", cost: 5, target: "item", itemTypes: ["blessing"], levels: [1] },
+  { key: "curse", category: "curse", label: "+1 to Curse", cost: 5, target: "item", itemTypes: ["curse"], levels: [1] },
+  { key: "freeTime", category: "freeTime", label: "Free Time", target: "resource", levels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+  { key: "wealth", category: "wealth", label: "Wealth", target: "resource", levels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+  { key: "bond14", category: "bond", label: "Bond Level 1-4", cost: 5, target: "namedItem", itemTypes: ["bond"], levels: [1, 2, 3, 4] },
+  { key: "bond5", category: "bond", label: "Bond Level 5", cost: 10, target: "namedItem", itemTypes: ["bond"], levels: [5] },
+  { key: "dominion", category: "dominion", label: "New Dominion", cost: 25, target: "dominion", levels: [1] },
+  { key: "relic", category: "relic", label: "Relic Level 1-5", cost: 7, target: "item", itemTypes: ["relic"], levels: [1, 2, 3, 4, 5] },
+  { key: "truth", category: "truth", label: "New Truth", cost: 10, target: "truth", itemTypes: ["truth"], levels: [1] },
+  { key: "vassal14", category: "vassal", label: "Vassal Level 1-4", cost: 7, target: "namedItem", itemTypes: ["vassal"], levels: [1, 2, 3, 4] },
+  { key: "vassal5", category: "vassal", label: "Vassal Level 5", cost: 13, target: "namedItem", itemTypes: ["vassal"], levels: [5] },
+  { key: "worshipper14", category: "worshipper", label: "Worshipper Level 1-4", cost: 7, target: "namedItem", itemTypes: ["worshipper"], levels: [1, 2, 3, 4] },
+  { key: "worshipper5", category: "worshipper", label: "Worshipper Level 5", cost: 13, target: "namedItem", itemTypes: ["worshipper"], levels: [5] }
+];
+
+function buildXpPurchaseRows(actor) {
+  return `
+    <div class="ptg-xp-purchase-list">
+      ${XP_PURCHASE_OPTIONS.map(option => buildXpPurchaseRow(actor, option)).join("")}
+    </div>
+  `;
+}
+
+function buildXpPurchaseRow(actor, option) {
+  const costLabel = option.cost ? `${option.cost} XP` : "New level + 3 XP";
+  const levelControl = option.levels.length > 1
+    ? `<label><span>Level</span><select name="${option.key}_level">${option.levels.map(level => `<option value="${level}">${level}</option>`).join("")}</select></label>`
+    : `<input type="hidden" name="${option.key}_level" value="${option.levels[0]}">`;
+
+  return `
+    <section class="ptg-xp-purchase-row">
+      <label class="ptg-checkbox">
+        <input type="checkbox" name="${option.key}_selected">
+        <span>${escapeHTML(option.label)}</span>
+      </label>
+      <strong>${escapeHTML(costLabel)}</strong>
+      <div class="ptg-xp-purchase-controls">
+        ${buildXpTargetControl(actor, option)}
+        ${levelControl}
+      </div>
+    </section>
+  `;
+}
+
+function buildXpTargetControl(actor, option) {
+  if (option.target === "skill") {
+    return `<label><span>Skill</span><select name="${option.key}_target">${skillLevelOptions(actor)}</select></label>`;
+  }
+
+  if (option.target === "manifestation") {
+    return `<label><span>Manifestation</span><select name="${option.key}_target">${manifestationLevelOptions(actor)}</select></label>`;
+  }
+
+  if (option.target === "resource") {
+    return `<input type="hidden" name="${option.key}_target" value="${option.category}">`;
+  }
+
+  if (option.target === "specialty") {
+    return `<input type="hidden" name="${option.key}_target" value="new-specialty"><span class="ptg-sheet-note">Record the new Specialty text on the sheet after purchase.</span>`;
+  }
+
+  if (option.target === "dominion") {
+    return `<input type="hidden" name="${option.key}_target" value="new-dominion"><span class="ptg-sheet-note">Records the Dominion purchase for GM follow-up.</span>`;
+  }
+
+  if (option.target === "truth") {
+    return `<label><span>Truth</span><select name="${option.key}_target"><option value="">Create New Truth placeholder</option>${itemOptions(actor, option.itemTypes)}</select></label>`;
+  }
+
+  if (option.target === "namedItem") {
+    const noun = option.category === "bond" ? "Bond" : option.category === "vassal" ? "Vassal" : "Worshipper";
+    return `
+      <label><span>${noun}</span><select name="${option.key}_target"><option value="">Create New ${noun}</option>${itemOptions(actor, option.itemTypes)}</select></label>
+      <label><span>${noun} Name</span><input type="text" name="${option.key}_name" value="" placeholder="Required for new ${noun}"></label>
+    `;
+  }
+
+  return `<label><span>Item</span><select name="${option.key}_target">${itemOptions(actor, option.itemTypes)}</select></label>`;
+}
+
+function skillLevelOptions(actor) {
+  return Object.entries(CONFIG.PTG.skills ?? {})
+    .map(([key, label]) => `<option value="${escapeHTML(key)}">${escapeHTML(label)} (${Number(actor.system.skills?.[key] ?? 0)})</option>`)
+    .join("");
+}
+
+function manifestationLevelOptions(actor) {
+  return Object.entries(CONFIG.PTG.manifestations ?? {})
+    .map(([key, label]) => `<option value="${escapeHTML(key)}">${escapeHTML(label)} (${Number(actor.system.manifestations?.[key] ?? 0)})</option>`)
+    .join("");
+}
+
+function itemOptions(actor, types = []) {
+  return actor.items
+    .filter(item => types.includes(item.type))
+    .map(item => `<option value="${item.id}">${escapeHTML(item.name)}</option>`)
+    .join("");
+}
+
+function collectXpPurchases(form, actor) {
+  const sourceNote = form.elements.sourceNote?.value?.trim() ?? "";
+  return XP_PURCHASE_OPTIONS
+    .filter(option => Boolean(form.elements[`${option.key}_selected`]?.checked))
+    .map((option, index) => {
+      const targetLevel = Number(form.elements[`${option.key}_level`]?.value ?? option.levels[0] ?? 0);
+      const targetKey = form.elements[`${option.key}_target`]?.value ?? "";
+      const item = targetKey ? actor.items.get(targetKey) : null;
+      const cost = option.cost ?? advancementBaseCost(option.category, targetLevel);
+      const name = xpPurchaseName(actor, option, targetKey, targetLevel, item, form.elements[`${option.key}_name`]?.value?.trim());
+
+      return {
+        id: foundry.utils.randomID(),
+        order: index + 1,
+        type: option.key,
+        category: option.category,
+        label: option.label,
+        targetKey,
+        itemId: item?.id ?? "",
+        name,
+        targetLevel,
+        baseCost: cost,
+        discount: 0,
+        cost,
+        freeUpgrade: false,
+        choiceRefund: false,
+        justification: sourceNote,
+        sourceNote,
+        createdAt: Date.now()
+      };
+    });
+}
+
+function xpPurchaseName(actor, option, targetKey, targetLevel, item, typedName) {
+  if (typedName) return typedName;
+  if (item) return item.name;
+  if (option.category === "skill") return CONFIG.PTG.skills?.[targetKey] ?? targetKey;
+  if (option.category === "manifestation") return CONFIG.PTG.manifestations?.[targetKey] ?? targetKey;
+  if (option.category === "freeTime") return `Free Time Level ${targetLevel}`;
+  if (option.category === "wealth") return `Wealth Level ${targetLevel}`;
+  if (option.category === "specialty") return "New Specialty";
+  if (option.category === "dominion") return actor.system.identity?.dominion ? `New Dominion after ${actor.system.identity.dominion}` : "New Dominion";
+  if (option.category === "truth") return "New Truth";
+  if (option.category === "bond") return "";
+  if (option.category === "vassal") return "";
+  if (option.category === "worshipper") return "";
+  return option.label;
+}
+
+function validateXpPurchases(actor, purchases, xpAvailable) {
+  if (!purchases.length) return { valid: false, message: "Choose at least one XP purchase." };
+
+  const totalCost = xpSpentFromPurchases(purchases);
+  if (totalCost > xpAvailable) return { valid: false, message: `Not enough XP. ${actor.name} has ${xpAvailable} unspent XP.` };
+
+  for (const purchase of purchases) {
+    if (["bond", "vassal", "worshipper"].includes(purchase.category) && !purchase.itemId && !purchase.name) {
+      return { valid: false, message: `Enter a name for the new ${ADVANCEMENT_CATEGORIES[purchase.category]}.` };
+    }
+
+    if (["blessing", "curse", "relic"].includes(purchase.category) && !purchase.itemId) {
+      return { valid: false, message: `Choose an existing ${ADVANCEMENT_CATEGORIES[purchase.category]} item for this XP purchase.` };
+    }
+
+    if (purchase.category === "skill" && Number(actor.system.skills?.[purchase.targetKey] ?? 0) >= purchase.targetLevel) {
+      return { valid: false, message: `${purchase.name} is already level ${purchase.targetLevel} or higher.` };
+    }
+
+    if (purchase.category === "manifestation" && Number(actor.system.manifestations?.[purchase.targetKey] ?? 0) >= purchase.targetLevel) {
+      return { valid: false, message: `${purchase.name} is already level ${purchase.targetLevel} or higher.` };
+    }
+
+    if (purchase.category === "freeTime" && Number(actor.system.resources?.occupationFreeTime ?? 0) >= purchase.targetLevel) {
+      return { valid: false, message: "Free Time is already at that level or higher." };
+    }
+
+    if (purchase.category === "wealth" && Number(actor.system.resources?.occupationWealth ?? 0) >= purchase.targetLevel) {
+      return { valid: false, message: "Wealth is already at that level or higher." };
+    }
+
+    const item = purchase.itemId ? actor.items.get(purchase.itemId) : null;
+    const currentItemLevel = Number(item?.system?.level ?? item?.system?.rank ?? 0);
+    if (item && ["bond", "relic", "vassal", "worshipper"].includes(purchase.category) && currentItemLevel >= purchase.targetLevel) {
+      return { valid: false, message: `${item.name} is already level ${purchase.targetLevel} or higher.` };
+    }
+  }
+
+  return { valid: true, message: "" };
+}
+
+function xpPurchaseHistoryWithLegacy(resources = {}) {
+  const purchases = Array.isArray(resources.xpPurchases) ? resources.xpPurchases.filter(Boolean) : [];
+  const legacySpent = Number(resources.xpSpent ?? 0);
+  if (purchases.length || legacySpent <= 0) return purchases;
+  return [{
+    id: "legacy-xp-spent",
+    type: "legacy",
+    category: "legacy",
+    label: "Existing XP Spent",
+    targetId: "",
+    targetName: "Existing XP Spent",
+    targetLevel: 0,
+    cost: legacySpent,
+    source: "Migrated from system.resources.xpSpent",
+    createdAt: 0
+  }];
+}
+
+function xpSpentFromPurchases(purchases = []) {
+  return purchases.reduce((total, entry) => total + Math.max(0, Number(entry?.cost ?? 0)), 0);
+}
+
 function advancementBaseCost(category, targetLevel) {
   const level = Math.max(0, Number(targetLevel ?? 0));
 
@@ -1889,6 +2057,41 @@ async function applyItemAdvancement(item, purchase) {
       updatedAt: Date.now()
     });
   }
+}
+
+function advancementAttachmentItem(purchase) {
+  const level = Math.max(1, Number(purchase.targetLevel ?? 1));
+  const data = {
+    name: purchase.name,
+    type: purchase.category,
+    img: {
+      bond: "icons/svg/hand.svg",
+      vassal: "icons/magic/control/control-influence-puppet.webp",
+      worshipper: "icons/environment/people/group.webp"
+    }[purchase.category] ?? "icons/svg/mystery-man.svg",
+    system: {
+      level,
+      description: `<p>Created from XP purchase: ${escapeHTML(purchase.label)}.</p>`,
+      notes: purchase.sourceNote ? `<p>${escapeHTML(purchase.sourceNote)}</p>` : "",
+      rules: {
+        summary: `Created from XP purchase: ${purchase.label}.`,
+        fullText: `<p>Created from XP purchase: ${escapeHTML(purchase.label)}.</p>`,
+        source: {
+          book: "Part-Time Gods 2e",
+          page: 130,
+          section: "Experience Spending Chart",
+          type: purchase.category
+        }
+      }
+    }
+  };
+
+  if (["bond", "vassal", "worshipper"].includes(purchase.category)) data.system.strain = { value: 0, max: level };
+  if (purchase.category === "bond") data.system.kind = "individual";
+  if (purchase.category === "vassal") data.system.concept = purchase.name;
+  if (purchase.category === "worshipper") data.system.group = purchase.name;
+
+  return data;
 }
 
 function appendLine(value, line) {
