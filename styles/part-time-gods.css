@@ -373,6 +373,33 @@
   margin: 0 0 4px;
 }
 
+.ptg-rules-journal {
+  display: grid;
+  gap: 10px;
+  line-height: 1.45;
+}
+
+.ptg-rules-source,
+.ptg-source-page-label {
+  padding: 6px 8px;
+  border-left: 3px solid var(--color-border-highlight);
+  background: rgb(0 0 0 / 5%);
+}
+
+.ptg-source-page {
+  display: grid;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.ptg-rules-stat {
+  margin: 0;
+}
+
+.ptg-rules-stat strong {
+  font-weight: 700;
+}
+
 .ptg-territory-dialog {
   display: grid;
   gap: 10px;
