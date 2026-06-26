@@ -82,6 +82,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
 
     this.element.querySelector("[data-advancement-purchase]")?.addEventListener("click", () => this.#openAdvancementPurchase());
+    this.element.querySelector("[data-spark-advancement]")?.addEventListener("click", () => this.#openSparkAdvancement());
 
     this.element.querySelector("[data-character-creator]")?.addEventListener("click", () => this.#openCharacterCreator());
   }
@@ -272,6 +273,80 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
           <div>${escapeHTML(this.actor.name)} purchased ${escapeHTML(categories[purchase.category] ?? purchase.category)}: ${escapeHTML(purchase.name)}.</div>
           <div>XP Spent: ${purchase.cost}</div>
           <div>Remaining XP: ${xpAvailable - purchase.cost}</div>
+        </div>
+      `
+    });
+  }
+
+  async #openSparkAdvancement() {
+    const resources = this.actor.system.resources ?? {};
+    const currentSpark = Number(resources.spark ?? 1);
+    const currentActs = String(resources.legendaryActs ?? "").trim();
+
+    const content = `
+      <div class="ptg-advancement-dialog">
+        <p class="ptg-sheet-note">Current Spark: ${currentSpark}. Fragment max becomes Spark x3.</p>
+        <div class="form-group">
+          <label>New Spark</label>
+          <input type="number" name="spark" value="${currentSpark + 1}" min="${currentSpark + 1}">
+        </div>
+        <div class="form-group">
+          <label>Free Truth</label>
+          <input type="text" name="truth" value="" placeholder="Optional Truth gained from Spark advancement">
+        </div>
+        <div class="form-group">
+          <label>Legendary Act</label>
+          <textarea name="legendaryAct" placeholder="What changed the god's legend?"></textarea>
+        </div>
+      </div>
+    `;
+
+    const advancement = await DialogV2.prompt({
+      window: { title: `${this.actor.name}: Spark Advancement` },
+      content,
+      rejectClose: false,
+      modal: true,
+      ok: {
+        label: "Advance Spark",
+        callback: (event, button) => ({
+          spark: Math.max(currentSpark + 1, Number(button.form.elements.spark?.value ?? currentSpark + 1)),
+          truth: button.form.elements.truth?.value?.trim() ?? "",
+          legendaryAct: button.form.elements.legendaryAct?.value?.trim() ?? ""
+        })
+      }
+    });
+
+    if (!advancement) return;
+
+    const fragmentMax = Math.max(0, advancement.spark * 3);
+    const currentFragments = resources.fragments ?? {};
+    const updates = {
+      "system.resources.spark": advancement.spark,
+      "system.resources.fragments.max": fragmentMax,
+      "system.resources.fragments.value": Math.max(Number(currentFragments.value ?? 0), fragmentMax)
+    };
+
+    if (advancement.legendaryAct) {
+      updates["system.resources.legendaryActs"] = currentActs
+        ? `${currentActs}\n${advancement.legendaryAct}`
+        : advancement.legendaryAct;
+    }
+
+    await this.actor.update(updates);
+
+    if (advancement.truth) {
+      await this.actor.createEmbeddedDocuments("Item", [sparkTruthItem(advancement.truth, advancement.spark)]);
+    }
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="ptg-chat-card">
+          <h3>Spark Advancement</h3>
+          <div>${escapeHTML(this.actor.name)} advanced from Spark ${currentSpark} to Spark ${advancement.spark}.</div>
+          <div>Fragment Max: ${fragmentMax}</div>
+          ${advancement.truth ? `<div>Free Truth: ${escapeHTML(advancement.truth)}</div>` : ""}
+          ${advancement.legendaryAct ? `<div>Legendary Act: ${escapeHTML(advancement.legendaryAct)}</div>` : ""}
         </div>
       `
     });
@@ -906,6 +981,59 @@ function manifestationPoolPreview(actor, manifestation, skill, bonus, penalty) {
   const fate = finalPool <= 0 ? " Fate Die" : "";
 
   return `Pool: ${manifestationRank} + ${skillRank} + ${Number(bonus ?? 0)} - ${Number(penalty ?? 0)} = ${finalPool}${fate}`;
+}
+
+function sparkTruthItem(name, spark) {
+  return {
+    name,
+    type: "truth",
+    img: "icons/magic/symbols/runes-star-pentagon-blue.webp",
+    system: {
+      statement: name,
+      rank: 1,
+      cost: 0,
+      fragmentCost: 0,
+      activation: "passive",
+      effect: `<p>Free Truth gained at Spark ${Number(spark ?? 1)} advancement.</p>`,
+      notes: "<p>Created by Spark advancement.</p>",
+      rules: {
+        summary: `Free Truth gained at Spark ${Number(spark ?? 1)} advancement.`,
+        fullText: `<p>Free Truth gained at Spark ${Number(spark ?? 1)} advancement.</p>`,
+        source: {
+          book: "Part-Time Gods Second Edition",
+          page: null,
+          section: "Spark Advancement",
+          type: "truth"
+        }
+      },
+      usage: {
+        kind: "passive",
+        trigger: "",
+        target: "self",
+        cost: {
+          freeTime: 0,
+          wealth: 0,
+          pantheonDice: 0,
+          fragments: 0,
+          health: 0,
+          psyche: 0,
+          strain: 0
+        }
+      },
+      automation: {
+        enabled: false,
+        action: "",
+        bonus: null,
+        penalty: null,
+        roll: null,
+        healing: null,
+        damage: null,
+        condition: null,
+        resourceChange: null,
+        chatCard: true
+      }
+    }
+  };
 }
 
 async function postManifestationMeasureSummary(actor, outcome, selection) {
