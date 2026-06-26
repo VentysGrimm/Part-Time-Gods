@@ -1004,8 +1004,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       documents = game.items.filter(item => item.getFlag("part-time-gods", "premadeChoice"));
     }
 
+    const seen = Object.fromEntries(Object.keys(byType).map(type => [type, new Set()]));
+
     for (const item of documents) {
       if (!byType[item.type]) continue;
+      const key = normalizeCreatorChoiceKey(item);
+      if (seen[item.type].has(key)) continue;
+      seen[item.type].add(key);
       byType[item.type].push(item);
     }
 
@@ -1024,6 +1029,13 @@ function creatorTypeLabel(type) {
     domain: "Dominion",
     theology: "Theology"
   }[type] ?? type;
+}
+
+function normalizeCreatorChoiceKey(item) {
+  return String(item.name ?? "")
+    .trim()
+    .replace(/^the\s+/i, "")
+    .toLowerCase();
 }
 
 function itemDetail(label, value) {
