@@ -11,7 +11,10 @@ const ACTION_LABELS = {
   initiative: "Roll PTG Initiative",
   physicalDamage: "Physical Damage",
   mentalDamage: "Mental Damage",
-  condition: "Apply Condition"
+  condition: "Apply Condition",
+  battleFists: "Resolve Battle of Fists",
+  battleWits: "Resolve Battle of Wits",
+  healing: "Recover or Heal"
 };
 
 export function registerPTGCombatHooks() {
@@ -58,7 +61,24 @@ export async function openPTGCombatControls({ combat = game.combat } = {}) {
     return null;
   }
 
-  if (["physicalDamage", "mentalDamage", "condition"].includes(selection.action)) {
+  if (["battleFists", "battleWits"].includes(selection.action)) {
+    const defender = combat.combatants.get(selection.targetCombatantId);
+    if (!defender?.actor) {
+      ui.notifications.warn("Choose a defending combatant for Battle resolution.");
+      return null;
+    }
+
+    const results = await resolveBattleOutcome(combatant.actor, defender.actor, selection);
+    await postCombatCard({
+      combat,
+      combatant,
+      title: ACTION_LABELS[selection.action],
+      body: battleOutcomeHTML(results, selection, combatant, defender)
+    });
+    return combatant;
+  }
+
+  if (["physicalDamage", "mentalDamage", "condition", "healing"].includes(selection.action)) {
     const results = await applyCombatOutcome(combatant.actor, selection);
     await postCombatCard({
       combat,
@@ -110,18 +130,35 @@ async function selectCombatAction(combat) {
   const combatantOptions = combat.combatants
     .map(combatant => `<option value="${escapeHTML(combatant.id)}">${escapeHTML(combatant.name)}</option>`)
     .join("");
+  const targetOptions = combat.combatants
+    .map(combatant => `<option value="${escapeHTML(combatant.id)}">${escapeHTML(combatant.name)}</option>`)
+    .join("");
+  const weaponOptions = combat.combatants
+    .flatMap(combatant => actorWeapons(combatant.actor).map(item => ({
+      combatant,
+      item
+    })))
+    .map(({ combatant, item }) => `<option value="${escapeHTML(item.uuid)}">${escapeHTML(combatant.name)} - ${escapeHTML(item.name)} (${escapeHTML(item.system.range || "Close")}, +${Number(item.system.damage ?? 0)})</option>`)
+    .join("");
 
   const content = `
     <div class="ptg-combat-dialog">
       <div class="ptg-territory-summary">
         <strong>${escapeHTML(combat.name ?? "Combat Encounter")}</strong>
-        <span>Tracks PTG2E turn prompts and action use. Attack, defense, damage, armor, and Condition resolution are later slices.</span>
+        <span>Tracks PTG2E turn prompts, action use, attack/defense outcomes, damage, armor, Conditions, and recovery.</span>
       </div>
       <div class="form-group">
-        <label>Combatant</label>
+        <label>Actor / Attacker</label>
         <select name="combatantId">
           <option value="">Encounter helper only</option>
           ${combatantOptions}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Defender / Target</label>
+        <select name="targetCombatantId">
+          <option value="">None</option>
+          ${targetOptions}
         </select>
       </div>
       <div class="form-group">
@@ -133,11 +170,41 @@ async function selectCombatAction(combat) {
           <option value="standardAction">Mark Standard Action Used</option>
           <option value="quickDefense">Mark Quick Defense Used</option>
           <option value="standardDefense">Mark Standard Defense Used</option>
+          <option value="battleFists">Resolve Battle of Fists</option>
+          <option value="battleWits">Resolve Battle of Wits</option>
           <option value="physicalDamage">Apply Physical Damage</option>
           <option value="mentalDamage">Apply Mental Damage</option>
           <option value="condition">Create or Update Condition</option>
+          <option value="healing">Recover or Heal</option>
           <option value="reset">Reset Selected Combatant Actions</option>
         </select>
+      </div>
+      <div class="ptg-item-fields three">
+        <div class="form-group">
+          <label>Attack Successes</label>
+          <input type="number" name="attackSuccesses" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Defense Successes</label>
+          <input type="number" name="defenseSuccesses" value="0" min="0">
+        </div>
+        <label class="ptg-checkbox">
+          <span>Boost Damage</span>
+          <input type="checkbox" name="boostDamage">
+        </label>
+      </div>
+      <div class="ptg-item-fields two">
+        <div class="form-group">
+          <label>Weapon</label>
+          <select name="weaponUuid">
+            <option value="">Unarmed / no weapon</option>
+            ${weaponOptions}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Range / Damage Tag</label>
+          <input type="text" name="damageTag" value="" placeholder="Close, Near, Far, bullets, fire, etc.">
+        </div>
       </div>
       <div class="ptg-item-fields two">
         <div class="form-group">
@@ -161,6 +228,19 @@ async function selectCombatAction(combat) {
         <div class="form-group">
           <label>Severity</label>
           <input type="number" name="conditionSeverity" value="1" min="1">
+        </div>
+      </div>
+      <div class="ptg-item-fields two">
+        <div class="form-group">
+          <label>Healing Resource</label>
+          <select name="healingResource">
+            <option value="health">Health</option>
+            <option value="psyche">Psyche</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Healing / Reduction</label>
+          <input type="number" name="healingAmount" value="0" min="0">
         </div>
       </div>
       <div class="form-group">
@@ -188,12 +268,20 @@ async function selectCombatAction(combat) {
         const form = button.form;
         return {
           combatantId: form.elements.combatantId?.value ?? "",
+          targetCombatantId: form.elements.targetCombatantId?.value ?? "",
           action: form.elements.action?.value ?? "round",
+          attackSuccesses: Number(form.elements.attackSuccesses?.value ?? 0),
+          defenseSuccesses: Number(form.elements.defenseSuccesses?.value ?? 0),
+          boostDamage: form.elements.boostDamage?.checked ?? false,
+          weaponUuid: form.elements.weaponUuid?.value ?? "",
+          damageTag: form.elements.damageTag?.value ?? "",
           damage: Number(form.elements.damage?.value ?? 0),
           applyArmor: form.elements.applyArmor?.checked ?? false,
           conditionName: form.elements.conditionName?.value ?? "",
           conditionCategory: form.elements.conditionCategory?.value ?? "",
           conditionSeverity: Number(form.elements.conditionSeverity?.value ?? 1),
+          healingResource: form.elements.healingResource?.value ?? "health",
+          healingAmount: Number(form.elements.healingAmount?.value ?? 0),
           notes: form.elements.notes?.value ?? ""
         };
       }
@@ -243,6 +331,11 @@ async function applyCombatOutcome(actor, selection) {
 
   const results = [];
 
+  if (selection.action === "healing") {
+    const result = await applyHealing(actor, selection);
+    if (result) results.push(...result);
+  }
+
   if (selection.action === "physicalDamage" || selection.action === "mentalDamage") {
     const resource = selection.action === "mentalDamage" ? "psyche" : "health";
     const result = await applyDamage(actor, {
@@ -267,6 +360,49 @@ async function applyCombatOutcome(actor, selection) {
   return results;
 }
 
+async function resolveBattleOutcome(attacker, defender, selection) {
+  const results = [];
+  const weapon = selection.weaponUuid ? await fromUuid(selection.weaponUuid) : null;
+  const attackSuccesses = Math.max(0, Number(selection.attackSuccesses ?? 0));
+  const defenseSuccesses = Math.max(0, Number(selection.defenseSuccesses ?? 0));
+  const margin = attackSuccesses - defenseSuccesses;
+  const resource = selection.action === "battleWits" ? "psyche" : "health";
+  const weaponDamage = weapon?.type === "weapon" ? weaponDamageBonus(weapon) : 0;
+  const boostDamage = selection.boostDamage ? boostDamageBonus(weapon) : 0;
+  const flatDamage = Math.max(0, Number(selection.damage ?? 0));
+  const rawDamage = Math.max(0, margin) + weaponDamage + boostDamage + flatDamage;
+  const armor = resource === "health" && selection.applyArmor
+    ? actorArmor(defender) + armorProofBonus(defender, selection.damageTag)
+    : 0;
+  const finalDamage = margin > 0 ? Math.max(0, rawDamage - armor) : 0;
+
+  results.push(`${attacker.name} rolled ${attackSuccesses} successes against ${defender.name}'s ${defenseSuccesses} defense successes.`);
+  if (margin <= 0) {
+    results.push("Defender wins ties and equal-or-higher Defense results; no damage was applied.");
+  } else {
+    results.push(`Success margin ${margin}; raw damage ${rawDamage}${weapon ? ` with ${weapon.name}` : ""}${selection.boostDamage ? " and Boost damage" : ""}.`);
+    if (armor) results.push(`${defender.name}'s armor reduced damage by ${armor}.`);
+    results.push(await applyResourceDamage(defender, resource, finalDamage));
+  }
+
+  if (weapon?.type === "weapon") {
+    results.push(`Weapon qualities: ${weapon.system.quality || "none listed"}. Range: ${weapon.system.range || "Close"}.`);
+    results.push(`Automated weapon/armor qualities: Brutal damage, Explosive Boost damage, and matching X-proof armor. Apply other listed qualities as GM rulings from this card.`);
+  }
+
+  if (selection.conditionName && margin > 0) {
+    const conditionResult = await createOrUpdateCondition(defender, {
+      name: selection.conditionName,
+      category: selection.conditionCategory || (resource === "psyche" ? "mental" : "physical"),
+      severity: selection.conditionSeverity,
+      notes: selection.notes
+    });
+    if (conditionResult) results.push(conditionResult);
+  }
+
+  return results.filter(Boolean);
+}
+
 async function applyDamage(actor, { resource, amount, applyArmor }) {
   const resourceInfo = actorResource(actor, resource);
   const rawAmount = Math.max(0, Number(amount ?? 0));
@@ -279,6 +415,49 @@ async function applyDamage(actor, { resource, amount, applyArmor }) {
   await actor.update({ [resourceInfo.path]: next });
 
   return `${actor.name}: ${resourceLabel(resource)} ${resourceInfo.value} -> ${next}; ${finalAmount} damage applied${armor ? ` after ${armor} armor` : ""}.`;
+}
+
+async function applyResourceDamage(actor, resource, amount) {
+  const resourceInfo = actorResource(actor, resource);
+  const finalAmount = Math.max(0, Number(amount ?? 0));
+  if (!resourceInfo) return `${actor.name}: ${resourceLabel(resource)} could not be updated.`;
+
+  const next = Math.max(0, resourceInfo.value - finalAmount);
+  await actor.update({ [resourceInfo.path]: next });
+  return `${actor.name}: ${resourceLabel(resource)} ${resourceInfo.value} -> ${next}; ${finalAmount} damage applied.`;
+}
+
+async function applyHealing(actor, selection) {
+  const results = [];
+  const amount = Math.max(0, Number(selection.healingAmount ?? 0));
+
+  if (amount > 0) {
+    const resource = selection.healingResource === "psyche" ? "psyche" : "health";
+    const resourceInfo = actorResource(actor, resource);
+    if (resourceInfo) {
+      const next = Math.min(resourceInfo.max, resourceInfo.value + amount);
+      await actor.update({ [resourceInfo.path]: next });
+      results.push(`${actor.name}: ${resourceLabel(resource)} ${resourceInfo.value} -> ${next}; ${next - resourceInfo.value} recovered.`);
+    }
+  }
+
+  if (selection.conditionName && amount > 0) {
+    const condition = actor.items.find(item => item.type === "condition" && item.name === selection.conditionName);
+    if (condition) {
+      const current = Number(condition.system.severity ?? 1);
+      const next = Math.max(0, current - amount);
+      if (next <= 0) {
+        await condition.delete();
+        results.push(`${actor.name}: ${condition.name} removed.`);
+      } else {
+        await condition.update({ "system.severity": next });
+        results.push(`${actor.name}: ${condition.name} reduced ${current} -> ${next}.`);
+      }
+    }
+  }
+
+  if (!results.length) results.push(`${actor.name}: No healing or Condition recovery was applied.`);
+  return results;
 }
 
 async function createOrUpdateCondition(actor, { name, category, severity, notes }) {
@@ -374,6 +553,59 @@ function actorArmor(actor) {
   return Number(actor.system.derived?.armor ?? actor.system.armor ?? 0);
 }
 
+function actorWeapons(actor) {
+  return actor?.items
+    ?.filter(item => item.type === "weapon")
+    ?.filter(item => item.system.held !== false || item.system.equipped)
+    ?? [];
+}
+
+function weaponDamageBonus(weapon) {
+  const base = Math.max(0, Number(weapon.system.damage ?? 0));
+  const brutal = qualityLevel(weapon.system.quality, "brutal");
+  return brutal ? Math.max(base, brutal) : base;
+}
+
+function boostDamageBonus(weapon) {
+  if (!weapon) return 1;
+  if (hasQuality(weapon.system.quality, "explosive")) return 2;
+  return 1;
+}
+
+function armorProofBonus(actor, tag) {
+  const needle = String(tag ?? "").trim().toLowerCase();
+  if (!needle) return 0;
+
+  return actor.items
+    .filter(item => item.type === "armor" && item.system.equipped)
+    .reduce((total, armor) => total + proofQualityBonus(armor.system.quality, needle), 0);
+}
+
+function proofQualityBonus(quality, tag) {
+  const qualities = String(quality ?? "").split(",").map(entry => entry.trim().toLowerCase());
+  let bonus = 0;
+
+  for (const entry of qualities) {
+    if (!entry.includes("-proof")) continue;
+    const [kind, value] = entry.split(/\s+/);
+    if (!kind?.includes(tag) && !tag.includes(kind.replace("-proof", ""))) continue;
+    bonus += Number(value ?? 2) || 2;
+  }
+
+  return bonus;
+}
+
+function qualityLevel(quality, name) {
+  const pattern = new RegExp(`\\b${name}\\b\\s*(\\d+)?`, "i");
+  const match = String(quality ?? "").match(pattern);
+  if (!match) return 0;
+  return Number(match[1] ?? 1);
+}
+
+function hasQuality(quality, name) {
+  return new RegExp(`\\b${name}\\b`, "i").test(String(quality ?? ""));
+}
+
 async function postCombatCard({ combat, combatant = null, title, body }) {
   await ChatMessage.create({
     speaker: combatant?.actor ? ChatMessage.getSpeaker({ actor: combatant.actor }) : ChatMessage.getSpeaker(),
@@ -409,6 +641,19 @@ function combatActionHTML(selection) {
 
 function combatOutcomeHTML(results, selection) {
   return `
+    <ul>
+      ${results.map(result => `<li>${escapeHTML(result)}</li>`).join("")}
+    </ul>
+    ${selection.notes ? `<div><strong>Notes:</strong> ${escapeHTML(selection.notes)}</div>` : ""}
+  `;
+}
+
+function battleOutcomeHTML(results, selection, attacker, defender) {
+  return `
+    <div><strong>Attacker:</strong> ${escapeHTML(attacker.name)}</div>
+    <div><strong>Defender:</strong> ${escapeHTML(defender.name)}</div>
+    <div><strong>Attack / Defense:</strong> ${Number(selection.attackSuccesses ?? 0)} / ${Number(selection.defenseSuccesses ?? 0)}</div>
+    ${selection.damageTag ? `<div><strong>Range / Tag:</strong> ${escapeHTML(selection.damageTag)}</div>` : ""}
     <ul>
       ${results.map(result => `<li>${escapeHTML(result)}</li>`).join("")}
     </ul>
