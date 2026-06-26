@@ -293,7 +293,7 @@ export class PartTimeGodsActor extends Actor {
     const careerSelection = item.type === "occupation" ? await selectOccupationCareer(item, options) : null;
     if (careerSelection === false) return false;
 
-    const archetypeSelection = item.type === "archetype" ? await selectArchetypeOptions(item) : null;
+    const archetypeSelection = item.type === "archetype" ? await selectArchetypeOptions(item, options) : null;
     if (archetypeSelection === false) return false;
 
     const domainSelection = item.type === "domain" ? await selectDomainOptions(item, this) : null;
@@ -420,6 +420,22 @@ export class PartTimeGodsActor extends Actor {
           curse: item.system.curseData?.name ?? item.system.grants?.curse ?? "",
           skillPoints: item.system.undecided ? Number(item.system.skillPoints ?? 8) : 0,
           manifestationPoints: item.system.undecided ? Number(item.system.manifestationPoints ?? 2) : 0,
+          uuid: item.uuid
+        }
+      });
+    }
+
+    if (archetypeSelection) {
+      const choiceDetails = this.getFlag("part-time-gods", "choiceDetails") ?? {};
+      await this.setFlag("part-time-gods", "choiceDetails", {
+        ...choiceDetails,
+        archetype: {
+          name: item.name,
+          attachment: archetypeSelection.attachment?.name ?? "",
+          attachmentKind: archetypeSelection.attachment?.kind ?? "",
+          attachmentLevel: Number(archetypeSelection.attachment?.level ?? 0),
+          blessing: archetypeSelection.blessing?.name ?? "",
+          curse: archetypeSelection.curse?.name ?? "",
           uuid: item.uuid
         }
       });
@@ -989,11 +1005,27 @@ async function selectOccupationCareer(item, selectionOptions = {}) {
   };
 }
 
-async function selectArchetypeOptions(item) {
+async function selectArchetypeOptions(item, selectionOptions = {}) {
   const attachments = Array.from(item.system.attachmentOptions ?? []);
   const blessings = Array.from(item.system.blessingOptions ?? []);
   const curses = Array.from(item.system.curseOptions ?? []);
   if (!attachments.length && !blessings.length && !curses.length) return null;
+
+  const requested = selectionOptions.archetypeOptions ?? null;
+  if (requested) {
+    const selection = {
+      attachmentIndex: Number(requested.attachmentIndex),
+      blessingIndex: Number(requested.blessingIndex),
+      curseIndex: Number(requested.curseIndex)
+    };
+
+    if (archetypeSelectionIsValid(selection, { attachments, blessings, curses })) {
+      return archetypeSelectionFromIndexes(selection, { attachments, blessings, curses });
+    }
+
+    ui.notifications.warn(`${item.name} has malformed Archetype option data.`);
+    return false;
+  }
 
   const content = `
     <div class="ptg-career-dialog">
@@ -1024,6 +1056,23 @@ async function selectArchetypeOptions(item) {
 
   if (selection === null || selection === undefined) return false;
 
+  if (!archetypeSelectionIsValid(selection, { attachments, blessings, curses })) {
+    ui.notifications.warn(`Choose an Attachment, Blessing, and Curse for ${item.name}.`);
+    return false;
+  }
+
+  return archetypeSelectionFromIndexes(selection, { attachments, blessings, curses });
+}
+
+function archetypeSelectionIsValid(selection, { attachments, blessings, curses }) {
+  return (
+    (!attachments.length || (Number.isInteger(selection.attachmentIndex) && attachments[selection.attachmentIndex])) &&
+    (!blessings.length || (Number.isInteger(selection.blessingIndex) && blessings[selection.blessingIndex])) &&
+    (!curses.length || (Number.isInteger(selection.curseIndex) && curses[selection.curseIndex]))
+  );
+}
+
+function archetypeSelectionFromIndexes(selection, { attachments, blessings, curses }) {
   return {
     attachment: attachments[selection.attachmentIndex] ?? null,
     blessing: blessings[selection.blessingIndex] ?? null,

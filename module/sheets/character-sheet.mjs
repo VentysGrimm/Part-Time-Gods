@@ -48,6 +48,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.inventory = this.#prepareInventory();
     context.inventorySections = this.#prepareInventorySections(context.inventory);
     context.creationSteps = this.#prepareCreationSteps(context.inventory);
+    context.choiceDetails = this.actor.getFlag("part-time-gods", "choiceDetails") ?? {};
     context.gearSummary = this.#prepareGearSummary(context.inventory.gear);
     context.pantheonMembership = this.#preparePantheonMembership();
     context.xpPurchases = xpPurchaseHistoryWithLegacy(context.system.resources);
@@ -1011,11 +1012,12 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
           const current = identity[identityKeys[type]] || "";
           const options = choices[type] ?? [];
           const isOccupation = type === "occupation";
+          const isArchetype = type === "archetype";
 
           return `
             <fieldset data-creator-step="${index}" ${index === 0 ? "" : "hidden"}>
               <legend>Step ${index + 1}: ${escapeHTML(creatorTypeLabel(type))}</legend>
-              <select name="${type}" ${isOccupation ? "data-occupation-select" : ""}>
+              <select name="${type}" ${isOccupation ? "data-occupation-select" : ""} ${isArchetype ? "data-archetype-select" : ""}>
                 <option value="">${current ? `Keep ${escapeHTML(current)}` : `Choose ${escapeHTML(creatorTypeLabel(type))}`}</option>
                 ${options.map(option => `<option value="${escapeHTML(option.uuid)}">${escapeHTML(option.name)}</option>`).join("")}
               </select>
@@ -1032,6 +1034,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
                   ${options.flatMap(option => creatorCareerOptions(option).map(careerOption => creatorCareerSummaryHTML(option, careerOption))).join("")}
                 </div>
               ` : ""}
+              ${isArchetype ? creatorArchetypeOptionsHTML(options) : ""}
               <p class="hint">${current ? `Current: ${escapeHTML(current)}` : "No selection applied yet."}</p>
             </fieldset>
           `;
@@ -1111,6 +1114,11 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         callback: (event, button) => ({
           choices: Object.fromEntries(types.map(type => [type, button.form.elements[type]?.value ?? ""])),
           occupationCareer: button.form.elements.occupationCareer?.value ?? "",
+          archetypeOptions: {
+            attachmentIndex: button.form.elements.archetypeAttachment?.value ?? "",
+            blessingIndex: button.form.elements.archetypeBlessing?.value ?? "",
+            curseIndex: button.form.elements.archetypeCurse?.value ?? ""
+          },
           updates: {
             "system.attachments.bonds": button.form.elements["attachments.bonds"]?.value ?? "",
             "system.attachments.worshippers": button.form.elements["attachments.worshippers"]?.value ?? "",
@@ -1142,6 +1150,15 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     if (selectedOccupation && creatorCareerOptions(selectedOccupation).length && !selections.occupationCareer) {
       ui.notifications.warn("Choose an Occupation career/subtype before applying character creation choices.");
       return;
+    }
+
+    const selectedArchetype = choices.archetype.find(item => item.uuid === selections.choices.archetype);
+    if (selectedArchetype) {
+      const archetypeErrors = validateCreatorArchetypeSelection(selectedArchetype, selections.archetypeOptions);
+      if (archetypeErrors.length) {
+        await showCharacterCreationValidation(archetypeErrors);
+        return;
+      }
     }
 
     const validationErrors = validateCharacterCreationBudget(selections, this.actor);
@@ -1182,9 +1199,10 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       delete source._id;
 
       const [ownedItem] = await this.actor.createEmbeddedDocuments("Item", [source]);
-      const applied = await this.actor.applyChoice(ownedItem, type === "occupation" ? {
-        occupationCareerOption: selections.occupationCareer
-      } : {});
+      const applied = await this.actor.applyChoice(ownedItem, {
+        ...(type === "occupation" ? { occupationCareerOption: selections.occupationCareer } : {}),
+        ...(type === "archetype" ? { archetypeOptions: selections.archetypeOptions } : {})
+      });
       if (!applied) await ownedItem.delete();
     }
 
@@ -1276,6 +1294,27 @@ function validateCharacterCreationBudget(selections, actor) {
   return errors;
 }
 
+function validateCreatorArchetypeSelection(item, selection) {
+  const errors = [];
+  const attachments = Array.from(item.system.attachmentOptions ?? []);
+  const blessings = Array.from(item.system.blessingOptions ?? []);
+  const curses = Array.from(item.system.curseOptions ?? []);
+
+  if (!attachments.length) errors.push(`${item.name} has no Archetype Attachment options recorded.`);
+  if (!blessings.length) errors.push(`${item.name} has no Archetype Blessing options recorded.`);
+  if (!curses.length) errors.push(`${item.name} has no Archetype Curse options recorded.`);
+  if (attachments.length && !isValidOptionIndex(selection.attachmentIndex, attachments)) errors.push(`Choose an Attachment option for ${item.name}.`);
+  if (blessings.length && !isValidOptionIndex(selection.blessingIndex, blessings)) errors.push(`Choose a Blessing option for ${item.name}.`);
+  if (curses.length && !isValidOptionIndex(selection.curseIndex, curses)) errors.push(`Choose a Curse option for ${item.name}.`);
+
+  return errors;
+}
+
+function isValidOptionIndex(value, options) {
+  const index = Number(value);
+  return Number.isInteger(index) && index >= 0 && index < options.length;
+}
+
 function pointTotal(points) {
   return Object.values(points ?? {}).reduce((total, value) => total + Number(value ?? 0), 0);
 }
@@ -1348,6 +1387,96 @@ function creatorCareerSummaryHTML(item, option) {
   `;
 }
 
+function creatorArchetypeOptionsHTML(options) {
+  return `
+    <section class="ptg-archetype-choice-panel" data-archetype-options hidden>
+      <div class="ptg-item-fields three">
+        <label>Attachment
+          <select name="archetypeAttachment" data-archetype-option-select="attachment" disabled>
+            <option value="">Choose an Archetype first</option>
+            ${options.flatMap(option => creatorArchetypeOptionOptions(option, "attachment")).join("")}
+          </select>
+        </label>
+        <label>Blessing
+          <select name="archetypeBlessing" data-archetype-option-select="blessing" disabled>
+            <option value="">Choose an Archetype first</option>
+            ${options.flatMap(option => creatorArchetypeOptionOptions(option, "blessing")).join("")}
+          </select>
+        </label>
+        <label>Curse
+          <select name="archetypeCurse" data-archetype-option-select="curse" disabled>
+            <option value="">Choose an Archetype first</option>
+            ${options.flatMap(option => creatorArchetypeOptionOptions(option, "curse")).join("")}
+          </select>
+        </label>
+      </div>
+      <div class="ptg-career-options" data-archetype-option-details hidden>
+        ${options.map(creatorArchetypeSummaryHTML).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function creatorArchetypeOptionOptions(item, kind) {
+  const options = {
+    attachment: Array.from(item.system?.attachmentOptions ?? []),
+    blessing: Array.from(item.system?.blessingOptions ?? []),
+    curse: Array.from(item.system?.curseOptions ?? [])
+  }[kind] ?? [];
+
+  return options.map((option, index) => `
+    <option value="${index}" data-parent-uuid="${escapeHTML(item.uuid)}" hidden>${escapeHTML(creatorArchetypeOptionLabel(option, kind))}</option>
+  `);
+}
+
+function creatorArchetypeSummaryHTML(item) {
+  const attachments = Array.from(item.system?.attachmentOptions ?? []);
+  const blessings = Array.from(item.system?.blessingOptions ?? []);
+  const curses = Array.from(item.system?.curseOptions ?? []);
+
+  return `
+    <section class="ptg-career-option" data-archetype-detail="${escapeHTML(item.uuid)}" hidden>
+      <h3>${escapeHTML(item.name)}</h3>
+      <p><strong>Defining Trait:</strong> ${escapeHTML(item.system?.definingTrait ?? "")}</p>
+      ${creatorOptionListHTML("Attachment Options", attachments.map(option => creatorArchetypeOptionLabel(option, "attachment")))}
+      ${creatorOptionListHTML("Blessing Options", blessings.map(option => creatorArchetypeOptionLabel(option, "blessing")))}
+      ${creatorOptionListHTML("Curse Options", curses.map(option => creatorArchetypeOptionLabel(option, "curse")))}
+    </section>
+  `;
+}
+
+function creatorOptionListHTML(label, options) {
+  if (!options.length) return `<p><strong>${escapeHTML(label)}:</strong> Missing option data.</p>`;
+  return `
+    <p><strong>${escapeHTML(label)}:</strong></p>
+    <ul>
+      ${options.map(option => `<li>${escapeHTML(option)}</li>`).join("")}
+    </ul>
+  `;
+}
+
+function creatorArchetypeOptionLabel(option, kind) {
+  if (kind === "attachment") return creatorAttachmentLabel(option);
+  const name = option?.name ?? creatorTypeLabel(kind);
+  const effect = htmlToPlainText(option?.effect ?? option?.rulesText ?? option?.rules?.summary ?? "");
+  return effect ? `${name} - ${effect}` : name;
+}
+
+function htmlToPlainText(value) {
+  return String(value ?? "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/p>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function wireOccupationCareerSelector(element) {
   const root = element instanceof HTMLElement ? element : element?.querySelector?.(".ptg-creator-dialog");
   const occupation = root?.querySelector?.("[data-occupation-select]");
@@ -1376,11 +1505,51 @@ function wireOccupationCareerSelector(element) {
   refresh();
 }
 
+function wireArchetypeOptionSelector(element) {
+  const root = element instanceof HTMLElement ? element : element?.querySelector?.(".ptg-creator-dialog");
+  const archetype = root?.querySelector?.("[data-archetype-select]");
+  const panel = root?.querySelector?.("[data-archetype-options]");
+  const details = root?.querySelector?.("[data-archetype-option-details]");
+  const selects = Array.from(root?.querySelectorAll?.("[data-archetype-option-select]") ?? []);
+  if (!archetype || !panel || !selects.length) return;
+
+  const refresh = () => {
+    const parentUuid = archetype.value;
+    let visibleCount = 0;
+
+    panel.hidden = !parentUuid;
+    for (const select of selects) {
+      let visible = 0;
+      for (const option of select.querySelectorAll("option[data-parent-uuid]")) {
+        const show = option.dataset.parentUuid === parentUuid;
+        option.hidden = !show;
+        if (show) visible += 1;
+      }
+
+      select.disabled = !visible;
+      select.options[0].textContent = visible ? `Choose ${select.dataset.archetypeOptionSelect}` : "Choose an Archetype first";
+      if (!visible || select.selectedOptions[0]?.dataset.parentUuid !== parentUuid) select.value = "";
+      visibleCount += visible;
+    }
+
+    if (details) {
+      details.hidden = !visibleCount;
+      for (const section of details.querySelectorAll("[data-archetype-detail]")) {
+        section.hidden = section.dataset.archetypeDetail !== parentUuid;
+      }
+    }
+  };
+
+  archetype.addEventListener("change", refresh);
+  refresh();
+}
+
 function wireCharacterCreatorDialog(element) {
   const root = element instanceof HTMLElement ? element.querySelector?.(".ptg-creator-dialog") ?? element : element?.querySelector?.(".ptg-creator-dialog");
   if (!root) return;
 
   wireOccupationCareerSelector(root);
+  wireArchetypeOptionSelector(root);
   wireCreatorWizard(root);
 }
 

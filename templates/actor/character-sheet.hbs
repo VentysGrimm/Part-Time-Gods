@@ -167,6 +167,16 @@
         <input name="system.identity.dominion" type="text" value="{{system.identity.dominion}}">
       </label>
     </section>
+    {{#if choiceDetails.archetype}}
+      <section class="ptg-paper-panel ptg-choice-readout">
+        <span>Archetype Choices</span>
+        <p>
+          {{choiceDetails.archetype.attachment}}
+          {{#if choiceDetails.archetype.blessing}} | Blessing: {{choiceDetails.archetype.blessing}}{{/if}}
+          {{#if choiceDetails.archetype.curse}} | Curse: {{choiceDetails.archetype.curse}}{{/if}}
+        </p>
+      </section>
+    {{/if}}
 
     <section class="ptg-paper-panel ptg-dominion-strip">
       <label class="ptg-line-field">
