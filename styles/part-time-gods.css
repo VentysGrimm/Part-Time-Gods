@@ -280,6 +280,21 @@
   resize: vertical;
 }
 
+.ptg-combat-dialog {
+  display: grid;
+  gap: 10px;
+  max-height: calc(100vh - 220px);
+  min-height: 220px;
+  overflow-y: auto;
+  padding-right: 6px;
+  resize: vertical;
+}
+
+.ptg-combat-dialog textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
 .ptg2e-journal-page,
 .ptg-source-page {
   display: block;
