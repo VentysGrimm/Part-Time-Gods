@@ -52,6 +52,13 @@
               <button type="button" data-item-action="condition-reduce">Reduce</button>
               <button type="button" data-item-action="edit">Edit</button>
               <button type="button" data-item-action="delete">Remove</button>
+              {{#if item.sheetDetails}}
+                <div class="ptg-item-details">
+                  {{#each item.sheetDetails as |detail|}}
+                    <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                  {{/each}}
+                </div>
+              {{/if}}
             </div>
           {{/each}}
         </div>
@@ -265,6 +272,13 @@
             <div class="ptg-mini-item" data-item-id="{{item.id}}">
               <span>{{item.name}}</span>
               <button type="button" data-item-action="edit">Edit</button>
+              {{#if item.sheetDetails}}
+                <div class="ptg-item-details">
+                  {{#each item.sheetDetails as |detail|}}
+                    <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                  {{/each}}
+                </div>
+              {{/if}}
             </div>
           {{/each}}
         </div>
@@ -279,6 +293,13 @@
             <div class="ptg-mini-item" data-item-id="{{item.id}}">
               <span>{{item.name}}</span>
               <button type="button" data-item-action="edit">Edit</button>
+              {{#if item.sheetDetails}}
+                <div class="ptg-item-details">
+                  {{#each item.sheetDetails as |detail|}}
+                    <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                  {{/each}}
+                </div>
+              {{/if}}
             </div>
           {{/each}}
         </div>
@@ -302,6 +323,17 @@
               <td>{{item.system.strain.value}} / {{item.system.strain.max}}</td>
               <td><button type="button" data-item-action="edit">Edit</button></td>
             </tr>
+            {{#if item.sheetDetails}}
+              <tr class="ptg-item-detail-row">
+                <td colspan="6">
+                  <div class="ptg-item-details">
+                    {{#each item.sheetDetails as |detail|}}
+                      <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                    {{/each}}
+                  </div>
+                </td>
+              </tr>
+            {{/if}}
           {{/each}}
         </tbody>
       </table>
@@ -330,6 +362,17 @@
                 <button type="button" data-item-action="edit">Edit</button>
               </td>
             </tr>
+            {{#if item.sheetDetails}}
+              <tr class="ptg-item-detail-row">
+                <td colspan="6">
+                  <div class="ptg-item-details">
+                    {{#each item.sheetDetails as |detail|}}
+                      <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                    {{/each}}
+                  </div>
+                </td>
+              </tr>
+            {{/if}}
           {{/each}}
           {{#each inventory.vassals as |item|}}
             <tr data-item-id="{{item.id}}">
@@ -343,6 +386,17 @@
                 <button type="button" data-item-action="edit">Edit</button>
               </td>
             </tr>
+            {{#if item.sheetDetails}}
+              <tr class="ptg-item-detail-row">
+                <td colspan="6">
+                  <div class="ptg-item-details">
+                    {{#each item.sheetDetails as |detail|}}
+                      <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                    {{/each}}
+                  </div>
+                </td>
+              </tr>
+            {{/if}}
           {{/each}}
         </tbody>
       </table>
@@ -359,6 +413,13 @@
               <span>Level {{item.system.level}}</span>
               <button type="button" data-item-action="use">Use</button>
               <button type="button" data-item-action="edit">Edit</button>
+              {{#if item.sheetDetails}}
+                <div class="ptg-item-details">
+                  {{#each item.sheetDetails as |detail|}}
+                    <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                  {{/each}}
+                </div>
+              {{/if}}
             </div>
           {{/each}}
         </div>
@@ -374,6 +435,13 @@
               <span>Rank {{item.system.rank}}</span>
               <button type="button" data-item-action="use">Use</button>
               <button type="button" data-item-action="edit">Edit</button>
+              {{#if item.sheetDetails}}
+                <div class="ptg-item-details">
+                  {{#each item.sheetDetails as |detail|}}
+                    <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                  {{/each}}
+                </div>
+              {{/if}}
             </div>
           {{/each}}
         </div>

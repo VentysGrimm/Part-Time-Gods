@@ -110,10 +110,10 @@
         "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "description", "notes"]
       },
       "truth": {
-        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "effect", "notes"]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "effect", "description", "notes"]
       },
       "relic": {
-        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "effect", "description", "notes"]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "effect", "description", "notes"]
       },
       "worshipper": {
         "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "description", "notes"]

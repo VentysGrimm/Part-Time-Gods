@@ -172,12 +172,16 @@ function truth(name, page, statement, effect) {
   const activation = effect.includes("Spend") ? "action" : "passive";
 
   return baseItem("truth", name, page, {
+    summary: effect,
     statement,
     rank: 1,
     cost: 2,
     fragmentCost,
     activation,
+    benefit: paragraph(effect),
     effect: paragraph(effect),
+    description: paragraph(effect),
+    sourcePage: page,
     notes: source(page),
     ...itemRules("truth", name, page, effect, {
       kind: fragmentCost ? "active" : "passive",
@@ -193,12 +197,16 @@ function relic(name, level, page, bonus, effect) {
   const fragmentCost = effect.includes("Fragment") ? 1 : 0;
 
   return baseItem("relic", name, page, {
+    summary: `${bonus}. ${effect}`,
     level,
     cost: level,
     bonus,
     fragmentCost,
+    benefit: paragraph(bonus),
     effect: paragraph(effect),
-    description: "",
+    description: paragraph(effect),
+    relatedBonus: paragraph(bonus),
+    sourcePage: page,
     notes: source(page),
     ...itemRules("relic", name, page, `${bonus}. ${effect}`, {
       kind: fragmentCost ? "active" : "passive",
@@ -212,7 +220,9 @@ function relic(name, level, page, bonus, effect) {
 
 function worshipper(name, level, page, benefit) {
   return baseItem("worshipper", name, page, {
+    summary: benefit,
     level,
+    cost: level,
     strain: {
       value: 0,
       max: level
@@ -220,7 +230,8 @@ function worshipper(name, level, page, benefit) {
     group: name,
     size: "",
     benefit: paragraph(benefit),
-    description: "",
+    description: paragraph(benefit),
+    sourcePage: page,
     notes: source(page),
     ...itemRules("worshipper", name, page, benefit, {
       kind: "active",
@@ -233,6 +244,7 @@ function worshipper(name, level, page, benefit) {
 
 function bond(name, kind, page, description) {
   return baseItem("bond", name, page, {
+    summary: description,
     kind,
     level: 1,
     strain: {
@@ -240,6 +252,7 @@ function bond(name, kind, page, description) {
       max: 1
     },
     description: paragraph(description),
+    sourcePage: page,
     notes: source(page),
     ...itemRules("bond", name, page, description, {
       kind: "active",
@@ -271,7 +284,9 @@ function curse(name, sourceName, page, pantheonDice, effect) {
 
 function vassal(name, level, page, benefit) {
   return baseItem("vassal", name, page, {
+    summary: benefit,
     level,
+    cost: level,
     strain: {
       value: 0,
       max: level
@@ -279,7 +294,8 @@ function vassal(name, level, page, benefit) {
     concept: "",
     loyalty: 0,
     benefit: paragraph(benefit),
-    description: "",
+    description: paragraph(benefit),
+    sourcePage: page,
     notes: source(page),
     ...itemRules("vassal", name, page, benefit, {
       kind: "active",

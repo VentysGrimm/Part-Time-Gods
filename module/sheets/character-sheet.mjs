@@ -578,8 +578,33 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         types
           .flatMap(type => this.actor.items.filter(item => item.type === type))
           .sort((a, b) => a.name.localeCompare(b.name))
+          .map(item => this.#enrichInventoryItem(item))
       ])
     );
+  }
+
+  #enrichInventoryItem(item) {
+    const system = item.system ?? {};
+    const details = [
+      itemDetail("Summary", system.summary || system.rules?.summary),
+      itemDetail("Benefit", system.benefit),
+      itemDetail("Effect", system.effect),
+      itemDetail("Description", system.description),
+      itemDetail("Related Bonus", system.relatedBonus || system.bonus),
+      itemDetail("Related Detriment", system.relatedDetriment),
+      itemDetail("Automation", system.automationNotes)
+    ].filter(Boolean);
+
+    return {
+      id: item.id,
+      uuid: item.uuid,
+      name: item.name,
+      type: item.type,
+      img: item.img,
+      system,
+      sheetDetails: details,
+      sheetSummary: details[0]?.html ?? ""
+    };
   }
 
   #prepareInventorySections(inventory) {
@@ -986,6 +1011,16 @@ function creatorTypeLabel(type) {
     domain: "Dominion",
     theology: "Theology"
   }[type] ?? type;
+}
+
+function itemDetail(label, value) {
+  const text = String(value ?? "").trim();
+  if (!text) return null;
+
+  return {
+    label,
+    html: text.includes("<") ? text : `<p>${escapeHTML(text)}</p>`
+  };
 }
 
 function readPointInputs(form, prefix, keys) {

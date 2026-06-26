@@ -76,6 +76,7 @@ class PTGBaseItemData extends foundry.abstract.TypeDataModel {
 
   static attachmentDetailFields() {
     return {
+      summary: this.textField(),
       relatedBonus: this.htmlField(),
       relatedDetriment: this.htmlField(),
       trigger: this.textField(),
@@ -231,7 +232,9 @@ export class PTGTruthData extends PTGBaseItemData {
       cost: this.numberField(),
       fragmentCost: this.numberField(),
       activation: this.textField(),
+      benefit: this.htmlField(),
       effect: this.htmlField(),
+      description: this.htmlField(),
       notes: this.htmlField()
     };
   }
@@ -245,6 +248,7 @@ export class PTGRelicData extends PTGBaseItemData {
       level: this.numberField(1),
       cost: this.numberField(),
       bonus: this.textField(),
+      benefit: this.htmlField(),
       effect: this.htmlField(),
       description: this.htmlField(),
       notes: this.htmlField()
@@ -258,6 +262,7 @@ export class PTGWorshipperData extends PTGBaseItemData {
       ...this.rulesAutomationFields("worshipper"),
       ...this.attachmentDetailFields(),
       level: this.numberField(1),
+      cost: this.numberField(),
       strain: new fields.SchemaField({
         value: this.numberField(),
         max: this.numberField()
@@ -277,6 +282,7 @@ export class PTGVassalData extends PTGBaseItemData {
       ...this.rulesAutomationFields("vassal"),
       ...this.attachmentDetailFields(),
       level: this.numberField(1),
+      cost: this.numberField(),
       strain: new fields.SchemaField({
         value: this.numberField(),
         max: this.numberField()
