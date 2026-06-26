@@ -834,6 +834,33 @@
   resize: vertical;
 }
 
+.ptg-creator-budget-block {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.ptg-creator-budget-block h3 {
+  margin: 0;
+  color: #21162d;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ptg-creator-budget-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.ptg-creator-budget-grid.manifestations {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ptg-creator-budget-grid label {
+  margin: 0;
+}
+
 .ptg-career-options {
   display: grid;
   gap: 8px;

@@ -743,6 +743,9 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     const identity = this.actor.system.identity ?? {};
     const attachments = this.actor.system.attachments ?? {};
     const resources = this.actor.system.resources ?? {};
+    const skillEntries = Object.entries(CONFIG.PTG.skills ?? {});
+    const manifestationEntries = Object.entries(CONFIG.PTG.manifestations ?? {});
+    const existingTruths = this.actor.items.filter(item => item.type === "truth");
     const identityKeys = {
       occupation: "occupation",
       archetype: "archetype",
@@ -798,6 +801,40 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         </fieldset>
         <fieldset data-creator-step="5" hidden>
           <legend>Step 6: Final Touches</legend>
+          <section class="ptg-creator-budget-block">
+            <h3>Starting Skill Points</h3>
+            <p class="ptg-sheet-note">Spend exactly 10 points across Skills.</p>
+            <div class="ptg-creator-budget-grid">
+              ${skillEntries.map(([key, label]) => `
+                <label>
+                  <span>${escapeHTML(label)}</span>
+                  <input type="number" name="creator.skills.${escapeHTML(key)}" value="0" min="0">
+                </label>
+              `).join("")}
+            </div>
+          </section>
+          <section class="ptg-creator-budget-block">
+            <h3>Starting Manifestation Points</h3>
+            <p class="ptg-sheet-note">Spend exactly 4 points across Manifestations.</p>
+            <div class="ptg-creator-budget-grid manifestations">
+              ${manifestationEntries.map(([key, label]) => `
+                <label>
+                  <span>${escapeHTML(label)}</span>
+                  <input type="number" name="creator.manifestations.${escapeHTML(key)}" value="0" min="0">
+                </label>
+              `).join("")}
+            </div>
+          </section>
+          <section class="ptg-creator-budget-block">
+            <h3>Starting Attachments</h3>
+            <label>Attachment Points Planned <input type="number" name="creator.attachmentPoints" value="5" min="0"></label>
+            <label>Free Starting Truth <input type="text" name="creator.startingTruth" value="${existingTruths.length ? escapeHTML(existingTruths[0].name) : ""}" placeholder="The free Truth chosen in Step Five"></label>
+          </section>
+          <section class="ptg-creator-budget-block">
+            <h3>Starting Divine Resources</h3>
+            <label>Spark <input type="number" name="creator.spark" value="${Number(resources.spark ?? 1)}" min="1"></label>
+            <label>Starting Fragments <input type="number" name="creator.fragments" value="${Number(resources.fragments?.value ?? 3)}" min="0"></label>
+          </section>
           <label>God/dess Of <input type="text" name="identity.concept" value="${escapeHTML(identity.concept ?? "")}"></label>
           <label>Age & Ethnicity <input type="text" name="identity.ageEthnicity" value="${escapeHTML(identity.ageEthnicity ?? "")}"></label>
           <label>Specialties <textarea name="specialties">${escapeHTML(this.actor.system.specialties ?? "")}</textarea></label>
@@ -838,7 +875,18 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
             "system.identity.concept": button.form.elements["identity.concept"]?.value ?? "",
             "system.identity.ageEthnicity": button.form.elements["identity.ageEthnicity"]?.value ?? "",
             "system.specialties": button.form.elements.specialties?.value ?? "",
-            "system.resources.legendaryActs": button.form.elements["resources.legendaryActs"]?.value ?? ""
+            "system.resources.legendaryActs": button.form.elements["resources.legendaryActs"]?.value ?? "",
+            "system.resources.spark": Number(button.form.elements["creator.spark"]?.value ?? 1),
+            "system.resources.fragments.value": Number(button.form.elements["creator.fragments"]?.value ?? 3),
+            "system.resources.fragments.max": 3
+          },
+          budget: {
+            skills: readPointInputs(button.form, "creator.skills", skillEntries.map(([key]) => key)),
+            manifestations: readPointInputs(button.form, "creator.manifestations", manifestationEntries.map(([key]) => key)),
+            attachmentPoints: Number(button.form.elements["creator.attachmentPoints"]?.value ?? 0),
+            startingTruth: button.form.elements["creator.startingTruth"]?.value?.trim() ?? "",
+            spark: Number(button.form.elements["creator.spark"]?.value ?? 1),
+            fragments: Number(button.form.elements["creator.fragments"]?.value ?? 3)
           }
         })
       }
@@ -853,7 +901,29 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       return;
     }
 
+    const validationErrors = validateCharacterCreationBudget(selections, this.actor);
+    if (validationErrors.length) {
+      await showCharacterCreationValidation(validationErrors);
+      return;
+    }
+
+    for (const [skill, points] of Object.entries(selections.budget.skills)) {
+      if (points > 0) selections.updates[`system.skills.${skill}`] = Number(this.actor.system.skills?.[skill] ?? 0) + points;
+    }
+
+    for (const [manifestation, points] of Object.entries(selections.budget.manifestations)) {
+      if (points > 0) {
+        selections.updates[`system.manifestations.${manifestation}`] =
+          Number(this.actor.system.manifestations?.[manifestation] ?? 0) + points;
+      }
+    }
+
     await this.actor.update(selections.updates);
+
+    const matchingTruths = this.actor.items.filter(item => item.type === "truth" && item.name === selections.budget.startingTruth);
+    if (selections.budget.startingTruth && !matchingTruths.length) {
+      await this.actor.createEmbeddedDocuments("Item", [startingTruthItem(selections.budget.startingTruth)]);
+    }
 
     for (const type of selectedTypes) {
       if (identity[identityKeys[type]]) {
@@ -916,6 +986,53 @@ function creatorTypeLabel(type) {
     domain: "Dominion",
     theology: "Theology"
   }[type] ?? type;
+}
+
+function readPointInputs(form, prefix, keys) {
+  return Object.fromEntries(keys.map(key => [
+    key,
+    Math.max(0, Number(form.elements[`${prefix}.${key}`]?.value ?? 0))
+  ]));
+}
+
+function validateCharacterCreationBudget(selections, actor) {
+  const errors = [];
+  const skillTotal = pointTotal(selections.budget.skills);
+  const manifestationTotal = pointTotal(selections.budget.manifestations);
+  const existingTruths = actor.items.filter(item => item.type === "truth").length;
+
+  if (skillTotal !== 10) errors.push(`Starting Skill points must total 10; current total is ${skillTotal}.`);
+  if (manifestationTotal !== 4) errors.push(`Starting Manifestation points must total 4; current total is ${manifestationTotal}.`);
+  if (!selections.budget.startingTruth && existingTruths < 1) errors.push("Choose or enter one free starting Truth.");
+  if (Number(selections.budget.attachmentPoints ?? 0) !== 5) errors.push(`Starting Attachment points must total 5; current total is ${Number(selections.budget.attachmentPoints ?? 0)}.`);
+  if (Number(selections.budget.spark ?? 0) !== 1) errors.push(`Starting Spark must be 1; current value is ${Number(selections.budget.spark ?? 0)}.`);
+  if (Number(selections.budget.fragments ?? 0) !== 3) errors.push(`Starting Fragments must be 3 at Spark 1; current value is ${Number(selections.budget.fragments ?? 0)}.`);
+
+  return errors;
+}
+
+function pointTotal(points) {
+  return Object.values(points ?? {}).reduce((total, value) => total + Number(value ?? 0), 0);
+}
+
+async function showCharacterCreationValidation(errors) {
+  await DialogV2.prompt({
+    window: { title: "Character Creator Validation" },
+    content: `
+      <div class="ptg-advancement-dialog">
+        <p class="ptg-sheet-note">Fix these starting character budgets before applying the creator.</p>
+        <ul>
+          ${errors.map(error => `<li>${escapeHTML(error)}</li>`).join("")}
+        </ul>
+      </div>
+    `,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Review",
+      callback: () => true
+    }
+  });
 }
 
 function creatorCareerOptions(item) {
@@ -1569,6 +1686,59 @@ function appendParagraph(value, text) {
   const current = String(value ?? "").trim();
   const next = `<p>${escapeHTML(text)}</p>`;
   return current ? `${current}${next}` : next;
+}
+
+function startingTruthItem(name) {
+  return {
+    name,
+    type: "truth",
+    img: "icons/magic/symbols/rune-sigil-black-pink.webp",
+    system: {
+      statement: name,
+      rank: 1,
+      cost: 0,
+      fragmentCost: 0,
+      activation: "passive",
+      effect: "<p>Free starting Truth chosen during character creation.</p>",
+      notes: "<p>Created by the character creator budget validation workflow.</p>",
+      rules: {
+        summary: "Free starting Truth chosen during character creation.",
+        fullText: "<p>Free starting Truth chosen during character creation.</p>",
+        source: {
+          book: "Part-Time Gods Second Edition",
+          page: 134,
+          section: "Step Five: Attachments",
+          type: "truth"
+        }
+      },
+      usage: {
+        kind: "passive",
+        trigger: "",
+        target: "self",
+        cost: {
+          freeTime: 0,
+          wealth: 0,
+          pantheonDice: 0,
+          fragments: 0,
+          health: 0,
+          psyche: 0,
+          strain: 0
+        }
+      },
+      automation: {
+        enabled: false,
+        action: "",
+        bonus: null,
+        penalty: null,
+        roll: null,
+        healing: null,
+        damage: null,
+        condition: null,
+        resourceChange: null,
+        chatCard: true
+      }
+    }
+  };
 }
 
 function sparkTruthItem(name, spark) {
