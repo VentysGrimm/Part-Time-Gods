@@ -509,7 +509,50 @@ function domainChoice(name, category, page, examples, grants) {
 }
 
 function theology(name, page, otherNames, stereotype, grants) {
+  const blessingData = grants.blessing
+    ? withAbilitySource(blessing(grants.blessing, grants.blessingSummary ?? ""), page, "blessing")
+    : "";
+  const curseData = grants.curse
+    ? withAbilitySource(curse(grants.curse, grants.curseSummary ?? ""), page, "curse")
+    : "";
+
   return choice("theology", name, page, {
+    rules: {
+      summary: `${name} grants Theology Skills, Manifestations, Free Time, Wealth, and its listed Blessing and Curse.`,
+      fullText: paragraph(`${name}: ${grants.blessingSummary ?? ""} ${grants.curseSummary ?? ""}`.trim()),
+      source: {
+        book: "Part-Time Gods Second Edition",
+        page,
+        section: name,
+        type: "theology"
+      }
+    },
+    usage: {
+      kind: "passive",
+      trigger: "always",
+      target: "self",
+      cost: {
+        freeTime: 0,
+        wealth: 0,
+        pantheonDice: 0,
+        fragments: 0,
+        health: 0,
+        psyche: 0,
+        strain: 0
+      }
+    },
+    automation: {
+      enabled: false,
+      action: "apply-theology-choice",
+      bonus: null,
+      penalty: null,
+      roll: null,
+      healing: null,
+      damage: null,
+      condition: null,
+      resourceChange: null,
+      chatCard: true
+    },
     otherNames,
     stereotype,
     undecided: grants.undecided ?? false,
@@ -517,7 +560,13 @@ function theology(name, page, otherNames, stereotype, grants) {
     manifestationPoints: grants.manifestationPoints ?? 0,
     blessingSummary: paragraph(grants.blessingSummary ?? ""),
     curseSummary: paragraph(grants.curseSummary ?? ""),
-    grants: normalizeGrants(grants),
+    blessingData,
+    curseData,
+    grants: normalizeGrants({
+      ...grants,
+      blessing: grants.blessing ?? "",
+      curse: grants.curse ?? ""
+    }),
     description: paragraph(`${name} is a Theology choice for newly awakened gods.`),
     notes: source(page)
   });
@@ -696,7 +745,7 @@ function abilityAutomation(type, name, effect) {
       freeTime: lower.includes("sacrifices 1 free time") || lower.includes("sacrificing 1 free time") ? 1 : 0,
       wealth: lower.includes("sacrificing 1 wealth") ? 1 : 0,
       pantheonDice: 0,
-      fragments: 0,
+      fragments: lower.includes("spend 1 fragment") ? 1 : 0,
       health: lower.includes("take 1 damage") ? 1 : 0,
       psyche: 0,
       strain: 0
@@ -711,11 +760,13 @@ function abilityAutomation(type, name, effect) {
     healing: healingAutomation(effect),
     damage: null,
     condition: conditionAutomation(effect),
-    resourceChange: type === "curse" ? {
-      resource: "pantheonDice",
-      amount: 1,
-      target: "pantheonPool"
-    } : null,
+    resourceChange: type === "curse"
+      ? {
+        resource: "pantheonDice",
+        amount: 1,
+        target: "pantheonPool"
+      }
+      : resourceChangeAutomation(effect),
     chatCard: true
   };
   const notes = type === "curse"
@@ -723,6 +774,19 @@ function abilityAutomation(type, name, effect) {
     : "Archetype Blessing metadata is source-backed; effects requiring judgment remain chat-card guided unless a structured automation field is present.";
 
   return { usage, automation, notes };
+}
+
+function resourceChangeAutomation(effect) {
+  const health = effect.match(/(?:begin with|gain) \+(\d+) Health/i);
+  if (health) return { resource: "health", amount: Number(health[1]), target: "self" };
+
+  const psyche = effect.match(/(?:begin with|gain) \+(\d+) Psyche/i);
+  if (psyche) return { resource: "psyche", amount: Number(psyche[1]), target: "self" };
+
+  const pantheon = effect.match(/add \+?(\d+) Pantheon Die/i);
+  if (pantheon) return { resource: "pantheonDice", amount: Number(pantheon[1]), target: "pantheonPool" };
+
+  return null;
 }
 
 function bonusAutomation(effect) {

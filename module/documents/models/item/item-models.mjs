@@ -172,6 +172,8 @@ export class PTGTheologyData extends PTGBaseItemData {
       manifestationPoints: this.numberField(),
       blessingSummary: this.htmlField(),
       curseSummary: this.htmlField(),
+      blessingData: new fields.ObjectField({ initial: {} }),
+      curseData: new fields.ObjectField({ initial: {} }),
       grants: this.grantsField(),
       description: this.htmlField(),
       notes: this.htmlField()

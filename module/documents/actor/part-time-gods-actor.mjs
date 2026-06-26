@@ -132,6 +132,10 @@ export class PartTimeGodsActor extends Actor {
     }
 
     syncStartingValues(updates, this.system);
+    if (item.type === "theology" && !item.system.undecided) {
+      grants.blessing = theologyAbilityGrant(item, "blessing");
+      grants.curse = theologyAbilityGrant(item, "curse");
+    }
 
     await this.update(updates);
 
@@ -184,6 +188,22 @@ export class PartTimeGodsActor extends Actor {
           blessing: domainSelection.blessing?.name ?? "",
           curse: domainSelection.curse?.name ?? "",
           landmarkBondName: domainSelection.landmarkName,
+          uuid: item.uuid
+        }
+      });
+    }
+
+    if (item.type === "theology") {
+      const choiceDetails = this.getFlag("part-time-gods", "choiceDetails") ?? {};
+      await this.setFlag("part-time-gods", "choiceDetails", {
+        ...choiceDetails,
+        theology: {
+          name: item.name,
+          undecided: Boolean(item.system.undecided),
+          blessing: item.system.blessingData?.name ?? item.system.grants?.blessing ?? "",
+          curse: item.system.curseData?.name ?? item.system.grants?.curse ?? "",
+          skillPoints: item.system.undecided ? Number(item.system.skillPoints ?? 8) : 0,
+          manifestationPoints: item.system.undecided ? Number(item.system.manifestationPoints ?? 2) : 0,
           uuid: item.uuid
         }
       });
@@ -1141,6 +1161,21 @@ function simpleEmbeddedItem(type, grant, sourceItem) {
       ? "icons/magic/holy/prayer-hands-glowing-yellow.webp"
       : "icons/magic/unholy/silhouette-robe-evil-power.webp",
     system
+  };
+}
+
+function theologyAbilityGrant(item, type) {
+  const data = type === "blessing" ? item.system.blessingData : item.system.curseData;
+  const name = data?.name || item.system.grants?.[type] || "";
+  if (!name) return "";
+
+  const summary = type === "blessing" ? item.system.blessingSummary : item.system.curseSummary;
+  const effect = data?.effect || htmlToText(summary) || `${typeLabel(type)} granted by ${item.name}.`;
+  return {
+    ...(data ?? {}),
+    name,
+    effect,
+    usageKind: data?.usageKind ?? (type === "curse" ? "triggered" : "passive")
   };
 }
 
