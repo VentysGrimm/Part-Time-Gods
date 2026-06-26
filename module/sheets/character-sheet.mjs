@@ -1,5 +1,6 @@
 import { getDragEventData, itemFromDropData } from "../util/drop-data.mjs";
 
+const SYSTEM_ID = "part-time-gods";
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -125,7 +126,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       actor: this.actor,
       primary,
       secondary: this.element.querySelector("[data-roll-secondary]")?.value ?? primary,
-      difficulty: Number(this.element.querySelector("[data-roll-difficulty]")?.value ?? 1)
+      difficulty: Number(this.element.querySelector("[data-roll-difficulty]")?.value ?? 1),
+      repetition: skillRepetitionState(this.actor, primary, this.element.querySelector("[data-roll-secondary]")?.value ?? primary)
     });
 
     if (!selection) return;
@@ -144,6 +146,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       extended: selection.extended,
       boostChoice: selection.boostChoice
     });
+
+    await recordSkillRepetition(this.actor, selection.primary, selection.secondary, selection.checkMode);
   }
 
   async #rollManifestation(button) {
@@ -786,9 +790,13 @@ function refreshOccupationCareerDetails(root) {
   }
 }
 
-async function selectSkillComboRollOptions({ actor, primary, secondary, difficulty }) {
+async function selectSkillComboRollOptions({ actor, primary, secondary, difficulty, repetition }) {
   const skillEntries = Object.entries(CONFIG.PTG.skills ?? {});
   const difficulties = Object.entries(CONFIG.PTG.difficulties ?? {});
+  const repetitionPenalty = Number(repetition?.penalty ?? 0);
+  const repetitionNote = repetitionPenalty > 0
+    ? `Suggested repeated-combo penalty: -${repetitionPenalty} (use ${Number(repetition.count ?? 0) + 1} of ${escapeHTML(repetition.label)}).`
+    : "No repeated-combo penalty suggested for this Skill combination.";
   const skillOption = ([key, label]) => `<option value="${escapeHTML(key)}" data-rank="${Number(actor.system.skills?.[key] ?? 0)}">${escapeHTML(label)} (${Number(actor.system.skills?.[key] ?? 0)})</option>`;
   const difficultyOptions = difficulties
     .map(([key, value]) => `<option value="${Number(value)}" ${Number(value) === Number(difficulty) ? "selected" : ""}>${escapeHTML(CONFIG.PTG.difficulties[key] ? `${labelCase(key)} (${value})` : String(value))}</option>`)
@@ -845,6 +853,10 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
         <input type="number" name="penalty" value="0">
       </div>
       <div class="form-group">
+        <label>Repetition / Pattern Penalty</label>
+        <input type="number" name="repetitionPenalty" value="${repetitionPenalty}" min="0">
+      </div>
+      <div class="form-group">
         <label>Pantheon Dice</label>
         <input type="number" name="pantheonDice" value="0" min="0">
       </div>
@@ -868,6 +880,7 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
         <label>Boost Choice</label>
         <input type="text" name="boostChoice" value="" placeholder="Optional planned Boost">
       </div>
+      <p class="ptg-sheet-note">${repetitionNote} Repetition penalties are ignored for Extended Checks.</p>
       <p class="ptg-sheet-note" data-pool-preview>${skillPoolPreview(actor, primary, secondary, 0, 0)}</p>
     </div>
   `;
@@ -889,6 +902,9 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
         const supportBonus = Math.max(0, Number(form.elements.supportBonus?.value ?? 0));
         const specialtyName = form.elements.specialtyName?.value?.trim();
         const checkMode = form.elements.checkMode?.value ?? "standard";
+        const appliedRepetitionPenalty = checkMode === "extended"
+          ? 0
+          : Math.max(0, Number(form.elements.repetitionPenalty?.value ?? 0));
         const baseDifficulty = difficultyValue === "custom"
           ? Number(form.elements.customDifficulty?.value ?? 0)
           : Number(difficultyValue ?? 0);
@@ -913,7 +929,8 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
             "Pantheon Dice": pantheonDice,
             [specialtyName ? `Specialty (${specialtyName})` : "Specialty"]: specialtyBonus,
             "Tool": toolModifier,
-            "Support": supportBonus
+            "Support": supportBonus,
+            "Repetition / Pattern": -appliedRepetitionPenalty
           }
         };
       }
@@ -925,10 +942,23 @@ function wireSkillPoolPreview(element, actor) {
   const root = element instanceof HTMLElement ? element : element?.querySelector?.(".ptg-roll-dialog")?.closest("form");
   const form = root?.querySelector?.("form") ?? root;
   if (!form?.elements) return;
+  const repetitionInput = form.elements.repetitionPenalty;
+
+  repetitionInput?.addEventListener("input", () => {
+    repetitionInput.dataset.manual = "true";
+  });
 
   const update = () => {
     const preview = form.querySelector("[data-pool-preview]");
     if (!preview) return;
+
+    if (repetitionInput && repetitionInput.dataset.manual !== "true") {
+      repetitionInput.value = skillRepetitionState(
+        actor,
+        form.elements.primary?.value,
+        form.elements.secondary?.value
+      ).penalty;
+    }
 
     preview.textContent = skillPoolPreview(
       actor,
@@ -940,12 +970,13 @@ function wireSkillPoolPreview(element, actor) {
         pantheonDice: Number(form.elements.pantheonDice?.value ?? 0),
         specialtyBonus: Number(form.elements.specialtyBonus?.value ?? 0),
         toolModifier: Number(form.elements.toolModifier?.value ?? 0),
-        supportBonus: Number(form.elements.supportBonus?.value ?? 0)
+        supportBonus: Number(form.elements.supportBonus?.value ?? 0),
+        repetitionPenalty: Number(form.elements.checkMode?.value === "extended" ? 0 : form.elements.repetitionPenalty?.value ?? 0)
       }
     );
   };
 
-  for (const name of ["primary", "secondary", "bonus", "penalty", "pantheonDice", "specialtyBonus", "toolModifier", "supportBonus"]) {
+  for (const name of ["primary", "secondary", "bonus", "penalty", "pantheonDice", "specialtyBonus", "toolModifier", "supportBonus", "repetitionPenalty", "checkMode"]) {
     form.elements[name]?.addEventListener("change", update);
     form.elements[name]?.addEventListener("input", update);
   }
@@ -960,11 +991,50 @@ function skillPoolPreview(actor, primary, secondary, bonus, penalty, extra = {})
   const extraTotal = Number(extra.pantheonDice ?? 0)
     + Number(extra.specialtyBonus ?? 0)
     + Number(extra.toolModifier ?? 0)
-    + Number(extra.supportBonus ?? 0);
+    + Number(extra.supportBonus ?? 0)
+    - Number(extra.repetitionPenalty ?? 0);
   const finalPool = basePool + Number(bonus ?? 0) - Number(penalty ?? 0) + extraTotal;
   const fate = finalPool <= 0 ? " Fate Die" : "";
 
   return `Pool: ${primaryRank} + ${secondaryRank} + ${Number(bonus ?? 0)} - ${Number(penalty ?? 0)} + ${extraTotal} = ${finalPool}${fate}`;
+}
+
+function skillRepetitionState(actor, primary, secondary) {
+  const history = actor.getFlag?.(SYSTEM_ID, "skillRepetition") ?? {};
+  const key = skillComboKey(primary, secondary);
+  const count = history.key === key ? Number(history.count ?? 0) : 0;
+
+  return {
+    key,
+    count,
+    penalty: count >= 2 ? count - 1 : 0,
+    label: skillComboLabel(primary, secondary)
+  };
+}
+
+async function recordSkillRepetition(actor, primary, secondary, checkMode) {
+  if (!actor?.setFlag || checkMode === "extended") return;
+
+  const key = skillComboKey(primary, secondary);
+  const history = actor.getFlag?.(SYSTEM_ID, "skillRepetition") ?? {};
+  const count = history.key === key ? Number(history.count ?? 0) + 1 : 1;
+
+  await actor.setFlag(SYSTEM_ID, "skillRepetition", {
+    key,
+    label: skillComboLabel(primary, secondary),
+    count,
+    updatedAt: Date.now()
+  });
+}
+
+function skillComboKey(primary, secondary) {
+  return [primary, secondary].map(value => String(value ?? "")).sort().join("+");
+}
+
+function skillComboLabel(primary, secondary) {
+  const first = CONFIG.PTG.skills?.[primary] ?? primary;
+  const second = CONFIG.PTG.skills?.[secondary] ?? secondary;
+  return `${first} + ${second}`;
 }
 
 async function selectManifestationRollOptions({ actor, manifestation, skill, difficulty }) {
