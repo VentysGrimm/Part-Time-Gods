@@ -87,7 +87,9 @@
       "antagonist": {
         "htmlFields": ["description", "powers", "notes"]
       },
-      "pantheon": {}
+      "pantheon": {
+        "htmlFields": ["goals", "enemies", "obligations", "storyHooks", "trouble", "notes"]
+      }
     },
 
     "Item": {

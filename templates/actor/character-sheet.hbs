@@ -38,6 +38,21 @@
       </ol>
     </section>
 
+    {{#if pantheonMembership}}
+      <section class="ptg-paper-panel ptg-pantheon-membership">
+        <h2>Pantheon</h2>
+        <div class="ptg-pantheon-membership-list">
+          {{#each pantheonMembership as |pantheon|}}
+            <div>
+              <strong>{{pantheon.name}}</strong>
+              <span>{{pantheon.territory}}</span>
+              <small>Pool {{pantheon.pool}}</small>
+            </div>
+          {{/each}}
+        </div>
+      </section>
+    {{/if}}
+
     <div class="ptg-page-one-grid">
       <section class="ptg-paper-panel ptg-conditions-panel">
         <label>

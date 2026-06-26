@@ -82,6 +82,102 @@
   gap: 8px;
 }
 
+.ptg-pantheon-member-list,
+.ptg-pantheon-notes-grid,
+.ptg-pantheon-membership-list {
+  display: grid;
+  gap: 8px;
+}
+
+.ptg-pantheon-notes-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ptg-pantheon-member {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  padding: 8px;
+  border: 1px solid #b49bd8;
+  border-radius: 6px;
+  background: #faf7ff;
+}
+
+.ptg-pantheon-member.missing {
+  border-style: dashed;
+}
+
+.ptg-pantheon-member img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border: 1px solid rgba(141, 116, 184, 0.65);
+}
+
+.ptg-pantheon-member h3 {
+  margin: 0 0 5px;
+  color: #21162d;
+}
+
+.ptg-pantheon-member dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 10px;
+  margin: 0;
+}
+
+.ptg-pantheon-member dl div,
+.ptg-pantheon-membership-list div {
+  min-width: 0;
+}
+
+.ptg-pantheon-member dt {
+  color: #4d3771;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ptg-pantheon-member dd {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ptg-pantheon-member-actions {
+  display: grid;
+  gap: 4px;
+}
+
+.ptg-pantheon-warnings {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: #6b233a;
+  font-size: 12px;
+}
+
+.ptg-pantheon-membership-list {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.ptg-pantheon-membership-list div {
+  padding: 6px;
+  border: 1px solid rgba(141, 116, 184, 0.45);
+  border-radius: 4px;
+  background: rgba(250, 247, 255, 0.85);
+}
+
+.ptg-pantheon-membership-list strong,
+.ptg-pantheon-membership-list span,
+.ptg-pantheon-membership-list small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ptg-roll-controls {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -20,6 +20,84 @@
       <span>Influence</span>
       <input name="system.influence" type="number" value="{{system.influence}}" min="0">
     </label>
+    <label>
+      <span>Territory Scene UUID</span>
+      <input name="system.territorySceneUuid" type="text" value="{{system.territorySceneUuid}}" placeholder="Scene UUID">
+    </label>
+    <label>
+      <span>Shared Worshippers</span>
+      <input name="system.sharedWorshippers" type="text" value="{{system.sharedWorshippers}}">
+    </label>
+  </section>
+
+  <section class="ptg-editor-section ptg-pantheon-members">
+    <h2>Members</h2>
+    <p class="ptg-sheet-note">Drop character actors here to link them. Member data is read live from each character.</p>
+    <div class="ptg-pantheon-member-list">
+      {{#each members as |member|}}
+        <article class="ptg-pantheon-member{{#if member.missing}} missing{{/if}}" data-member-uuid="{{member.uuid}}">
+          <img src="{{member.img}}" alt="">
+          <div>
+            <h3>{{member.name}}</h3>
+            {{#if member.missing}}
+              <p>{{member.summary}}</p>
+            {{else}}
+              <dl>
+                <div><dt>Dominion</dt><dd>{{member.dominion}}</dd></div>
+                <div><dt>Theology</dt><dd>{{member.theology}}</dd></div>
+                <div><dt>Spark</dt><dd>{{member.spark}}</dd></div>
+                <div><dt>Health</dt><dd>{{member.health}}</dd></div>
+                <div><dt>Psyche</dt><dd>{{member.psyche}}</dd></div>
+                <div><dt>Fragments</dt><dd>{{member.fragments}}</dd></div>
+                <div><dt>Attachments</dt><dd>{{member.attachments}}</dd></div>
+                <div><dt>Owners</dt><dd>{{member.owners}}</dd></div>
+              </dl>
+              {{#if member.warnings}}
+                <ul class="ptg-pantheon-warnings">
+                  {{#each member.warnings as |warning|}}
+                    <li>{{warning}}</li>
+                  {{/each}}
+                </ul>
+              {{/if}}
+            {{/if}}
+          </div>
+          <div class="ptg-pantheon-member-actions">
+            <button type="button" data-member-action="open">Open</button>
+            {{#if @root.editable}}
+              <button type="button" data-member-action="up">Up</button>
+              <button type="button" data-member-action="down">Down</button>
+              <button type="button" data-member-action="remove">Remove</button>
+            {{/if}}
+          </div>
+        </article>
+      {{else}}
+        <p class="ptg-sheet-note">No members linked yet.</p>
+      {{/each}}
+    </div>
+  </section>
+
+  <section class="ptg-pantheon-notes-grid">
+    <section class="ptg-editor-section">
+      <h2>Goals</h2>
+      {{editor system.goals target="system.goals" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Enemies</h2>
+      {{editor system.enemies target="system.enemies" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Obligations</h2>
+      {{editor system.obligations target="system.obligations" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Story Hooks</h2>
+      {{editor system.storyHooks target="system.storyHooks" button=true editable=editable engine="prosemirror"}}
+    </section>
+  </section>
+
+  <section class="ptg-editor-section">
+    <h2>Trouble Flags</h2>
+    {{editor system.trouble target="system.trouble" button=true editable=editable engine="prosemirror"}}
   </section>
 
   <section class="ptg-editor-section">

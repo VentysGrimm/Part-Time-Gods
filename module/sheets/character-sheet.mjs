@@ -49,6 +49,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.inventorySections = this.#prepareInventorySections(context.inventory);
     context.creationSteps = this.#prepareCreationSteps(context.inventory);
     context.gearSummary = this.#prepareGearSummary(context.inventory.gear);
+    context.pantheonMembership = this.#preparePantheonMembership();
     context.xpUnspent = Math.max(0, Number(context.system.resources?.xpGained ?? 0) - Number(context.system.resources?.xpSpent ?? 0));
     context.skillColumns = this.#prepareSkillColumns();
     context.manifestationColumns = this.#prepareManifestationColumns();
@@ -699,6 +700,18 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       weight: 0,
       equippedArmor: 0
     });
+  }
+
+  #preparePantheonMembership() {
+    return game.actors
+      .filter(actor => actor.type === "pantheon")
+      .filter(actor => Array.from(actor.system.members ?? []).some(member => member.uuid === this.actor.uuid))
+      .map(actor => ({
+        uuid: actor.uuid,
+        name: actor.name,
+        territory: actor.system.territory ?? "",
+        pool: `${Number(actor.system.pantheonPool?.value ?? 0)} / ${Number(actor.system.pantheonPool?.max ?? 0)}`
+      }));
   }
 
   #prepareSkillColumns() {
