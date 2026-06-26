@@ -1,0 +1,2 @@
+# This file keeps the RollTable compendium directory in source control.
+# Foundry VTT v14 will initialize the LevelDB pack files here and the system auto-populates it from module/data/premade-roll-tables.mjs.
