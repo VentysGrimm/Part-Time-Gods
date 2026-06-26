@@ -1085,9 +1085,12 @@ function simpleEmbeddedItem(type, grant, sourceItem) {
     trigger: "",
     effect: paragraph(effect),
     notes: sourceNotes(sourceItem),
-    rules: sourceRules(effect, sourceItem, type, paragraph(effect)),
-    usage: narrativeUsage(detail.usageKind ?? (type === "curse" ? "triggered" : "passive")),
-    automation: defaultAutomation()
+    rules: mergeSourceRules(detail.rules, effect, sourceItem, type),
+    usage: detail.usage ?? narrativeUsage(detail.usageKind ?? (type === "curse" ? "triggered" : "passive")),
+    automation: {
+      ...defaultAutomation(),
+      ...(detail.automation ?? {})
+    }
   };
 
   if (type === "blessing") system.bonus = detail.bonus ?? "";
@@ -1101,6 +1104,12 @@ function simpleEmbeddedItem(type, grant, sourceItem) {
       : "icons/magic/unholy/silhouette-robe-evil-power.webp",
     system
   };
+}
+
+function mergeSourceRules(rules, effect, sourceItem, type) {
+  const merged = sourceRules(rules?.summary ?? effect, sourceItem, type, rules?.fullText ?? paragraph(effect));
+  if (rules?.source?.section) merged.source.section = rules.source.section;
+  return merged;
 }
 
 function sourceRules(summary, sourceItem, type, fullText = "") {

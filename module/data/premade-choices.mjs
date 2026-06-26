@@ -480,9 +480,9 @@ function occupation(name, page, grants) {
 function archetype(name, definingTrait, page, options) {
   return choice("archetype", name, page, {
     definingTrait,
-    attachmentOptions: options.attachments ?? [],
-    blessingOptions: options.blessings ?? [],
-    curseOptions: options.curses ?? [],
+    attachmentOptions: (options.attachments ?? []).map(option => ({ ...option, sourcePage: page })),
+    blessingOptions: (options.blessings ?? []).map(option => withAbilitySource(option, page, "blessing")),
+    curseOptions: (options.curses ?? []).map(option => withAbilitySource(option, page, "curse")),
     grants: normalizeGrants({ skills: options.skills ?? {} }),
     description: paragraph(`${name} is an archetype choice defined by ${definingTrait.toLowerCase()}.`),
     notes: source(page)
@@ -620,20 +620,167 @@ function attachment(kind, name, level) {
 }
 
 function blessing(name, effect) {
+  const automation = abilityAutomation("blessing", name, effect);
   return {
     name,
     effect,
-    usageKind: "passive"
+    usageKind: automation.usage.kind,
+    rules: abilityRules(name, effect, "blessing"),
+    usage: automation.usage,
+    automation: automation.automation,
+    automationNotes: automation.notes
   };
 }
 
 function curse(name, effect) {
+  const automation = abilityAutomation("curse", name, effect);
   return {
     name,
     effect,
     pantheonDice: 1,
-    usageKind: "triggered"
+    usageKind: automation.usage.kind,
+    rules: abilityRules(name, effect, "curse"),
+    usage: automation.usage,
+    automation: automation.automation,
+    automationNotes: automation.notes
   };
+}
+
+function abilityRules(name, effect, type) {
+  return {
+    summary: effect,
+    fullText: paragraph(effect),
+    source: {
+      book: "Part-Time Gods Second Edition",
+      page: null,
+      section: name,
+      type
+    }
+  };
+}
+
+function withAbilitySource(option, page, type) {
+  return {
+    ...option,
+    sourcePage: page,
+    rules: {
+      ...(option.rules ?? {}),
+      source: {
+        ...(option.rules?.source ?? {}),
+        book: "Part-Time Gods Second Edition",
+        page,
+        section: option.name,
+        type
+      }
+    }
+  };
+}
+
+function abilityAutomation(type, name, effect) {
+  const lower = `${name} ${effect}`.toLowerCase();
+  const usageKind = type === "curse"
+    ? "triggered"
+    : lower.includes("once per") || lower.includes("roll ") || lower.includes("sacrifice") || lower.includes("spend ")
+      ? "active"
+      : "passive";
+  const trigger = type === "curse"
+    ? "gm"
+    : usageKind === "passive"
+      ? "always"
+      : "use";
+  const usage = {
+    kind: usageKind,
+    trigger,
+    target: lower.includes("target") ? "targeted" : "self",
+    cost: {
+      freeTime: lower.includes("sacrifices 1 free time") || lower.includes("sacrificing 1 free time") ? 1 : 0,
+      wealth: lower.includes("sacrificing 1 wealth") ? 1 : 0,
+      pantheonDice: 0,
+      fragments: 0,
+      health: lower.includes("take 1 damage") ? 1 : 0,
+      psyche: 0,
+      strain: 0
+    }
+  };
+  const automation = {
+    enabled: false,
+    action: type === "curse" ? "gain-pantheon-die" : "",
+    bonus: bonusAutomation(effect),
+    penalty: penaltyAutomation(effect),
+    roll: rollAutomation(effect),
+    healing: healingAutomation(effect),
+    damage: null,
+    condition: conditionAutomation(effect),
+    resourceChange: type === "curse" ? {
+      resource: "pantheonDice",
+      amount: 1,
+      target: "pantheonPool"
+    } : null,
+    chatCard: true
+  };
+  const notes = type === "curse"
+    ? "Triggered Curse: post a chat card and add 1 Pantheon Die to the shared pool when the table confirms the trigger."
+    : "Archetype Blessing metadata is source-backed; effects requiring judgment remain chat-card guided unless a structured automation field is present.";
+
+  return { usage, automation, notes };
+}
+
+function bonusAutomation(effect) {
+  const match = effect.match(/Gain \+(\d+) ([A-Za-z]+)(?: when| to|$)/i) ?? effect.match(/\+(\d+) bonus to (?:any )?(?:roll|check)/i);
+  if (!match) return null;
+  return {
+    amount: Number(match[1]),
+    appliesTo: match[2] ? labelKey(match[2]) : "roll",
+    timing: "conditional",
+    source: "archetype"
+  };
+}
+
+function penaltyAutomation(effect) {
+  const match = effect.match(/-(\d+) penalty/i);
+  if (!match) return null;
+  return {
+    amount: Number(match[1]),
+    target: "targeted",
+    timing: "use"
+  };
+}
+
+function rollAutomation(effect) {
+  const match = effect.match(/roll ([A-Za-z]+) \+ ([A-Za-z]+)/i);
+  if (!match) return null;
+  return {
+    primary: labelKey(match[1]),
+    secondary: labelKey(match[2]),
+    difficulty: effect.match(/Simple \(1\)/i) ? 1 : null
+  };
+}
+
+function healingAutomation(effect) {
+  if (!/heal|reduce a Condition|lower a mental Condition/i.test(effect)) return null;
+  return {
+    target: /partner|people in attendance/i.test(effect) ? "targeted" : "self",
+    resource: /Psyche/i.test(effect) && !/Health/i.test(effect) ? "psyche" : "healthOrPsyche",
+    amount: "successes",
+    conditionReduction: /Condition/i.test(effect)
+  };
+}
+
+function conditionAutomation(effect) {
+  const match = effect.match(/(?:Level )?(\d+) ([A-Za-z]+) Condition/i) ?? effect.match(/([A-Za-z]+) (\d+) Condition/i);
+  if (!match) return null;
+  const severity = Number(match[1]) || Number(match[2]) || 1;
+  const name = Number(match[1]) ? match[2] : match[1];
+  return {
+    name,
+    severity,
+    target: "self",
+    effect: `${name} ${severity} from Archetype ability.`
+  };
+}
+
+function labelKey(value) {
+  return String(value ?? "").trim().toLowerCase().replace(/\s+/g, "");
 }
 
 function defaultIcon(type) {
