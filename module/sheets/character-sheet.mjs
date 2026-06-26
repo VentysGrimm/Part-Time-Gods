@@ -48,6 +48,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.inventorySections = this.#prepareInventorySections(context.inventory);
     context.creationSteps = this.#prepareCreationSteps(context.inventory);
     context.gearSummary = this.#prepareGearSummary(context.inventory.gear);
+    context.xpUnspent = Math.max(0, Number(context.system.resources?.xpGained ?? 0) - Number(context.system.resources?.xpSpent ?? 0));
     context.skillColumns = this.#prepareSkillColumns();
     context.manifestationColumns = this.#prepareManifestationColumns();
     context.itemTypeLabels = Object.fromEntries(
@@ -79,6 +80,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     for (const button of this.element.querySelectorAll("[data-ritual-action]")) {
       button.addEventListener("click", event => this.#postRitualCard(event.currentTarget.dataset.ritualAction));
     }
+
+    this.element.querySelector("[data-advancement-purchase]")?.addEventListener("click", () => this.#openAdvancementPurchase());
 
     this.element.querySelector("[data-character-creator]")?.addEventListener("click", () => this.#openCharacterCreator());
   }
@@ -190,6 +193,85 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
           <h3>${escapeHTML(labels[kind] ?? "Ritual")}</h3>
           <div>${escapeHTML(this.actor.name)} begins a ${escapeHTML((labels[kind] ?? "ritual").toLowerCase())}.</div>
           <div>Use this card to record requirements, participants, costs, rolls, and GM rulings. Territory map mechanics are not automated in this slice.</div>
+        </div>
+      `
+    });
+  }
+
+  async #openAdvancementPurchase() {
+    const resources = this.actor.system.resources ?? {};
+    const xpGained = Number(resources.xpGained ?? 0);
+    const xpSpent = Number(resources.xpSpent ?? 0);
+    const xpAvailable = Math.max(0, xpGained - xpSpent);
+    const categories = {
+      skill: "Skill",
+      manifestation: "Manifestation",
+      bond: "Bond",
+      relic: "Relic",
+      truth: "Truth",
+      vassal: "Vassal",
+      worshipper: "Worshipper"
+    };
+
+    const content = `
+      <div class="ptg-advancement-dialog">
+        <p class="ptg-sheet-note">Available XP: ${xpAvailable}</p>
+        <div class="form-group">
+          <label>Purchase Type</label>
+          <select name="category">
+            ${Object.entries(categories).map(([key, label]) => `<option value="${key}">${escapeHTML(label)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Purchase</label>
+          <input type="text" name="name" value="" placeholder="Skill, Manifestation, Item, or note">
+        </div>
+        <div class="form-group">
+          <label>XP Cost</label>
+          <input type="number" name="cost" value="1" min="0">
+        </div>
+      </div>
+    `;
+
+    const purchase = await DialogV2.prompt({
+      window: { title: `${this.actor.name}: Advancement Purchase` },
+      content,
+      rejectClose: false,
+      modal: true,
+      ok: {
+        label: "Spend XP",
+        callback: (event, button) => ({
+          category: button.form.elements.category?.value ?? "skill",
+          name: button.form.elements.name?.value?.trim() ?? "",
+          cost: Math.max(0, Number(button.form.elements.cost?.value ?? 0))
+        })
+      }
+    });
+
+    if (!purchase) return;
+
+    if (!purchase.name) {
+      ui.notifications.warn("Advancement purchase needs a name or note.");
+      return;
+    }
+
+    if (purchase.cost > xpAvailable) {
+      ui.notifications.warn(`Not enough XP. ${this.actor.name} has ${xpAvailable} unspent XP.`);
+      return;
+    }
+
+    await this.actor.update({
+      "system.resources.xpSpent": xpSpent + purchase.cost
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="ptg-chat-card">
+          <h3>Advancement Purchase</h3>
+          <div>${escapeHTML(this.actor.name)} purchased ${escapeHTML(categories[purchase.category] ?? purchase.category)}: ${escapeHTML(purchase.name)}.</div>
+          <div>XP Spent: ${purchase.cost}</div>
+          <div>Remaining XP: ${xpAvailable - purchase.cost}</div>
         </div>
       `
     });
