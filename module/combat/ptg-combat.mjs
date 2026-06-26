@@ -138,7 +138,7 @@ async function selectCombatAction(combat) {
       combatant,
       item
     })))
-    .map(({ combatant, item }) => `<option value="${escapeHTML(item.uuid)}">${escapeHTML(combatant.name)} - ${escapeHTML(item.name)} (${escapeHTML(item.system.range || "Close")}, +${Number(item.system.damage ?? 0)})</option>`)
+    .map(({ combatant, item }) => `<option value="${escapeHTML(item.uuid)}">${escapeHTML(combatant.name)} - ${escapeHTML(item.name)} (${escapeHTML(weaponRangeLabel(item))}, +${Number(item.system.damage ?? 0)})</option>`)
     .join("");
 
   const content = `
@@ -341,7 +341,8 @@ async function applyCombatOutcome(actor, selection) {
     const result = await applyDamage(actor, {
       resource,
       amount: selection.damage,
-      applyArmor: selection.action === "physicalDamage" && selection.applyArmor
+      applyArmor: selection.action === "physicalDamage" && selection.applyArmor,
+      damageTag: selection.damageTag
     });
     if (result) results.push(result);
   }
@@ -371,10 +372,13 @@ async function resolveBattleOutcome(attacker, defender, selection) {
   const boostDamage = selection.boostDamage ? boostDamageBonus(weapon) : 0;
   const flatDamage = Math.max(0, Number(selection.damage ?? 0));
   const rawDamage = Math.max(0, margin) + weaponDamage + boostDamage + flatDamage;
+  const damageTag = selection.damageTag || weaponRangeLabel(weapon);
   const armor = resource === "health" && selection.applyArmor
-    ? actorArmor(defender) + armorProofBonus(defender, selection.damageTag)
+    ? actorArmor(defender) + armorProofBonus(defender, damageTag)
     : 0;
   const finalDamage = margin > 0 ? Math.max(0, rawDamage - armor) : 0;
+  const weaponQualities = weapon?.type === "weapon" ? qualityEntries(weapon) : [];
+  const armorQualities = resource === "health" && selection.applyArmor ? equippedArmorQualities(defender) : [];
 
   results.push(`${attacker.name} rolled ${attackSuccesses} successes against ${defender.name}'s ${defenseSuccesses} defense successes.`);
   if (margin <= 0) {
@@ -386,8 +390,13 @@ async function resolveBattleOutcome(attacker, defender, selection) {
   }
 
   if (weapon?.type === "weapon") {
-    results.push(`Weapon qualities: ${weapon.system.quality || "none listed"}. Range: ${weapon.system.range || "Close"}.`);
-    results.push(`Automated weapon/armor qualities: Brutal damage, Explosive Boost damage, and matching X-proof armor. Apply other listed qualities as GM rulings from this card.`);
+    results.push(`Weapon range: ${weaponRangeLabel(weapon)}. Weapon qualities: ${qualityNames(weaponQualities) || "none listed"}.`);
+    results.push(...qualityCombatNotes("Weapon", weaponQualities, { boostDamage: selection.boostDamage }));
+  }
+
+  if (armorQualities.length) {
+    results.push(`Equipped armor qualities: ${qualityNames(armorQualities)}.`);
+    results.push(...qualityCombatNotes("Armor", armorQualities, { damageTag }));
   }
 
   if (selection.conditionName && margin > 0) {
@@ -403,12 +412,12 @@ async function resolveBattleOutcome(attacker, defender, selection) {
   return results.filter(Boolean);
 }
 
-async function applyDamage(actor, { resource, amount, applyArmor }) {
+async function applyDamage(actor, { resource, amount, applyArmor, damageTag = "" }) {
   const resourceInfo = actorResource(actor, resource);
   const rawAmount = Math.max(0, Number(amount ?? 0));
   if (!resourceInfo || !rawAmount) return "";
 
-  const armor = resource === "health" && applyArmor ? actorArmor(actor) : 0;
+  const armor = resource === "health" && applyArmor ? actorArmor(actor) + armorProofBonus(actor, damageTag) : 0;
   const finalAmount = Math.max(0, rawAmount - armor);
   const next = Math.max(0, resourceInfo.value - finalAmount);
 
@@ -562,13 +571,14 @@ function actorWeapons(actor) {
 
 function weaponDamageBonus(weapon) {
   const base = Math.max(0, Number(weapon.system.damage ?? 0));
-  const brutal = qualityLevel(weapon.system.quality, "brutal");
+  const brutal = qualityValue(weapon, "brutal");
   return brutal ? Math.max(base, brutal) : base;
 }
 
 function boostDamageBonus(weapon) {
   if (!weapon) return 1;
-  if (hasQuality(weapon.system.quality, "explosive")) return 2;
+  const explosive = qualityValue(weapon, "explosive");
+  if (explosive) return Math.max(2, explosive);
   return 1;
 }
 
@@ -578,32 +588,132 @@ function armorProofBonus(actor, tag) {
 
   return actor.items
     .filter(item => item.type === "armor" && item.system.equipped)
-    .reduce((total, armor) => total + proofQualityBonus(armor.system.quality, needle), 0);
+    .reduce((total, armor) => total + proofQualityBonus(armor, needle), 0);
 }
 
-function proofQualityBonus(quality, tag) {
-  const qualities = String(quality ?? "").split(",").map(entry => entry.trim().toLowerCase());
+function proofQualityBonus(armor, tag) {
   let bonus = 0;
 
-  for (const entry of qualities) {
-    if (!entry.includes("-proof")) continue;
-    const [kind, value] = entry.split(/\s+/);
-    if (!kind?.includes(tag) && !tag.includes(kind.replace("-proof", ""))) continue;
-    bonus += Number(value ?? 2) || 2;
+  for (const quality of qualityEntries(armor)) {
+    if (!quality.key?.endsWith("proof")) continue;
+    const armorTag = quality.key.replace("-proof", "");
+    if (!armorTag.includes(tag) && !tag.includes(armorTag)) continue;
+    bonus += Number(quality.value ?? 2) || 2;
   }
 
   return bonus;
 }
 
-function qualityLevel(quality, name) {
-  const pattern = new RegExp(`\\b${name}\\b\\s*(\\d+)?`, "i");
-  const match = String(quality ?? "").match(pattern);
-  if (!match) return 0;
-  return Number(match[1] ?? 1);
+function equippedArmorQualities(actor) {
+  return actor.items
+    .filter(item => item.type === "armor" && item.system.equipped)
+    .flatMap(item => qualityEntries(item));
 }
 
-function hasQuality(quality, name) {
-  return new RegExp(`\\b${name}\\b`, "i").test(String(quality ?? ""));
+function qualityEntries(item) {
+  const structured = item?.system?.qualities;
+  if (Array.isArray(structured) && structured.length) {
+    return structured.map(quality => normalizeQuality(quality)).filter(Boolean);
+  }
+
+  return String(item?.system?.quality ?? "")
+    .split(",")
+    .map(entry => legacyQuality(entry))
+    .filter(Boolean);
+}
+
+function normalizeQuality(quality) {
+  const name = String(quality?.name ?? quality?.key ?? "").trim();
+  if (!name) return null;
+
+  return {
+    key: quality.key || slugify(name),
+    name,
+    value: Number(quality.value ?? 0),
+    supported: quality.supported === true,
+    effect: quality.effect ?? "",
+    automation: quality.automation ?? {},
+    notes: quality.notes ?? ""
+  };
+}
+
+function legacyQuality(entry) {
+  const raw = String(entry ?? "").trim();
+  if (!raw) return null;
+  const match = raw.match(/^(.+?)(?:\s+(\d+))?$/);
+  const name = titleCase(match?.[1] ?? raw);
+  const key = slugify(name);
+  const value = Number(match?.[2] ?? legacyQualityValue(key));
+
+  return {
+    key,
+    name,
+    value,
+    supported: ["brutal", "explosive", "defending", "quick", "reach", "ranged", "shield", "resistant", "light", "weak"].includes(key) || key.endsWith("proof"),
+    effect: "",
+    automation: {},
+    notes: ""
+  };
+}
+
+function legacyQualityValue(key) {
+  if (key === "brutal") return 2;
+  if (key.endsWith("proof")) return 2;
+  if (key === "defending" || key === "shield" || key === "quick") return 1;
+  if (key === "weak") return -1;
+  if (key === "resistant") return 1;
+  if (key === "explosive") return 2;
+  return 0;
+}
+
+function qualityValue(item, key) {
+  const quality = qualityEntries(item).find(entry => entry.key === key);
+  return Number(quality?.value ?? 0);
+}
+
+function qualityNames(qualities) {
+  return qualities
+    .map(quality => `${quality.name}${quality.value ? ` ${quality.value}` : ""}`)
+    .join(", ");
+}
+
+function qualityCombatNotes(prefix, qualities, context = {}) {
+  const notes = [];
+
+  for (const quality of qualities) {
+    if (quality.key === "brutal") notes.push(`${prefix} quality Brutal sets weapon damage minimum to ${quality.value || 2}.`);
+    else if (quality.key === "explosive" && context.boostDamage) notes.push(`${prefix} quality Explosive increased Boost damage.`);
+    else if (quality.key.endsWith("proof") && context.damageTag) notes.push(`${prefix} quality ${quality.name} checked against tag/range "${context.damageTag}".`);
+    else if (quality.key === "defending" || quality.key === "shield") notes.push(`${prefix} quality ${quality.name} supports defensive/parry rulings; apply the listed defense bonus when the defender uses it.`);
+    else if (quality.key === "quick") notes.push(`${prefix} quality Quick supports fast-draw or initiative rulings.`);
+    else if (quality.key === "reach") notes.push(`${prefix} quality Reach supports Near engagement or keeping distance.`);
+    else if (quality.key === "ranged") notes.push(`${prefix} quality Ranged uses the weapon's range category.`);
+    else if (quality.key === "sharp" || quality.key === "crushing" || quality.key === "restraining") notes.push(`${prefix} quality ${quality.name} can justify an appropriate Condition on a Boost.`);
+    else if (quality.supported) notes.push(`${prefix} quality ${quality.name}: ${quality.effect || "supported reminder applied."}`);
+    else notes.push(`${prefix} quality ${quality.name} is not applied automatically; use the readable quality text for the GM ruling.`);
+  }
+
+  return notes;
+}
+
+function weaponRangeLabel(weapon) {
+  if (!weapon) return "";
+  return weapon.system.rangeCategory || weapon.system.range || "Close";
+}
+
+function slugify(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function titleCase(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\b[a-z]/g, char => char.toUpperCase());
 }
 
 async function postCombatCard({ combat, combatant = null, title, body }) {

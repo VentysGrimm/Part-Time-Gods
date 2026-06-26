@@ -99,6 +99,10 @@ class PTGBaseItemData extends foundry.abstract.TypeDataModel {
     };
   }
 
+  static qualitiesField() {
+    return new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] });
+  }
+
   static grantsField() {
     return new fields.SchemaField({
       skills: new fields.ObjectField({ initial: {} }),
@@ -349,7 +353,9 @@ export class PTGWeaponData extends PTGBaseItemData {
       ...this.gearFields(),
       damage: this.numberField(1),
       range: this.textField(),
+      rangeCategory: this.textField(),
       quality: this.textField(),
+      qualities: this.qualitiesField(),
       cost: this.numberField(),
       description: this.htmlField(),
       notes: this.htmlField()
@@ -364,6 +370,7 @@ export class PTGArmorData extends PTGBaseItemData {
       ...this.gearFields(),
       rating: this.numberField(1),
       quality: this.textField(),
+      qualities: this.qualitiesField(),
       cost: this.numberField(),
       description: this.htmlField(),
       notes: this.htmlField()

@@ -1,5 +1,143 @@
 import { PTG_PREMADE_CHOICES } from "./premade-choices.mjs";
 
+const QUALITY_DEFINITIONS = {
+  aquatic: {
+    effect: "Works underwater or as aquatic gear; no numeric combat modifier is applied automatically.",
+    notes: "Use when the scene involves water, swimming, or submerged fighting."
+  },
+  autofire: {
+    supported: true,
+    effect: "Can spend ammunition to pressure multiple targets or improve area fire; combat cards list it as a GM-applied multi-target option.",
+    automation: { mode: "multi-target-note" }
+  },
+  bargain: {
+    effect: "Cheap and easy to obtain; no combat modifier."
+  },
+  brutal: {
+    supported: true,
+    effect: "Raises weapon damage to at least this quality value.",
+    automation: { damageMinimum: true }
+  },
+  bulky: {
+    effect: "Hard to carry or maneuver; apply situational penalties when space, stealth, or speed matters."
+  },
+  bulletproof: {
+    supported: true,
+    effect: "Adds this value as extra Armor against bullet or firearm damage tags.",
+    automation: { armorTag: "bullet" }
+  },
+  "cold-proof": {
+    supported: true,
+    effect: "Adds this value as extra Armor against cold or freezing damage tags.",
+    automation: { armorTag: "cold" }
+  },
+  concealable: {
+    effect: "Easy to hide; no direct combat modifier."
+  },
+  crushing: {
+    supported: true,
+    effect: "Can justify blunt-force Conditions on a Boost; combat cards list it as a supported Condition prompt.",
+    automation: { conditionPrompt: "Pain or Dazed" }
+  },
+  cumbersome: {
+    effect: "Heavy and restrictive; apply situational movement or stealth penalties when relevant."
+  },
+  defending: {
+    supported: true,
+    effect: "Adds a defense reminder for parries or guard actions.",
+    automation: { defenseBonus: 1 }
+  },
+  expensive: {
+    effect: "Costs more or attracts attention; no combat modifier."
+  },
+  explosive: {
+    supported: true,
+    effect: "Boost damage is +2 instead of +1.",
+    automation: { boostDamage: 2 }
+  },
+  "fireproof": {
+    supported: true,
+    effect: "Adds this value as extra Armor against fire damage tags.",
+    automation: { armorTag: "fire" }
+  },
+  fragile: {
+    effect: "May break under pressure or on an appropriate complication; not applied automatically."
+  },
+  heavy: {
+    effect: "Restrictive weight; apply situational movement, stealth, or fatigue penalties when relevant."
+  },
+  light: {
+    supported: true,
+    effect: "Easy to move in; combat cards list it as a reminder for mobility-friendly rulings.",
+    automation: { mobilityNote: true }
+  },
+  loud: {
+    effect: "Makes obvious noise; no damage modifier."
+  },
+  magical: {
+    effect: "Supernatural or mythic gear; may affect fictional permissions but has no automatic numeric modifier."
+  },
+  piercing: {
+    supported: true,
+    effect: "Can justify armor-bypass rulings against soft or narrow defenses; combat cards list it as a GM-applied armor note.",
+    automation: { armorBypassNote: true }
+  },
+  practical: {
+    effect: "Well-suited to use; no direct combat modifier."
+  },
+  quick: {
+    supported: true,
+    effect: "Easy to bring to bear; combat cards list it as an initiative/fast-draw reminder.",
+    automation: { initiativeBonus: 1 }
+  },
+  "radiation-proof": {
+    supported: true,
+    effect: "Adds this value as extra Armor against radiation damage tags.",
+    automation: { armorTag: "radiation" }
+  },
+  ranged: {
+    supported: true,
+    effect: "Uses the weapon range category in combat cards.",
+    automation: { range: true }
+  },
+  reach: {
+    supported: true,
+    effect: "Can attack at Near range or keep distance in close combat; combat cards list the reach reminder.",
+    automation: { rangeStep: 1 }
+  },
+  reload: {
+    effect: "Requires reloading after use or pressure; not applied automatically."
+  },
+  resistant: {
+    supported: true,
+    effect: "Reliable protection; combat cards list the resistance reminder and armor remains included while equipped.",
+    automation: { armorReliability: true }
+  },
+  restraining: {
+    supported: true,
+    effect: "Can justify restraining, grabbing, or Impaired movement Conditions on a Boost.",
+    automation: { conditionPrompt: "Restrained or Impaired Movement" }
+  },
+  sharp: {
+    supported: true,
+    effect: "Can justify Bleeding or Injured Conditions on a Boost.",
+    automation: { conditionPrompt: "Bleeding or Injured" }
+  },
+  shield: {
+    supported: true,
+    effect: "Can add a defense reminder and may support blocking rulings while equipped.",
+    automation: { defenseBonus: 1 }
+  },
+  subtle: {
+    effect: "Does not look like armor or a weapon; no combat modifier."
+  },
+  weak: {
+    supported: true,
+    effect: "Weak protection; combat cards list this as a warning when armor is applied.",
+    automation: { armorWarning: true }
+  }
+};
+
 export const PTG_PREMADE_ITEMS = [
   truth("Aquatic", 117, "is one with the sea.", "Breathe underwater and gain a bonus while acting in a body of water."),
   truth("Armored", 117, "is tougher than they appear.", "Choose a damage source. Gain scaling armor against that source."),
@@ -340,6 +478,7 @@ function condition(name, category, severity, page, effect) {
 }
 
 function armor(name, rating, cost, quality, page) {
+  const qualities = parseGearQualities(quality, "armor");
   const summary = `${name} provides Armor ${rating}. Qualities: ${quality}.`;
 
   return baseItem("armor", name, page, {
@@ -350,6 +489,7 @@ function armor(name, rating, cost, quality, page) {
     rating,
     cost,
     quality,
+    qualities,
     description: paragraph(summary),
     notes: source(page),
     ...itemRules("armor", name, page, summary, {
@@ -363,6 +503,7 @@ function armor(name, rating, cost, quality, page) {
 }
 
 function weapon(name, damage, range, cost, quality, page) {
+  const qualities = parseGearQualities(quality, "weapon");
   const summary = `${name} deals +${damage} damage at ${range} range. Qualities: ${quality}.`;
 
   return baseItem("weapon", name, page, {
@@ -372,8 +513,10 @@ function weapon(name, damage, range, cost, quality, page) {
     equipped: false,
     damage,
     range,
+    rangeCategory: rangeCategory(range),
     cost,
     quality,
+    qualities,
     description: paragraph(summary),
     notes: source(page),
     ...itemRules("weapon", name, page, summary, {
@@ -383,9 +526,84 @@ function weapon(name, damage, range, cost, quality, page) {
       action: "weapon-attack",
       enabled: true,
       roll: { primary: "fighting", secondary: "might", difficulty: 1 },
-      damage: { amount: damage, type: "weapon" }
+      damage: { amount: damage, type: "weapon" },
+      bonus: gearAutomationBonus(qualities)
     })
   });
+}
+
+function rangeCategory(range) {
+  const key = String(range ?? "").trim().toLowerCase();
+  return {
+    close: "close",
+    near: "near",
+    far: "far"
+  }[key] ?? key;
+}
+
+function parseGearQualities(quality, itemType) {
+  return String(quality ?? "")
+    .split(",")
+    .map(entry => structuredQuality(entry, itemType))
+    .filter(Boolean);
+}
+
+function structuredQuality(entry, itemType) {
+  const raw = String(entry ?? "").trim();
+  if (!raw) return null;
+
+  const match = raw.match(/^(.+?)(?:\s+(\d+))?$/);
+  const name = titleCase(match?.[1] ?? raw);
+  const key = slugify(name);
+  const value = Number(match?.[2] ?? qualityDefaultValue(key, itemType) ?? 0);
+  const definition = QUALITY_DEFINITIONS[key] ?? {};
+
+  return {
+    key,
+    name,
+    value,
+    supported: definition.supported ?? false,
+    effect: definition.effect ?? "No automated modifier is applied; use the quality text as a GM-facing reminder.",
+    automation: definition.automation ?? {},
+    notes: definition.notes ?? ""
+  };
+}
+
+function qualityDefaultValue(key, itemType) {
+  if (key === "brutal") return 2;
+  if (key.endsWith("proof")) return 2;
+  if (key === "defending" || key === "shield") return 1;
+  if (key === "weak") return -1;
+  if (key === "resistant") return 1;
+  if (itemType === "weapon" && key === "explosive") return 2;
+  return 0;
+}
+
+function gearAutomationBonus(qualities) {
+  const bonus = {};
+
+  for (const quality of qualities) {
+    if (quality.key === "brutal") bonus.damage = Math.max(Number(bonus.damage ?? 0), Number(quality.value ?? 2));
+    if (quality.key === "defending") bonus.defense = Math.max(Number(bonus.defense ?? 0), Number(quality.value ?? 1));
+    if (quality.key === "quick") bonus.initiative = Math.max(Number(bonus.initiative ?? 0), Number(quality.value ?? 1));
+  }
+
+  return Object.keys(bonus).length ? bonus : null;
+}
+
+function slugify(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function titleCase(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\b[a-z]/g, char => char.toUpperCase());
 }
 
 function blessing(name, sourceName, page, effect) {

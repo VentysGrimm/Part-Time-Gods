@@ -71,7 +71,7 @@ async function populatePack(packId, documents, folderLabels, documentName, { rem
   }
 
   let packDocuments = await pack.getDocuments();
-  const updated = documentName === "Actor"
+  const updated = ["Actor", "Item"].includes(documentName)
     ? await updateExistingPremadeDocuments(packDocuments, documents, folders, documentName)
     : 0;
   const removed = removeStale

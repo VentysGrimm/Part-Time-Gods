@@ -338,6 +338,31 @@
   min-height: 260px;
 }
 
+.ptg-quality-list {
+  display: grid;
+  gap: 6px;
+}
+
+.ptg-quality-entry {
+  display: grid;
+  gap: 3px;
+  padding: 6px;
+  border: 1px solid var(--color-border-light-tertiary);
+  border-radius: 6px;
+  background: rgb(0 0 0 / 4%);
+}
+
+.ptg-quality-entry span {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.ptg-quality-entry p {
+  margin: 0;
+}
+
 .ptg-chat-card {
   display: flex;
   flex-direction: column;

@@ -756,6 +756,10 @@
         <input name="system.range" type="text" value="{{system.range}}">
       </label>
       <label>
+        <span>Range Category</span>
+        <input name="system.rangeCategory" type="text" value="{{system.rangeCategory}}">
+      </label>
+      <label>
         <span>Cost</span>
         <input name="system.cost" type="number" value="{{system.cost}}" min="0">
       </label>
@@ -776,6 +780,21 @@
         <input name="system.quality" type="text" value="{{system.quality}}">
       </label>
     </section>
+    {{#if system.qualities.length}}
+      <section class="ptg-editor-section">
+        <h2>Structured Qualities</h2>
+        <div class="ptg-quality-list">
+          {{#each system.qualities as |quality|}}
+            <article class="ptg-quality-entry">
+              <strong>{{quality.name}}{{#if quality.value}} {{quality.value}}{{/if}}</strong>
+              <span>{{#if quality.supported}}Automated{{else}}Rules Note{{/if}}</span>
+              <p>{{quality.effect}}</p>
+              {{#if quality.notes}}<p>{{quality.notes}}</p>{{/if}}
+            </article>
+          {{/each}}
+        </div>
+      </section>
+    {{/if}}
     <section class="ptg-editor-section">
       <h2>Description</h2>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
@@ -817,6 +836,21 @@
         <span>Equipped</span>
       </label>
     </section>
+    {{#if system.qualities.length}}
+      <section class="ptg-editor-section">
+        <h2>Structured Qualities</h2>
+        <div class="ptg-quality-list">
+          {{#each system.qualities as |quality|}}
+            <article class="ptg-quality-entry">
+              <strong>{{quality.name}}{{#if quality.value}} {{quality.value}}{{/if}}</strong>
+              <span>{{#if quality.supported}}Automated{{else}}Rules Note{{/if}}</span>
+              <p>{{quality.effect}}</p>
+              {{#if quality.notes}}<p>{{quality.notes}}</p>{{/if}}
+            </article>
+          {{/each}}
+        </div>
+      </section>
+    {{/if}}
     <section class="ptg-editor-section">
       <h2>Description</h2>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
