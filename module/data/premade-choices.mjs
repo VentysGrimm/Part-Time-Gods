@@ -496,9 +496,9 @@ function domainChoice(name, category, page, examples, grants) {
     portfolio: examples,
     sphere: "",
     manifestations: Object.entries(grants.manifestations ?? {}).map(([key, value]) => `${label(key)} +${value}`).join(", "),
-    attachmentOptions: grants.attachments ?? [],
-    blessingOptions: grants.blessings ?? [],
-    curseOptions: grants.curses ?? [],
+    attachmentOptions: (grants.attachments ?? []).map(option => ({ ...option, sourcePage: page })),
+    blessingOptions: (grants.blessings ?? []).map(option => withAbilitySource(option, page, "blessing")),
+    curseOptions: (grants.curses ?? []).map(option => withAbilitySource(option, page, "curse")),
     grants: normalizeGrants({
       skills: grants.skills ?? {},
       manifestations: grants.manifestations ?? {}

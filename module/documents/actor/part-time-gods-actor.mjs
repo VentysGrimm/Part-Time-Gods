@@ -172,6 +172,23 @@ export class PartTimeGodsActor extends Actor {
       [key]: true
     });
 
+    if (domainSelection) {
+      const choiceDetails = this.getFlag("part-time-gods", "choiceDetails") ?? {};
+      await this.setFlag("part-time-gods", "choiceDetails", {
+        ...choiceDetails,
+        dominion: {
+          category: item.name,
+          title: domainSelection.title,
+          portfolio: domainSelection.portfolio,
+          specificity: domainSelection.specificity,
+          blessing: domainSelection.blessing?.name ?? "",
+          curse: domainSelection.curse?.name ?? "",
+          landmarkBondName: domainSelection.landmarkName,
+          uuid: item.uuid
+        }
+      });
+    }
+
     if (careerSelection?.career) {
       const choiceDetails = this.getFlag("part-time-gods", "choiceDetails") ?? {};
       await this.setFlag("part-time-gods", "choiceDetails", {
@@ -657,6 +674,8 @@ async function selectArchetypeOptions(item) {
 async function selectDomainOptions(item, actor) {
   const attachments = normalizeAttachmentGrants(item.system.grants?.attachments ?? {});
   const landmark = attachments.find(attachment => attachment.kind === "landmark");
+  const blessings = Array.from(item.system.blessingOptions ?? []);
+  const curses = Array.from(item.system.curseOptions ?? []);
   const defaultTitle = actor.system.identity?.concept || `God/dess of ${item.system.portfolio || item.name}`;
   const defaultPortfolio = item.system.specificPortfolio || item.system.portfolio || item.name;
   const defaultLandmark = item.system.landmarkBondName || landmark?.name || `${item.name} Landmark`;
@@ -694,6 +713,12 @@ async function selectDomainOptions(item, actor) {
         <label>Landmark Location</label>
         <input type="text" name="landmarkLocation" value="${escapeHTML(landmark?.location ?? "")}">
       </div>
+      ${selectFieldHTML("blessingOption", "Dominion Blessing", blessings.map(option => option.name ?? "Blessing"))}
+      ${selectFieldHTML("curseOption", "Dominion Curse", curses.map(option => option.name ?? "Curse"))}
+      <div class="ptg-career-options">
+        ${archetypeOptionsHTML("Blessings", blessings)}
+        ${archetypeOptionsHTML("Curses", curses)}
+      </div>
     </div>
   `;
 
@@ -711,7 +736,9 @@ async function selectDomainOptions(item, actor) {
         limitations: button.form.elements.limitations?.value?.trim() ?? "",
         gmNotes: button.form.elements.gmNotes?.value?.trim() ?? "",
         landmarkName: button.form.elements.landmarkName?.value?.trim() ?? "",
-        landmarkLocation: button.form.elements.landmarkLocation?.value?.trim() ?? ""
+        landmarkLocation: button.form.elements.landmarkLocation?.value?.trim() ?? "",
+        blessingIndex: Number(button.form.elements.blessingOption?.value ?? -1),
+        curseIndex: Number(button.form.elements.curseOption?.value ?? -1)
       })
     }
   });
@@ -723,7 +750,16 @@ async function selectDomainOptions(item, actor) {
     return false;
   }
 
-  return selection;
+  if ((blessings.length && selection.blessingIndex < 0) || (curses.length && selection.curseIndex < 0)) {
+    ui.notifications.warn("Choose one Dominion Blessing and one Dominion Curse.");
+    return false;
+  }
+
+  return {
+    ...selection,
+    blessing: blessings[selection.blessingIndex] ?? null,
+    curse: curses[selection.curseIndex] ?? null
+  };
 }
 
 function selectFieldHTML(name, label, options) {
@@ -899,6 +935,8 @@ function choiceGrants(baseGrants, { careerSelection = null, archetypeSelection =
         linkedDominion: domainSelection.title
       };
     });
+    grants.blessing = domainSelection.blessing ?? "";
+    grants.curse = domainSelection.curse ?? "";
   }
 
   if (theologySelection) {
