@@ -170,6 +170,7 @@ async function createPremadeFolders(items) {
 function truth(name, page, statement, effect) {
   const fragmentCost = effect.includes("Spend a Fragment") ? 1 : 0;
   const activation = effect.includes("Spend") ? "action" : "passive";
+  const fullText = truthPlayerText(name, statement, effect, fragmentCost);
 
   return baseItem("truth", name, page, {
     summary: effect,
@@ -178,12 +179,13 @@ function truth(name, page, statement, effect) {
     cost: 2,
     fragmentCost,
     activation,
-    benefit: paragraph(effect),
-    effect: paragraph(effect),
-    description: paragraph(effect),
+    benefit: fullText,
+    effect: fullText,
+    description: fullText,
     sourcePage: page,
     notes: source(page),
     ...itemRules("truth", name, page, effect, {
+      fullText,
       kind: fragmentCost ? "active" : "passive",
       trigger: fragmentCost ? "use" : "always",
       target: "self",
@@ -195,6 +197,7 @@ function truth(name, page, statement, effect) {
 
 function relic(name, level, page, bonus, effect) {
   const fragmentCost = effect.includes("Fragment") ? 1 : 0;
+  const fullText = relicPlayerText(name, level, bonus, effect, fragmentCost);
 
   return baseItem("relic", name, page, {
     summary: `${bonus}. ${effect}`,
@@ -202,13 +205,14 @@ function relic(name, level, page, bonus, effect) {
     cost: level,
     bonus,
     fragmentCost,
-    benefit: paragraph(bonus),
-    effect: paragraph(effect),
-    description: paragraph(effect),
-    relatedBonus: paragraph(bonus),
+    benefit: fullText,
+    effect: fullText,
+    description: fullText,
+    relatedBonus: paragraph(`Core benefit: ${bonus}`),
     sourcePage: page,
     notes: source(page),
     ...itemRules("relic", name, page, `${bonus}. ${effect}`, {
+      fullText,
       kind: fragmentCost ? "active" : "passive",
       trigger: fragmentCost ? "use" : "always",
       target: "self",
@@ -219,6 +223,8 @@ function relic(name, level, page, bonus, effect) {
 }
 
 function worshipper(name, level, page, benefit) {
+  const fullText = attachmentPlayerText("worshipper", name, benefit);
+
   return baseItem("worshipper", name, page, {
     summary: benefit,
     level,
@@ -229,11 +235,12 @@ function worshipper(name, level, page, benefit) {
     },
     group: name,
     size: "",
-    benefit: paragraph(benefit),
-    description: paragraph(benefit),
+    benefit: fullText,
+    description: fullText,
     sourcePage: page,
     notes: source(page),
     ...itemRules("worshipper", name, page, benefit, {
+      fullText,
       kind: "active",
       trigger: "favor",
       target: "self",
@@ -243,6 +250,8 @@ function worshipper(name, level, page, benefit) {
 }
 
 function bond(name, kind, page, description) {
+  const fullText = bondPlayerText(name, kind, description);
+
   return baseItem("bond", name, page, {
     summary: description,
     kind,
@@ -251,10 +260,11 @@ function bond(name, kind, page, description) {
       value: 0,
       max: 1
     },
-    description: paragraph(description),
+    description: fullText,
     sourcePage: page,
     notes: source(page),
     ...itemRules("bond", name, page, description, {
+      fullText,
       kind: "active",
       trigger: "favor",
       target: "attachment",
@@ -265,13 +275,16 @@ function bond(name, kind, page, description) {
 }
 
 function curse(name, sourceName, page, pantheonDice, effect) {
+  const fullText = abilityPlayerText("curse", name, sourceName, effect, { pantheonDice });
+
   return baseItem("curse", name, page, {
     source: sourceName,
-    trigger: "",
+    trigger: "When this weakness, obligation, or flaw complicates the scene.",
     pantheonDice,
-    effect: paragraph(effect),
+    effect: fullText,
     notes: source(page),
     ...itemRules("curse", name, page, effect, {
+      fullText,
       kind: "triggered",
       trigger: "gm",
       target: "self",
@@ -283,6 +296,8 @@ function curse(name, sourceName, page, pantheonDice, effect) {
 }
 
 function vassal(name, level, page, benefit) {
+  const fullText = attachmentPlayerText("vassal", name, benefit);
+
   return baseItem("vassal", name, page, {
     summary: benefit,
     level,
@@ -293,11 +308,12 @@ function vassal(name, level, page, benefit) {
     },
     concept: "",
     loyalty: 0,
-    benefit: paragraph(benefit),
-    description: paragraph(benefit),
+    benefit: fullText,
+    description: fullText,
     sourcePage: page,
     notes: source(page),
     ...itemRules("vassal", name, page, benefit, {
+      fullText,
       kind: "active",
       trigger: "favor",
       target: "ally",
@@ -373,13 +389,16 @@ function weapon(name, damage, range, cost, quality, page) {
 }
 
 function blessing(name, sourceName, page, effect) {
+  const fullText = abilityPlayerText("blessing", name, sourceName, effect);
+
   return baseItem("blessing", name, page, {
     source: sourceName,
-    trigger: "",
-    bonus: "",
-    effect: paragraph(effect),
+    trigger: "When the fictional trigger and table situation match the effect.",
+    bonus: bonusText(effect),
+    effect: fullText,
     notes: source(page),
     ...itemRules("blessing", name, page, effect, {
+      fullText,
       kind: "triggered",
       trigger: "gm",
       target: "self",
@@ -451,7 +470,7 @@ function choiceAbilityGrants(choice) {
         name: careerBlessing.name,
         sourceName: careerSource,
         page,
-        effect: careerBlessing.effect
+        effect: careerBlessing.rules?.summary ?? careerBlessing.effect
       });
     }
 
@@ -462,7 +481,7 @@ function choiceAbilityGrants(choice) {
         sourceName: careerSource,
         page,
         pantheonDice: careerCurse.pantheonDice ?? 1,
-        effect: careerCurse.effect
+        effect: careerCurse.rules?.summary ?? careerCurse.effect
       });
     }
   }
@@ -508,7 +527,7 @@ function itemRules(type, name, page, summary, options = {}) {
   return {
     rules: {
       summary,
-      fullText: paragraph(summary),
+      fullText: options.fullText ?? paragraph(summary),
       source: {
         book: "Part-Time Gods Second Edition",
         page,
@@ -535,6 +554,72 @@ function itemRules(type, name, page, summary, options = {}) {
       chatCard: true
     }
   };
+}
+
+function paragraphs(...texts) {
+  return texts.filter(text => String(text ?? "").trim()).map(text => paragraph(text)).join("");
+}
+
+function truthPlayerText(name, statement, effect, fragmentCost) {
+  return paragraphs(
+    `${name} is a Truth: the god ${statement}`,
+    `At the table, this tells everyone what is always true about the god and what kind of divine action the player can lean on. ${effect}`,
+    fragmentCost
+      ? "This Truth has an active use that spends 1 Fragment when the player wants the expanded effect."
+      : "This Truth is normally always available unless the GM rules the scene blocks or changes how it applies."
+  );
+}
+
+function relicPlayerText(name, level, bonus, effect, fragmentCost) {
+  return paragraphs(
+    `${name} is a Level ${level} Relic. It is a divine object, not ordinary gear, so its story role matters as much as its rating.`,
+    `Core benefit: ${bonus}. ${effect}`,
+    fragmentCost
+      ? "If the effect calls for Fragment use, spend the Fragment when activating the stronger or extended Relic effect."
+      : "Use the Relic when its benefit fits the scene; any unusual reach, timing, or resistance should be confirmed with the GM."
+  );
+}
+
+function abilityPlayerText(type, name, sourceName, effect, { pantheonDice = 1 } = {}) {
+  if (type === "curse") {
+    const rewardText = pantheonDice > 0
+      ? `When the Curse creates a real complication, the character gains ${pantheonDice} Pantheon ${pantheonDice === 1 ? "Die" : "Dice"}.`
+      : "This Failing is tracked as a persistent weakness; it does not add Pantheon Dice unless another rule or GM call says it does.";
+
+    return paragraphs(
+      `${name} is a Curse from ${sourceName}. It is a player-facing trouble hook, not just a penalty line.`,
+      `${effect} ${rewardText}`,
+      "Use it when the fictional weakness, demand, or bad habit matters in the current scene; the GM and player should make the consequence visible in play."
+    );
+  }
+
+  return paragraphs(
+    `${name} is a Blessing from ${sourceName}. It describes the situation where the character's background, personality, Dominion, or Theology gives them an edge.`,
+    effect,
+    "Apply the bonus or special rule when the fictional trigger is true. If the timing is unclear, confirm it with the GM before rolling or spending resources."
+  );
+}
+
+function attachmentPlayerText(type, name, benefit) {
+  const label = type === "vassal" ? "Vassal" : "Worshipper";
+  return paragraphs(
+    `${name} is a ${label} Entitlement. It represents divine support the god can call on, but it can also become a story obligation or risk.`,
+    benefit,
+    "Use this entry when the god asks for help, invokes the Entitlement's benefit, or when the GM brings its needs and consequences into the scene."
+  );
+}
+
+function bondPlayerText(name, kind, description) {
+  return paragraphs(
+    `${name} is a ${kind} Bond that keeps the god connected to mortal life.`,
+    description,
+    "Use Bonds for favors, emotional grounding, relationship trouble, and Strain. They are story anchors, not just names on the sheet."
+  );
+}
+
+function bonusText(effect) {
+  const match = String(effect ?? "").match(/(?:Gain|Add) \+?\d+[^.]+/i);
+  return match?.[0] ?? "";
 }
 
 function paragraph(text) {

@@ -698,11 +698,13 @@ function attachment(kind, name, level) {
 
 function blessing(name, effect) {
   const automation = abilityAutomation("blessing", name, effect);
+  const playerText = abilityPlayerText("blessing", name, effect);
   return {
     name,
-    effect,
+    effect: playerText,
+    rulesText: playerText,
     usageKind: automation.usage.kind,
-    rules: abilityRules(name, effect, "blessing"),
+    rules: abilityRules(name, effect, "blessing", playerText),
     usage: automation.usage,
     automation: automation.automation,
     automationNotes: automation.notes
@@ -711,22 +713,24 @@ function blessing(name, effect) {
 
 function curse(name, effect) {
   const automation = abilityAutomation("curse", name, effect);
+  const playerText = abilityPlayerText("curse", name, effect);
   return {
     name,
-    effect,
+    effect: playerText,
+    rulesText: playerText,
     pantheonDice: 1,
     usageKind: automation.usage.kind,
-    rules: abilityRules(name, effect, "curse"),
+    rules: abilityRules(name, effect, "curse", playerText),
     usage: automation.usage,
     automation: automation.automation,
     automationNotes: automation.notes
   };
 }
 
-function abilityRules(name, effect, type) {
+function abilityRules(name, effect, type, playerText = effect) {
   return {
     summary: effect,
-    fullText: paragraph(effect),
+    fullText: paragraph(playerText),
     source: {
       book: "Part-Time Gods Second Edition",
       page: null,
@@ -751,6 +755,14 @@ function withAbilitySource(option, page, type) {
       }
     }
   };
+}
+
+function abilityPlayerText(type, name, effect) {
+  if (type === "curse") {
+    return `${name}: ${effect} Treat this as a scene complication tied to the Choice. When it genuinely makes trouble or pushes the god's weakness into focus, gain 1 Pantheon Die and make the consequence visible in play.`;
+  }
+
+  return `${name}: ${effect} Use this Blessing when the fictional trigger fits the scene; it explains why this character's Choice gives them an edge, not only which dice or resource changes.`;
 }
 
 function abilityAutomation(type, name, effect) {
