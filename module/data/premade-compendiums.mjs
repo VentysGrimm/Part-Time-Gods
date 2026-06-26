@@ -1,5 +1,6 @@
 import { PTG_PREMADE_CHOICES } from "./premade-choices.mjs";
 import { PTG_PREMADE_ITEMS } from "./premade-items.mjs";
+import { PTG_PREMADE_ACTORS } from "./premade-actors.mjs";
 import { getPremadeJournals } from "./premade-journals.mjs";
 import { PTG_PREMADE_ROLL_TABLES } from "./premade-roll-tables.mjs";
 import { getPremadeScenes } from "./premade-scenes.mjs";
@@ -7,6 +8,7 @@ import { getPremadeScenes } from "./premade-scenes.mjs";
 const SYSTEM_ID = "part-time-gods";
 
 const PACKS = {
+  actors: "part-time-gods.opposition-actors",
   choices: "part-time-gods.character-creation",
   items: "part-time-gods.premade-items",
   maps: "part-time-gods.maps",
@@ -15,6 +17,7 @@ const PACKS = {
 };
 
 export async function populatePremadeCompendiums({ notify = true } = {}) {
+  const actors = await populatePack(PACKS.actors, PTG_PREMADE_ACTORS, actorFolderLabels, "Actor");
   const choices = await populatePack(PACKS.choices, PTG_PREMADE_CHOICES, choiceFolderLabels, "Item");
   const items = await populatePack(PACKS.items, PTG_PREMADE_ITEMS, itemFolderLabels, "Item");
   const maps = await populatePack(PACKS.maps, getPremadeScenes(), sceneFolderLabels, "Scene");
@@ -23,7 +26,7 @@ export async function populatePremadeCompendiums({ notify = true } = {}) {
     removeStale: true,
     stalePredicate: isPremadeRulesJournal
   });
-  const total = choices + items + maps + rollTables + rules;
+  const total = actors + choices + items + maps + rollTables + rules;
 
   if (notify) {
     const message = total > 0
@@ -154,6 +157,7 @@ function documentKey(document, documentName) {
 }
 
 function documentTypeKey(document, documentName) {
+  if (documentName === "Actor") return document.flags?.[SYSTEM_ID]?.category ?? document.type ?? "actor";
   return document.type ?? documentName.toLowerCase();
 }
 
@@ -182,6 +186,14 @@ const itemFolderLabels = {
   vassal: "Vassals",
   weapon: "Weapons",
   worshipper: "Worshippers"
+};
+
+const actorFolderLabels = {
+  Animals: "Animals",
+  Mortals: "Mortals",
+  "The Touched": "The Touched",
+  "Other Gods": "Other Gods",
+  Outsiders: "Outsiders"
 };
 
 const sceneFolderLabels = {

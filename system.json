@@ -50,6 +50,13 @@
       "system": "part-time-gods"
     },
     {
+      "name": "opposition-actors",
+      "label": "Part-Time Gods Opposition Actors",
+      "path": "packs/opposition-actors",
+      "type": "Actor",
+      "system": "part-time-gods"
+    },
+    {
       "name": "maps",
       "label": "Part-Time Gods Maps",
       "path": "packs/maps",
