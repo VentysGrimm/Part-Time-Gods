@@ -24,6 +24,7 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
         fragments: resourceField(0),
         pantheon: resourceField(0),
         spark: new fields.NumberField({ integer: true, min: 1, initial: 1 }),
+        permanentFragmentLoss: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
         freeTime: new fields.NumberField({ integer: true, initial: 0 }),
         freeTimeMax: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
         wealth: new fields.NumberField({ integer: true, initial: 0 }),
@@ -35,6 +36,17 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
         xpSpent: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
         xpPurchases: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] }),
         resourceLog: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] })
+      }),
+
+      mortality: new fields.SchemaField({
+        state: new fields.StringField({ initial: "alive" }),
+        timer: new fields.StringField({ initial: "" }),
+        notes: new fields.StringField({ initial: "" }),
+        lastTransitionAt: new fields.StringField({ initial: "" }),
+        reconstitutionDue: new fields.StringField({ initial: "" }),
+        devouredByUuid: new fields.StringField({ initial: "" }),
+        devouredByName: new fields.StringField({ initial: "" }),
+        log: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] })
       }),
 
       derived: new fields.SchemaField({

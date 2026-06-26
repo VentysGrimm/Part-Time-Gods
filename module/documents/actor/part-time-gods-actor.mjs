@@ -17,7 +17,7 @@ export class PartTimeGodsActor extends Actor {
 
     system.resources.health.max = healthMax;
     system.resources.psyche.max = psycheMax;
-    system.resources.fragments.max = Math.max(0, spark * 3);
+    system.resources.fragments.max = Math.max(0, (spark * 3) - Number(system.resources.permanentFragmentLoss ?? 0));
     system.resources.health.value = clamp(system.resources.health.value, 0, healthMax);
     system.resources.psyche.value = clamp(system.resources.psyche.value, 0, psycheMax);
     system.resources.fragments.value = clamp(system.resources.fragments.value, 0, system.resources.fragments.max);
@@ -180,6 +180,103 @@ export class PartTimeGodsActor extends Actor {
       notes,
       capAtMax: !allowExceedMax
     });
+  }
+
+  async applyDivineMortality({
+    action = "dead",
+    state = "",
+    timer = "",
+    notes = "",
+    permanentFragmentLossDelta = 0,
+    health = null,
+    psyche = null,
+    fragments = null,
+    devourTargetUuid = "",
+    devourFragmentLoss = 1
+  } = {}) {
+    if (this.type !== "character") return false;
+
+    const resources = this.system.resources ?? {};
+    const mortality = this.system.mortality ?? {};
+    const nextState = state || (["devour", "fragmentLoss"].includes(action)
+      ? mortality.state ?? "alive"
+      : mortalityStateForAction(action));
+    const before = mortalitySnapshot(this);
+    const permanentLoss = Math.max(0, Number(resources.permanentFragmentLoss ?? 0) + Number(permanentFragmentLossDelta ?? 0));
+    const fragmentMax = Math.max(0, (Number(resources.spark ?? 1) * 3) - permanentLoss);
+    const updates = {
+      "system.mortality.state": nextState,
+      "system.mortality.timer": timer,
+      "system.mortality.notes": notes,
+      "system.mortality.lastTransitionAt": new Date().toISOString(),
+      "system.resources.permanentFragmentLoss": permanentLoss,
+      "system.resources.fragments.max": fragmentMax,
+      "system.resources.fragments.value": Math.min(Number(fragments ?? resources.fragments?.value ?? 0), fragmentMax)
+    };
+
+    if (health !== null && health !== undefined) updates["system.resources.health.value"] = Math.max(0, Number(health));
+    if (psyche !== null && psyche !== undefined) updates["system.resources.psyche.value"] = Math.max(0, Number(psyche));
+
+    if (action === "reconstitute") {
+      updates["system.resources.health.value"] = Number(health ?? this.system.resources?.health?.max ?? 1);
+      updates["system.resources.psyche.value"] = Number(psyche ?? this.system.resources?.psyche?.max ?? 1);
+      updates["system.resources.fragments.value"] = Math.min(Number(fragments ?? fragmentMax), fragmentMax);
+      updates["system.mortality.reconstitutionDue"] = "";
+    }
+
+    if (action === "reconstituting") {
+      updates["system.mortality.reconstitutionDue"] = timer;
+    }
+
+    let devourTarget = null;
+    if (action === "devour" && devourTargetUuid) {
+      devourTarget = await fromUuid(devourTargetUuid);
+      if (devourTarget?.update) {
+        await applyDevouredTargetUpdate(devourTarget, this, devourFragmentLoss, notes);
+      }
+    }
+
+    const after = {
+      ...before,
+      state: nextState,
+      health: {
+        value: Number(updates["system.resources.health.value"] ?? before.health.value),
+        max: before.health.max
+      },
+      psyche: {
+        value: Number(updates["system.resources.psyche.value"] ?? before.psyche.value),
+        max: before.psyche.max
+      },
+      permanentFragmentLoss: permanentLoss,
+      fragments: {
+        value: updates["system.resources.fragments.value"],
+        max: fragmentMax
+      }
+    };
+    const logEntry = {
+      order: (Array.isArray(mortality.log) ? mortality.log.length : 0) + 1,
+      action,
+      state: nextState,
+      timer,
+      notes,
+      actorUuid: this.uuid,
+      actorName: this.name,
+      devourTargetUuid,
+      devourTargetName: devourTarget?.name ?? "",
+      permanentFragmentLossDelta: Number(permanentFragmentLossDelta ?? 0),
+      before,
+      after,
+      createdAt: new Date().toISOString()
+    };
+
+    updates["system.mortality.log"] = [
+      ...(Array.isArray(mortality.log) ? mortality.log : []),
+      logEntry
+    ].slice(-100);
+
+    await this.update(updates);
+    await postMortalityCard(this, logEntry);
+    return true;
   }
 
   async applyChoice(item, options = {}) {
@@ -1328,6 +1425,116 @@ function resourceActionLabel(action) {
     session: "Session Resource Helper",
     goingToWork: "Going to Work"
   }[action] ?? "Resource Change";
+}
+
+function mortalityStateForAction(action) {
+  return {
+    dead: "dead",
+    ghost: "ghost",
+    reconstituting: "reconstituting",
+    reconstitute: "alive",
+    fragmentLoss: "alive",
+    devour: "devoured"
+  }[action] ?? "alive";
+}
+
+function mortalitySnapshot(actor) {
+  const resources = actor.system.resources ?? {};
+  return {
+    state: actor.system.mortality?.state ?? "alive",
+    health: {
+      value: Number(resources.health?.value ?? 0),
+      max: Number(resources.health?.max ?? 0)
+    },
+    psyche: {
+      value: Number(resources.psyche?.value ?? 0),
+      max: Number(resources.psyche?.max ?? 0)
+    },
+    fragments: {
+      value: Number(resources.fragments?.value ?? 0),
+      max: Number(resources.fragments?.max ?? 0)
+    },
+    permanentFragmentLoss: Number(resources.permanentFragmentLoss ?? 0)
+  };
+}
+
+async function applyDevouredTargetUpdate(target, devourer, fragmentLoss, notes) {
+  if (target.type !== "character") return;
+
+  const resources = target.system.resources ?? {};
+  const mortality = target.system.mortality ?? {};
+  const permanentLoss = Math.max(0, Number(resources.permanentFragmentLoss ?? 0) + Math.max(0, Number(fragmentLoss ?? 0)));
+  const fragmentMax = Math.max(0, (Number(resources.spark ?? 1) * 3) - permanentLoss);
+  const logEntry = {
+    order: (Array.isArray(mortality.log) ? mortality.log.length : 0) + 1,
+    action: "devoured",
+    state: "devoured",
+    notes,
+    actorUuid: target.uuid,
+    actorName: target.name,
+    devouredByUuid: devourer.uuid,
+    devouredByName: devourer.name,
+    permanentFragmentLossDelta: Math.max(0, Number(fragmentLoss ?? 0)),
+    before: mortalitySnapshot(target),
+    createdAt: new Date().toISOString()
+  };
+
+  logEntry.after = {
+    ...logEntry.before,
+    state: "devoured",
+    permanentFragmentLoss: permanentLoss,
+    fragments: {
+      value: Math.min(Number(resources.fragments?.value ?? 0), fragmentMax),
+      max: fragmentMax
+    }
+  };
+
+  await target.update({
+    "system.mortality.state": "devoured",
+    "system.mortality.notes": notes,
+    "system.mortality.lastTransitionAt": logEntry.createdAt,
+    "system.mortality.devouredByUuid": devourer.uuid,
+    "system.mortality.devouredByName": devourer.name,
+    "system.resources.permanentFragmentLoss": permanentLoss,
+    "system.resources.fragments.max": fragmentMax,
+    "system.resources.fragments.value": logEntry.after.fragments.value,
+    "system.mortality.log": [
+      ...(Array.isArray(mortality.log) ? mortality.log : []),
+      logEntry
+    ].slice(-100)
+  });
+}
+
+async function postMortalityCard(actor, entry) {
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `
+      <div class="ptg-chat-card">
+        <h3>${escapeHTML(mortalityActionLabel(entry.action))}</h3>
+        <div><strong>Actor:</strong> ${escapeHTML(actor.name)}</div>
+        <div><strong>State:</strong> ${escapeHTML(entry.before.state)} -> ${escapeHTML(entry.state)}</div>
+        <div><strong>Health:</strong> ${entry.before.health.value}/${entry.before.health.max} -> ${entry.after.health.value}/${entry.after.health.max}</div>
+        <div><strong>Psyche:</strong> ${entry.before.psyche.value}/${entry.before.psyche.max} -> ${entry.after.psyche.value}/${entry.after.psyche.max}</div>
+        <div><strong>Fragments:</strong> ${entry.before.fragments.value}/${entry.before.fragments.max} -> ${entry.after.fragments.value}/${entry.after.fragments.max}</div>
+        <div><strong>Permanent Fragment Loss:</strong> ${entry.before.permanentFragmentLoss} -> ${entry.after.permanentFragmentLoss}</div>
+        ${entry.timer ? `<div><strong>Timer:</strong> ${escapeHTML(entry.timer)}</div>` : ""}
+        ${entry.devourTargetName ? `<div><strong>Devouring Target:</strong> ${escapeHTML(entry.devourTargetName)}</div>` : ""}
+        ${entry.notes ? `<div><strong>Notes:</strong> ${escapeHTML(entry.notes)}</div>` : ""}
+      </div>
+    `
+  });
+}
+
+function mortalityActionLabel(action) {
+  return {
+    dead: "Divine Death",
+    ghost: "Ghost State",
+    reconstituting: "Reconstitution Timer",
+    reconstitute: "Reconstituted",
+    fragmentLoss: "Permanent Fragment Loss",
+    devour: "Devouring",
+    devoured: "Devoured"
+  }[action] ?? "Divine Mortality";
 }
 
 function normalizeResourceName(resource) {

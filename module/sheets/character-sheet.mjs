@@ -91,6 +91,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     for (const button of this.element.querySelectorAll("[data-resource-workflow]")) {
       button.addEventListener("click", event => this.#openResourceWorkflow(event.currentTarget.dataset.resourceWorkflow));
     }
+    this.element.querySelector("[data-mortality-workflow]")?.addEventListener("click", () => this.#openMortalityWorkflow());
 
     this.element.querySelector("[data-character-creator]")?.addEventListener("click", () => this.#openCharacterCreator());
   }
@@ -516,6 +517,106 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     });
   }
 
+  async #openMortalityWorkflow() {
+    const resources = this.actor.system.resources ?? {};
+    const mortality = this.actor.system.mortality ?? {};
+    const actorOptions = game.actors
+      .filter(actor => actor.type === "character" && actor.uuid !== this.actor.uuid)
+      .map(actor => `<option value="${escapeHTML(actor.uuid)}">${escapeHTML(actor.name)}</option>`)
+      .join("");
+    const content = `
+      <div class="ptg-advancement-dialog">
+        <div class="form-group">
+          <label>Workflow</label>
+          <select name="action">
+            <option value="dead">Mark Dead</option>
+            <option value="ghost">Mark Ghost</option>
+            <option value="reconstituting">Start Reconstitution</option>
+            <option value="reconstitute">Resolve Reconstitution</option>
+            <option value="fragmentLoss">Permanent Fragment Loss</option>
+            <option value="devour">Devour Divine Essence</option>
+          </select>
+        </div>
+        <div class="ptg-item-fields two">
+          <label>
+            <span>State</span>
+            <select name="state">
+              <option value="">Default for workflow</option>
+              <option value="alive" ${mortality.state === "alive" ? "selected" : ""}>Alive</option>
+              <option value="dead" ${mortality.state === "dead" ? "selected" : ""}>Dead</option>
+              <option value="ghost" ${mortality.state === "ghost" ? "selected" : ""}>Ghost</option>
+              <option value="reconstituting" ${mortality.state === "reconstituting" ? "selected" : ""}>Reconstituting</option>
+              <option value="devoured" ${mortality.state === "devoured" ? "selected" : ""}>Devoured</option>
+            </select>
+          </label>
+          <label>
+            <span>Timer / Scene Marker</span>
+            <input type="text" name="timer" value="${escapeHTML(mortality.timer ?? "")}">
+          </label>
+        </div>
+        <div class="ptg-item-fields three">
+          <label>
+            <span>Health</span>
+            <input type="number" name="health" value="${Number(resources.health?.value ?? 0)}" min="0">
+          </label>
+          <label>
+            <span>Psyche</span>
+            <input type="number" name="psyche" value="${Number(resources.psyche?.value ?? 0)}" min="0">
+          </label>
+          <label>
+            <span>Fragments</span>
+            <input type="number" name="fragments" value="${Number(resources.fragments?.value ?? 0)}" min="0">
+          </label>
+        </div>
+        <div class="ptg-item-fields two">
+          <label>
+            <span>Permanent Fragment Loss Delta</span>
+            <input type="number" name="permanentFragmentLossDelta" value="0" min="0">
+          </label>
+          <label>
+            <span>Devouring Target</span>
+            <select name="devourTargetUuid">
+              <option value="">Choose target</option>
+              ${actorOptions}
+            </select>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea name="notes" rows="4" placeholder="Death cause, ghost limits, reconstitution outcome, Fragment loss reason, or devouring details">${escapeHTML(mortality.notes ?? "")}</textarea>
+        </div>
+      </div>
+    `;
+
+    const selection = await DialogV2.prompt({
+      window: { title: `${this.actor.name}: Divine Mortality` },
+      content,
+      rejectClose: false,
+      modal: true,
+      ok: {
+        label: "Apply",
+        callback: (event, button) => ({
+          action: button.form.elements.action?.value ?? "dead",
+          state: button.form.elements.state?.value ?? "",
+          timer: button.form.elements.timer?.value?.trim() ?? "",
+          health: Number(button.form.elements.health?.value ?? 0),
+          psyche: Number(button.form.elements.psyche?.value ?? 0),
+          fragments: Number(button.form.elements.fragments?.value ?? 0),
+          permanentFragmentLossDelta: Math.max(0, Number(button.form.elements.permanentFragmentLossDelta?.value ?? 0)),
+          devourTargetUuid: button.form.elements.devourTargetUuid?.value ?? "",
+          notes: button.form.elements.notes?.value?.trim() ?? ""
+        })
+      }
+    });
+
+    if (!selection) return;
+
+    await this.actor.applyDivineMortality({
+      ...selection,
+      devourFragmentLoss: selection.permanentFragmentLossDelta || 1
+    });
+  }
+
   async #applyAdvancementPurchase(purchase) {
     const updates = {};
 
@@ -621,7 +722,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (!advancement) return;
 
-    const fragmentMax = Math.max(0, advancement.spark * 3);
+    const fragmentMax = Math.max(0, (advancement.spark * 3) - Number(resources.permanentFragmentLoss ?? 0));
     const currentFragments = resources.fragments ?? {};
     const updates = {
       "system.resources.spark": advancement.spark,

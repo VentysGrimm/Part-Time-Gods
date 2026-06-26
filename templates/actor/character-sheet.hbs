@@ -55,6 +55,15 @@
 
     <div class="ptg-page-one-grid">
       <section class="ptg-paper-panel ptg-conditions-panel">
+        <div class="ptg-mortality-state">
+          <strong>Mortality</strong>
+          <span>{{system.mortality.state}}</span>
+          {{#if system.mortality.timer}}<small>{{system.mortality.timer}}</small>{{/if}}
+          <button type="button" data-mortality-workflow>Manage</button>
+        </div>
+        {{#if system.mortality.notes}}
+          <p class="ptg-sheet-note">{{system.mortality.notes}}</p>
+        {{/if}}
         <label>
           <span>Conditions</span>
           <textarea name="system.conditions">{{system.conditions}}</textarea>

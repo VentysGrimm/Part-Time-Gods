@@ -1166,6 +1166,24 @@
   text-align: center;
 }
 
+.ptg-mortality-state {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) auto auto auto;
+  gap: 6px;
+  align-items: center;
+  min-height: 30px;
+  border-bottom: 1px solid #b49bd8;
+}
+
+.ptg-mortality-state span {
+  text-transform: capitalize;
+  font-weight: 700;
+}
+
+.ptg-mortality-state small {
+  color: #4e3971;
+}
+
 .ptg-track {
   display: grid !important;
   grid-template-columns: minmax(90px, 1fr) 62px 78px 84px;
