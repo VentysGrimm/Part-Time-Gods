@@ -29,7 +29,7 @@ import { PTG_PREMADE_ITEMS, importPremadeItems } from "./module/data/premade-ite
 import { PTG_PREMADE_CHOICES, importPremadeChoices } from "./module/data/premade-choices.mjs";
 import { populatePremadeCompendiums } from "./module/data/premade-compendiums.mjs";
 import { getPremadeJournals, importRulesJournals } from "./module/data/premade-journals.mjs";
-import { getGodTerritorySceneData, importGodTerritoryScene } from "./module/data/premade-scenes.mjs";
+import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
 import { itemFromDropData } from "./module/util/drop-data.mjs";
 
 const { DocumentSheetConfig } = foundry.applications.apps;
@@ -50,6 +50,7 @@ Hooks.once("init", async () => {
     importRulesJournals,
     getGodTerritorySceneData,
     importGodTerritoryScene,
+    openTerritoryControls,
     populatePremadeCompendiums
   };
 
@@ -173,6 +174,11 @@ Hooks.on("chatMessage", (chatLog, message) => {
     return false;
   }
 
+  if (message === "/ptg-territory") {
+    openTerritoryControls();
+    return false;
+  }
+
   if (message === "/ptg-import-rules-journals") {
     importRulesJournals();
     return false;
@@ -180,7 +186,7 @@ Hooks.on("chatMessage", (chatLog, message) => {
 
   if (message !== "/ptg") return true;
 
-  ui.notifications.info("Part-Time Gods 2E loaded. Premade content lives in the system compendiums. Use /ptg-create-territory-scene or /ptg-import-rules-journals for world setup.");
+  ui.notifications.info("Part-Time Gods 2E loaded. Use /ptg-create-territory-scene, /ptg-territory, or /ptg-import-rules-journals for world setup.");
   return false;
 });
 

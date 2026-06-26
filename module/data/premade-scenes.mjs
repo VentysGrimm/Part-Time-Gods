@@ -1,6 +1,7 @@
 const SYSTEM_ID = "part-time-gods";
 const TERRITORY_SCENE_NAME = "God Territory Grid";
 const TERRITORY_KIND = "god-territory-grid";
+const { DialogV2 } = foundry.applications.api;
 
 const GRID_SIZE = 100;
 const PLAY_GRID_SIZE = 10;
@@ -91,6 +92,42 @@ export async function importGodTerritoryScene({ notify = true, activate = false 
   return scene;
 }
 
+export async function openTerritoryControls({ scene = getTerritoryScene() } = {}) {
+  if (!game.user?.isGM) {
+    ui.notifications.warn("Only a GM can update Territory Grid data.");
+    return null;
+  }
+
+  if (!scene) {
+    ui.notifications.warn("Create the God Territory Grid Scene before using Territory controls.");
+    return null;
+  }
+
+  const territoryData = mergeTerritoryData(scene.getFlag(SYSTEM_ID, "territory"));
+  const selection = await selectTerritoryAction({ scene, territoryData });
+  if (!selection) return null;
+
+  const updatedTerritoryData = applyTerritoryAction(territoryData, selection);
+  await scene.setFlag(SYSTEM_ID, "territory", updatedTerritoryData);
+
+  const actor = selection.actorUuid ? await fromUuid(selection.actorUuid) : null;
+  if (actor?.setFlag && selection.to) await actor.setFlag(SYSTEM_ID, "territoryCoordinate", selection.to);
+
+  await postTerritoryActionCard({ actor, scene, selection, territoryData: updatedTerritoryData });
+  ui.notifications.info("Updated Territory Grid data.");
+
+  return updatedTerritoryData;
+}
+
+function getTerritoryScene() {
+  const activeScene = globalThis.canvas?.scene ?? game.scenes?.active;
+  if (activeScene?.getFlag?.(SYSTEM_ID, "kind") === TERRITORY_KIND) return activeScene;
+
+  return game.scenes?.find(scene =>
+    scene.getFlag(SYSTEM_ID, "kind") === TERRITORY_KIND || scene.name === TERRITORY_SCENE_NAME
+  ) ?? null;
+}
+
 function createTerritoryData() {
   const coordinates = {};
 
@@ -106,6 +143,8 @@ function createTerritoryData() {
     width: PLAY_GRID_SIZE,
     height: PLAY_GRID_SIZE,
     keyFormat: "column-row",
+    positions: {},
+    movements: [],
     coordinates
   };
 }
@@ -128,6 +167,8 @@ function mergeTerritoryData(existingData) {
     width: PLAY_GRID_SIZE,
     height: PLAY_GRID_SIZE,
     keyFormat: "column-row",
+    positions: existingData?.positions ?? {},
+    movements: Array.isArray(existingData?.movements) ? existingData.movements : [],
     coordinates: territoryData.coordinates
   };
 }
@@ -144,12 +185,206 @@ function createTerritoryCoordinate(column, row) {
     bonds: [],
     followers: [],
     actors: [],
-    items: []
+    items: [],
+    influence: {
+      sphere: "",
+      rating: 0,
+      notes: ""
+    }
   };
 }
 
 function coordinateKey(column, row) {
   return `${column}-${row}`;
+}
+
+async function selectTerritoryAction({ scene, territoryData }) {
+  const coordinates = Object.values(territoryData.coordinates ?? {});
+  const coordinateOptions = coordinates
+    .map(coordinate => `<option value="${escapeHTML(coordinate.key)}">${escapeHTML(coordinate.label)}</option>`)
+    .join("");
+  const actorOptions = game.actors
+    .filter(actor => ["character", "pantheon", "antagonist"].includes(actor.type))
+    .map(actor => `<option value="${escapeHTML(actor.uuid)}">${escapeHTML(actor.name)} (${escapeHTML(actor.type)})</option>`)
+    .join("");
+
+  const content = `
+    <div class="ptg-territory-dialog">
+      <div class="ptg-territory-summary">
+        <strong>${escapeHTML(scene.name)}</strong>
+        <span>Movement costs are recorded as Free Time and Wealth notes; apply resource changes manually until the travel-cost slice is implemented.</span>
+      </div>
+      <div class="form-group">
+        <label>Action</label>
+        <select name="action">
+          <option value="move">Move on the Grid</option>
+          <option value="influence">Update Sphere of Influence</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Actor or Pantheon</label>
+        <select name="actorUuid">
+          <option value="">No linked actor</option>
+          ${actorOptions}
+        </select>
+      </div>
+      <div class="ptg-item-fields two">
+        <div class="form-group">
+          <label>From Coordinate</label>
+          <select name="from">${coordinateOptions}</select>
+        </div>
+        <div class="form-group">
+          <label>To Coordinate</label>
+          <select name="to">${coordinateOptions}</select>
+        </div>
+      </div>
+      <div class="ptg-item-fields two">
+        <div class="form-group">
+          <label>Free Time Cost or Note</label>
+          <input type="text" name="freeTimeCost" value="GM sets by table distance and fiction">
+        </div>
+        <div class="form-group">
+          <label>Wealth Cost or Note</label>
+          <input type="text" name="wealthCost" value="GM sets by travel method and access">
+        </div>
+      </div>
+      <div class="ptg-item-fields two">
+        <div class="form-group">
+          <label>Sphere of Influence</label>
+          <input type="text" name="sphere" value="" placeholder="Pantheon, faction, god, or none">
+        </div>
+        <div class="form-group">
+          <label>Influence Rating</label>
+          <input type="number" name="influenceRating" value="0" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Point of Interest</label>
+        <input type="text" name="pointOfInterest" value="">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea name="notes" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>GM Secret Notes</label>
+        <textarea name="gmSecret" rows="2"></textarea>
+      </div>
+    </div>
+  `;
+
+  return DialogV2.prompt({
+    window: {
+      title: "Territory Grid Controls",
+      resizable: true
+    },
+    position: {
+      width: 680,
+      height: 720
+    },
+    content,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Update Territory",
+      callback: (event, button) => {
+        const form = button.form;
+
+        return {
+          action: form.elements.action?.value ?? "move",
+          actorUuid: form.elements.actorUuid?.value ?? "",
+          from: form.elements.from?.value ?? "1-1",
+          to: form.elements.to?.value ?? "1-1",
+          freeTimeCost: form.elements.freeTimeCost?.value ?? "",
+          wealthCost: form.elements.wealthCost?.value ?? "",
+          sphere: form.elements.sphere?.value ?? "",
+          influenceRating: Number(form.elements.influenceRating?.value ?? 0),
+          pointOfInterest: form.elements.pointOfInterest?.value ?? "",
+          notes: form.elements.notes?.value ?? "",
+          gmSecret: form.elements.gmSecret?.value ?? ""
+        };
+      }
+    }
+  });
+}
+
+function applyTerritoryAction(territoryData, selection) {
+  const coordinates = territoryData.coordinates ?? {};
+  const from = coordinates[selection.from];
+  const to = coordinates[selection.to];
+  const actorRef = selection.actorUuid ? { uuid: selection.actorUuid } : null;
+
+  if (selection.action === "move" && from && to) {
+    if (actorRef) {
+      from.actors = withoutUuid(from.actors, actorRef.uuid);
+      to.actors = withUniqueUuid(to.actors, actorRef);
+      territoryData.positions = {
+        ...(territoryData.positions ?? {}),
+        [actorRef.uuid]: selection.to
+      };
+    }
+
+    territoryData.movements = [
+      ...(territoryData.movements ?? []),
+      {
+        actorUuid: selection.actorUuid || null,
+        from: selection.from,
+        to: selection.to,
+        freeTimeCost: selection.freeTimeCost,
+        wealthCost: selection.wealthCost,
+        notes: selection.notes,
+        createdAt: new Date().toISOString()
+      }
+    ].slice(-50);
+  }
+
+  if (to) {
+    if (selection.pointOfInterest) to.pointOfInterest = selection.pointOfInterest;
+    if (selection.notes) to.notes = selection.notes;
+    if (selection.gmSecret) to.gmSecret = selection.gmSecret;
+    if (selection.action === "influence" || selection.sphere) {
+      to.influence = {
+        ...(to.influence ?? {}),
+        sphere: selection.sphere,
+        rating: Number(selection.influenceRating ?? 0),
+        notes: selection.notes
+      };
+    }
+  }
+
+  return territoryData;
+}
+
+function withUniqueUuid(entries, entry) {
+  const existing = Array.isArray(entries) ? entries : [];
+  if (existing.some(candidate => candidate?.uuid === entry.uuid)) return existing;
+  return [...existing, entry];
+}
+
+function withoutUuid(entries, uuid) {
+  return (Array.isArray(entries) ? entries : []).filter(entry => entry?.uuid !== uuid);
+}
+
+async function postTerritoryActionCard({ actor, scene, selection, territoryData }) {
+  const target = territoryData.coordinates?.[selection.to];
+  const actionLabel = selection.action === "influence" ? "Sphere of Influence" : "Territory Movement";
+
+  await ChatMessage.create({
+    speaker: actor ? ChatMessage.getSpeaker({ actor }) : ChatMessage.getSpeaker({ scene }),
+    content: `
+      <div class="ptg-chat-card">
+        <h3>${escapeHTML(actionLabel)}</h3>
+        <div><strong>Scene:</strong> ${escapeHTML(scene.name)}</div>
+        ${actor ? `<div><strong>Actor:</strong> ${escapeHTML(actor.name)}</div>` : ""}
+        <div><strong>From:</strong> ${escapeHTML(selection.from)} <strong>To:</strong> ${escapeHTML(selection.to)}</div>
+        <div><strong>Free Time:</strong> ${escapeHTML(selection.freeTimeCost || "GM note")}</div>
+        <div><strong>Wealth:</strong> ${escapeHTML(selection.wealthCost || "GM note")}</div>
+        ${target?.pointOfInterest ? `<div><strong>Point of Interest:</strong> ${escapeHTML(target.pointOfInterest)}</div>` : ""}
+        ${target?.influence?.sphere ? `<div><strong>Influence:</strong> ${escapeHTML(target.influence.sphere)} (${Number(target.influence.rating ?? 0)})</div>` : ""}
+        ${selection.notes ? `<div><strong>Notes:</strong> ${escapeHTML(selection.notes)}</div>` : ""}
+      </div>
+    `
+  });
 }
 
 async function updateExistingTerritoryScene(scene, sceneData) {
