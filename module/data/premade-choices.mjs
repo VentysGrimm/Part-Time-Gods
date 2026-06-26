@@ -470,7 +470,7 @@ function occupation(name, page, grants) {
   return choice("occupation", name, page, {
     category: name,
     career: "",
-    careerOptions: OCCUPATION_CAREERS[name] ?? [],
+    careerOptions: normalizeOccupationCareers(name, page),
     grants: normalizeGrants({ skills: grants.skills ?? {} }),
     description: paragraph(`${name} is a mortal occupation choice used during character creation.`),
     notes: `${source(page)}<p><strong>Special Notes:</strong> Choose one career under this Occupation. That career supplies Free Time, Wealth, Attachment choice, Blessing, and Curse. Record Occupation Free Time and Wealth separately for Going to Work recovery.</p>`
@@ -597,6 +597,34 @@ function normalizeGrants(grants) {
     blessing: grants.blessing ?? "",
     curse: grants.curse ?? ""
   };
+}
+
+function normalizeOccupationCareers(occupationName, page) {
+  return Array.from(OCCUPATION_CAREERS[occupationName] ?? []).map(career => {
+    const summary = `${career.name} is a ${occupationName} career option that grants Free Time ${Number(career.resources?.freeTime ?? 0)}, Wealth ${Number(career.resources?.wealth ?? 0)}, one Attachment option, a Blessing, and a Curse.`;
+
+    return {
+      ...career,
+      description: career.description ?? summary,
+      sourcePage: career.sourcePage ?? page,
+      rules: {
+        summary,
+        fullText: paragraph(summary),
+        source: {
+          book: "Part-Time Gods Second Edition",
+          page,
+          section: `${occupationName}: ${career.name}`,
+          type: "occupation-career"
+        }
+      },
+      attachments: Array.from(career.attachments ?? []).map(attachment => ({
+        ...attachment,
+        sourcePage: attachment.sourcePage ?? page
+      })),
+      blessing: career.blessing ? withAbilitySource(career.blessing, page, "blessing") : null,
+      curse: career.curse ? withAbilitySource(career.curse, page, "curse") : null
+    };
+  });
 }
 
 async function createChoiceFolders(items) {

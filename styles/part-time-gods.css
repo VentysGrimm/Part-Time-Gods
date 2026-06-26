@@ -868,6 +868,8 @@
 }
 
 .ptg-career-option {
+  max-height: 220px;
+  overflow: auto;
   padding: 8px;
   border: 1px solid #b49bd8;
   background: #faf7ff;
