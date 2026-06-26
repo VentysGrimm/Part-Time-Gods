@@ -571,6 +571,10 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   #enrichInventoryItem(item) {
     const system = item.system ?? {};
     const details = [
+      itemDetail("Choice Type", system.choiceKind),
+      itemDetail("Choice", system.choiceLabel),
+      itemDetail("Definition", system.definition),
+      itemDetail("Choice Source", system.choiceSource),
       itemDetail("Summary", system.summary || system.rules?.summary),
       itemDetail("Benefit", system.benefit),
       itemDetail("Effect", system.effect),
@@ -817,9 +821,9 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         }).join("")}
         <fieldset data-creator-step="4" hidden>
           <legend>Step 5: Attachments</legend>
-          <label>Bonds <textarea name="attachments.bonds">${escapeHTML(attachments.bonds ?? "")}</textarea></label>
-          <label>Worshippers <textarea name="attachments.worshippers">${escapeHTML(attachments.worshippers ?? "")}</textarea></label>
-          <label>Vassals <textarea name="attachments.vassals">${escapeHTML(attachments.vassals ?? "")}</textarea></label>
+          <label>Additional Bond Notes <textarea name="attachments.bonds">${escapeHTML(attachments.bonds ?? "")}</textarea></label>
+          <label>Additional Worshipper Notes <textarea name="attachments.worshippers">${escapeHTML(attachments.worshippers ?? "")}</textarea></label>
+          <label>Additional Vassal Notes <textarea name="attachments.vassals">${escapeHTML(attachments.vassals ?? "")}</textarea></label>
         </fieldset>
         <fieldset data-creator-step="5" hidden>
           <legend>Step 6: Final Touches</legend>

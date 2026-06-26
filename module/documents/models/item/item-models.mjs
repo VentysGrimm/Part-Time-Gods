@@ -76,6 +76,10 @@ class PTGBaseItemData extends foundry.abstract.TypeDataModel {
 
   static attachmentDetailFields() {
     return {
+      choiceSource: this.textField(),
+      choiceKind: this.textField(),
+      choiceLabel: this.textField(),
+      definition: this.textField(),
       summary: this.textField(),
       relatedBonus: this.htmlField(),
       relatedDetriment: this.htmlField(),

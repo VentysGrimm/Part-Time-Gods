@@ -693,7 +693,14 @@ function career(name, freeTime, wealth, attachments, blessing, curse) {
 }
 
 function attachment(kind, name, level) {
-  return { kind, name, level };
+  return {
+    kind,
+    name,
+    level,
+    choiceKind: kind,
+    choiceLabel: name,
+    requiresDefinition: true
+  };
 }
 
 function blessing(name, effect) {

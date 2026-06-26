@@ -90,6 +90,9 @@ export class PartTimeGodsActor extends Actor {
     if (theologySelection === false) return false;
 
     const grants = choiceGrants(item.system.grants ?? {}, { careerSelection, archetypeSelection, domainSelection, theologySelection });
+    const attachmentDefinitions = await selectAttachmentDefinitions(grants.attachments, item);
+    if (attachmentDefinitions === false) return false;
+    grants.attachments = attachmentDefinitions;
     const updates = {};
     const identityPath = {
       occupation: "system.identity.occupation",
@@ -922,6 +925,72 @@ function attachmentLabel(attachment) {
   return `Level ${attachment.level ?? 1} ${attachment.name} (${kindCode(attachment.kind)})`;
 }
 
+async function selectAttachmentDefinitions(attachments, sourceItem) {
+  const normalized = normalizeAttachmentGrants(attachments);
+  const definable = normalized.filter(attachmentRequiresDefinition);
+  if (!definable.length) return normalized;
+
+  const content = `
+    <div class="ptg-attachment-definition-dialog">
+      ${normalized.map((attachment, index) => `
+        <section class="ptg-career-option">
+          <h3>${escapeHTML(attachmentLabel(attachment))}</h3>
+          <div class="form-group">
+            <label>Selected Choice</label>
+            <input type="text" name="choice.${index}" value="${escapeHTML(attachment.choiceLabel ?? attachment.name ?? "")}" readonly>
+          </div>
+          <div class="form-group">
+            <label>Definition</label>
+            <input type="text" name="definition.${index}" value="${escapeHTML(attachment.definition ?? "")}" placeholder="${escapeHTML(attachmentDefinitionPlaceholder(attachment))}">
+          </div>
+        </section>
+      `).join("")}
+    </div>
+  `;
+
+  const definitions = await DialogV2.prompt({
+    window: { title: `Define ${sourceItem.name} Attachments` },
+    content,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Apply",
+      callback: (event, button) => normalized.map((attachment, index) => ({
+        ...attachment,
+        definition: button.form.elements[`definition.${index}`]?.value?.trim() ?? attachment.definition ?? ""
+      }))
+    }
+  });
+
+  if (definitions === null || definitions === undefined) return false;
+
+  const missing = definitions.filter(attachment => attachmentRequiresDefinition(attachment) && !attachment.definition);
+  if (missing.length) {
+    ui.notifications.warn("Define each selected Attachment before applying it.");
+    return false;
+  }
+
+  return definitions;
+}
+
+function attachmentRequiresDefinition(attachment) {
+  if (!attachment) return false;
+  return attachment.requiresDefinition !== false;
+}
+
+function attachmentDefinitionPlaceholder(attachment) {
+  return {
+    individual: "Specific person or relationship",
+    group: "Specific group or relationship",
+    landmark: "Specific place, landmark, or holding",
+    worshipper: "Worshipper group",
+    vassal: "Vassal concept",
+    relic: "Relic description",
+    truth: "Truth statement",
+    choice: "Chosen Attachment"
+  }[attachment.kind] ?? "What this Attachment means in the fiction";
+}
+
 function isAttachmentItem(item) {
   return ["bond", "worshipper", "vassal"].includes(item?.type);
 }
@@ -1187,17 +1256,24 @@ function embeddedAttachmentItems(attachments, sourceItem) {
 
   for (const attachment of normalizeAttachmentGrants(attachments)) {
     const level = Math.max(1, Number(attachment.level ?? 1));
-    const name = attachment.name;
+    const definition = String(attachment.definition ?? "").trim();
+    const name = definition || attachment.name;
     const label = attachment.label ?? `${kindLabel(attachment.kind)} Bond`;
+    const choiceLabel = attachment.choiceLabel ?? attachment.name ?? label;
     const sourceName = sourceItem.name;
     const type = attachmentDocumentType(attachment.kind);
     const strain = {
       value: 0,
       max: level
     };
+    const definitionText = definition ? `<p>Definition: ${escapeHTML(definition)}.</p>` : "";
     const common = {
       level,
-      description: `<p>${escapeHTML(sourceName)} grants this ${escapeHTML(label.toLowerCase())}.</p>${attachment.linkedDominion ? `<p>Linked Dominion: ${escapeHTML(attachment.linkedDominion)}.</p>` : ""}`,
+      choiceSource: sourceName,
+      choiceKind: attachment.choiceKind ?? attachment.kind,
+      choiceLabel,
+      definition,
+      description: `<p>${escapeHTML(sourceName)} grants this ${escapeHTML(label.toLowerCase())}: ${escapeHTML(choiceLabel)}.</p>${definitionText}${attachment.linkedDominion ? `<p>Linked Dominion: ${escapeHTML(attachment.linkedDominion)}.</p>` : ""}`,
       notes: sourceNotes(sourceItem),
       rules: sourceRules(`${sourceName} grants ${label.toLowerCase()} ${level}.`, sourceItem, type),
       usage: narrativeUsage(type === "truth" || type === "relic" ? "active" : "narrative"),
@@ -1220,7 +1296,7 @@ function embeddedAttachmentSystem(type, attachment, sourceItem, common, strain) 
     return {
       ...common,
       kind: attachment.kind,
-      location: attachment.location ?? "",
+      location: attachment.location ?? attachment.definition ?? "",
       linkedDominionUuid: sourceItem.uuid ?? "",
       strain
     };
@@ -1229,7 +1305,7 @@ function embeddedAttachmentSystem(type, attachment, sourceItem, common, strain) 
   if (type === "worshipper") {
     return {
       ...common,
-      group: attachment.name,
+      group: attachment.definition || attachment.name,
       size: "",
       benefit: common.description,
       strain
@@ -1239,7 +1315,7 @@ function embeddedAttachmentSystem(type, attachment, sourceItem, common, strain) 
   if (type === "vassal") {
     return {
       ...common,
-      concept: attachment.name,
+      concept: attachment.definition || attachment.name,
       loyalty: 0,
       benefit: common.description,
       strain
@@ -1258,7 +1334,7 @@ function embeddedAttachmentSystem(type, attachment, sourceItem, common, strain) 
   if (type === "truth") {
     return {
       ...common,
-      statement: attachment.name,
+      statement: attachment.definition || attachment.name,
       rank: levelFromCommon(common),
       cost: 0,
       fragmentCost: 0,
@@ -1296,10 +1372,14 @@ function attachmentIcon(type) {
 function normalizeAttachmentGrants(attachments) {
   if (Array.isArray(attachments)) {
     return attachments.map(attachment => ({
+      ...attachment,
       kind: attachment.kind,
       name: attachment.name,
       level: attachment.level ?? 1,
-      label: attachmentGrantLabel(attachment.kind)
+      label: attachment.label ?? attachmentGrantLabel(attachment.kind),
+      choiceKind: attachment.choiceKind ?? attachment.kind,
+      choiceLabel: attachment.choiceLabel ?? attachment.name,
+      requiresDefinition: attachment.requiresDefinition !== false
     })).filter(attachment => attachment.name && attachment.kind);
   }
 
@@ -1311,7 +1391,11 @@ function normalizeAttachmentGrants(attachments) {
       kind: config.kind,
       name: typeof value === "string" && value.trim() ? value : config.name,
       level: Math.max(1, isNumeric(value) ? Number(value) : config.defaultLevel),
-      label: config.label
+      label: config.label,
+      choiceKind: config.kind,
+      choiceLabel: config.name,
+      definition: typeof value === "string" && value.trim() ? value : "",
+      requiresDefinition: true
     };
   });
 }
