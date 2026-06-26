@@ -310,6 +310,21 @@
   resize: vertical;
 }
 
+.ptg-advancement-dialog {
+  display: grid;
+  gap: 10px;
+  max-height: calc(100vh - 220px);
+  min-height: 240px;
+  overflow-y: auto;
+  padding-right: 6px;
+  resize: vertical;
+}
+
+.ptg-advancement-dialog textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
 .ptg2e-journal-page,
 .ptg-source-page {
   display: block;
@@ -992,7 +1007,7 @@
 
 .ptg-xp-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
   margin-top: 8px;
   align-items: end;
