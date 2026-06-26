@@ -140,10 +140,21 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
   async #rollManifestation(button) {
     const manifestation = button.dataset.rollManifestation;
-    const skill = this.element.querySelector("[data-roll-manifestation-skill]")?.value ?? "discipline";
-    const difficulty = Number(this.element.querySelector("[data-roll-difficulty]")?.value ?? 1);
+    const selection = await selectManifestationRollOptions({
+      actor: this.actor,
+      manifestation,
+      skill: this.element.querySelector("[data-roll-manifestation-skill]")?.value ?? "discipline",
+      difficulty: Number(this.element.querySelector("[data-roll-difficulty]")?.value ?? 1)
+    });
 
-    await this.actor.rollManifestation(manifestation, skill, { difficulty });
+    if (!selection) return;
+
+    await this.actor.rollManifestation(selection.manifestation, selection.skill, {
+      difficulty: selection.difficulty,
+      bonus: selection.bonus,
+      penalty: selection.penalty,
+      checkMode: "manifestation"
+    });
   }
 
   #prepareInventory() {
@@ -637,6 +648,107 @@ function skillPoolPreview(actor, primary, secondary, bonus, penalty, extra = {})
   const fate = finalPool <= 0 ? " Fate Die" : "";
 
   return `Pool: ${primaryRank} + ${secondaryRank} + ${Number(bonus ?? 0)} - ${Number(penalty ?? 0)} + ${extraTotal} = ${finalPool}${fate}`;
+}
+
+async function selectManifestationRollOptions({ actor, manifestation, skill, difficulty }) {
+  const manifestationEntries = Object.entries(CONFIG.PTG.manifestations ?? {});
+  const skillEntries = Object.entries(CONFIG.PTG.skills ?? {});
+  const difficulties = Object.entries(CONFIG.PTG.difficulties ?? {});
+  const manifestationOption = ([key, label]) => `<option value="${escapeHTML(key)}" data-rank="${Number(actor.system.manifestations?.[key] ?? 0)}" ${key === manifestation ? "selected" : ""}>${escapeHTML(label)} (${Number(actor.system.manifestations?.[key] ?? 0)})</option>`;
+  const skillOption = ([key, label]) => `<option value="${escapeHTML(key)}" data-rank="${Number(actor.system.skills?.[key] ?? 0)}" ${key === skill ? "selected" : ""}>${escapeHTML(label)} (${Number(actor.system.skills?.[key] ?? 0)})</option>`;
+  const difficultyOptions = difficulties
+    .map(([key, value]) => `<option value="${Number(value)}" ${Number(value) === Number(difficulty) ? "selected" : ""}>${escapeHTML(`${labelCase(key)} (${value})`)}</option>`)
+    .join("");
+
+  const content = `
+    <div class="ptg-roll-dialog">
+      <div class="form-group">
+        <label>Manifestation</label>
+        <select name="manifestation">${manifestationEntries.map(manifestationOption).join("")}</select>
+      </div>
+      <div class="form-group">
+        <label>Skill</label>
+        <select name="skill">${skillEntries.map(skillOption).join("")}</select>
+      </div>
+      <div class="form-group">
+        <label>Difficulty</label>
+        <select name="difficulty">${difficultyOptions}<option value="custom">Custom</option></select>
+      </div>
+      <div class="form-group">
+        <label>Custom Difficulty</label>
+        <input type="number" name="customDifficulty" value="${Number(difficulty)}" min="0">
+      </div>
+      <div class="form-group">
+        <label>Bonus</label>
+        <input type="number" name="bonus" value="0">
+      </div>
+      <div class="form-group">
+        <label>Penalty</label>
+        <input type="number" name="penalty" value="0">
+      </div>
+      <p class="ptg-sheet-note" data-pool-preview>${manifestationPoolPreview(actor, manifestation, skill, 0, 0)}</p>
+    </div>
+  `;
+
+  return DialogV2.prompt({
+    window: { title: "Manifestation Check" },
+    content,
+    rejectClose: false,
+    modal: true,
+    render: (event, dialog) => wireManifestationPoolPreview(dialog.element ?? dialog, actor),
+    ok: {
+      label: "Roll",
+      callback: (event, button) => {
+        const form = button.form;
+        const difficultyValue = form.elements.difficulty?.value;
+
+        return {
+          manifestation: form.elements.manifestation?.value ?? manifestation,
+          skill: form.elements.skill?.value ?? skill,
+          difficulty: difficultyValue === "custom"
+            ? Number(form.elements.customDifficulty?.value ?? 0)
+            : Number(difficultyValue ?? 0),
+          bonus: Number(form.elements.bonus?.value ?? 0),
+          penalty: Number(form.elements.penalty?.value ?? 0)
+        };
+      }
+    }
+  });
+}
+
+function wireManifestationPoolPreview(element, actor) {
+  const root = element instanceof HTMLElement ? element : element?.querySelector?.(".ptg-roll-dialog")?.closest("form");
+  const form = root?.querySelector?.("form") ?? root;
+  if (!form?.elements) return;
+
+  const update = () => {
+    const preview = form.querySelector("[data-pool-preview]");
+    if (!preview) return;
+
+    preview.textContent = manifestationPoolPreview(
+      actor,
+      form.elements.manifestation?.value,
+      form.elements.skill?.value,
+      Number(form.elements.bonus?.value ?? 0),
+      Number(form.elements.penalty?.value ?? 0)
+    );
+  };
+
+  for (const name of ["manifestation", "skill", "bonus", "penalty"]) {
+    form.elements[name]?.addEventListener("change", update);
+    form.elements[name]?.addEventListener("input", update);
+  }
+
+  update();
+}
+
+function manifestationPoolPreview(actor, manifestation, skill, bonus, penalty) {
+  const manifestationRank = Number(actor.system.manifestations?.[manifestation] ?? 0);
+  const skillRank = Number(actor.system.skills?.[skill] ?? 0);
+  const finalPool = manifestationRank + skillRank + Number(bonus ?? 0) - Number(penalty ?? 0);
+  const fate = finalPool <= 0 ? " Fate Die" : "";
+
+  return `Pool: ${manifestationRank} + ${skillRank} + ${Number(bonus ?? 0)} - ${Number(penalty ?? 0)} = ${finalPool}${fate}`;
 }
 
 function labelCase(key) {
