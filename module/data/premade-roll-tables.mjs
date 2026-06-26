@@ -32,6 +32,10 @@ function table(name, formula, sourcePage, rows, { description = "" } = {}) {
 
 const reroll = "ReRoll";
 const gmChoice = "GM Choice";
+const coordinateRows = Array.from({ length: 10 }, (_, index) => {
+  const value = index + 1;
+  return [value, `${value}`];
+});
 
 export const PTG_PREMADE_ROLL_TABLES = [
   table("Random Occupation - Class", "1d10", 282, [
@@ -257,5 +261,21 @@ export const PTG_PREMADE_ROLL_TABLES = [
     [8, "Puck-Eaters"],
     [9, "Warlock's Fate"],
     [10, gmChoice]
-  ])
+  ]),
+
+  table("Random Location - Across Coordinate", "1d10", 275, coordinateRows, {
+    description: "<p><strong>Source:</strong> Part-Time Gods Second Edition, book p. 275. Roll once for the across coordinate, then roll the down coordinate table and place the new location at across-down on the Territory Grid.</p>"
+  }),
+  table("Random Location - Down Coordinate", "1d10", 275, coordinateRows, {
+    description: "<p><strong>Source:</strong> Part-Time Gods Second Edition, book p. 275. Roll once for the down coordinate after rolling the across coordinate table.</p>"
+  }),
+  table("Territory Crawl - Sample Locations", "1d5", 276, [
+    [1, "2-8: Library. Known: rare books section managed by Matilda Shirk. Secret: a dragon sleeps below the library and Matilda knows about it."],
+    [2, "2-9: The Iron Rack. Known: bar and live music venue owned by Satyr Jasper Teems. Secret: none."],
+    [3, "2-10: The Public Ice Rink. Known: public ice rink. Secret: hidden outsider hockey league late Sunday nights."],
+    [4, "3-1: Mac's Delights. Known: gourmet macaroni and cheese restaurant. Secret: none."],
+    [5, "3-2: Kostal Park. Known: public park. Secret: the Woodland Watcher holds monthly court for the local outsider community."]
+  ], {
+    description: "<p><strong>Source:</strong> Part-Time Gods Second Edition, book p. 276. Example Territory Crawl entries for seeding the Territory Grid with known information and GM-only secrets.</p>"
+  })
 ];
