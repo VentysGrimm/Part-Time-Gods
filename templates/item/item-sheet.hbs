@@ -528,6 +528,24 @@
     </section>
     <section class="ptg-item-fields three">
       <label>
+        <span>Last Request Type</span>
+        <input name="system.requestType" type="text" value="{{system.requestType}}">
+      </label>
+      <label>
+        <span>Current Risk</span>
+        <input name="system.currentRisk" type="text" value="{{system.currentRisk}}">
+      </label>
+      <label>
+        <span>Request Log</span>
+        <textarea readonly>{{json system.requestLog}}</textarea>
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Risk Notes</h2>
+      {{editor system.riskNotes target="system.riskNotes" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
         <span>Summary</span>
         <input name="system.summary" type="text" value="{{system.summary}}">
       </label>

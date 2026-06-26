@@ -273,6 +273,10 @@ export class PTGWorshipperData extends PTGBaseItemData {
       }),
       group: this.textField(),
       size: this.textField(),
+      requestType: this.textField(),
+      currentRisk: this.textField(),
+      riskNotes: this.htmlField(),
+      requestLog: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] }),
       benefit: this.htmlField(),
       description: this.htmlField(),
       notes: this.htmlField()

@@ -535,6 +535,7 @@ export class PartTimeGodsActor extends Actor {
 
   async requestAttachmentAction(item, action = "favor") {
     if (!isAttachmentItem(item)) return false;
+    if (item.type === "worshipper" && action === "favor") return this.requestWorshipperPrayer(item);
 
     const config = attachmentActionConfig(action, item);
     if (!config) return false;
@@ -565,6 +566,86 @@ export class PartTimeGodsActor extends Actor {
     });
 
     return true;
+  }
+
+  async requestWorshipperPrayer(item, preset = {}) {
+    if (!item || item.type !== "worshipper") return false;
+
+    const selection = await selectWorshipperRequest(item, preset);
+    if (!selection) return false;
+
+    const results = [];
+    const beforeStrain = Number(item.system.strain?.value ?? 0);
+    const maxStrain = Math.max(0, Number(item.system.strain?.max ?? item.system.level ?? 0));
+    if (selection.strainDelta) {
+      const changed = await this.adjustAttachmentStrain(item, selection.strainDelta, "Worshipper Request Risk");
+      const nextStrain = clamp(beforeStrain + Number(selection.strainDelta ?? 0), 0, maxStrain);
+      results.push(changed
+        ? `${item.name}: Strain ${beforeStrain} -> ${nextStrain} / ${maxStrain}.`
+        : `${item.name}: Strain could not be adjusted.`);
+    }
+
+    const resourceResults = await this.#applyWorshipperResourceChange(selection);
+    results.push(...resourceResults);
+
+    const requestLog = Array.isArray(item.system.requestLog) ? item.system.requestLog : [];
+    const entry = {
+      order: requestLog.length + 1,
+      actorUuid: this.uuid,
+      actorName: this.name,
+      itemUuid: item.uuid,
+      itemName: item.name,
+      requestType: selection.requestType,
+      request: selection.request,
+      cost: selection.cost,
+      risk: selection.risk,
+      consequence: selection.consequence,
+      result: selection.result,
+      notes: selection.notes,
+      strainDelta: selection.strainDelta,
+      resource: selection.resource,
+      resourceDelta: selection.resourceDelta,
+      createdAt: new Date().toISOString()
+    };
+
+    await item.update({
+      "system.requestType": selection.requestType,
+      "system.currentRisk": selection.risk,
+      "system.riskNotes": paragraph(selection.consequence || selection.notes),
+      "system.requestLog": [...requestLog, entry].slice(-50)
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this }),
+      content: worshipperRequestCard(this, item, selection, results)
+    });
+
+    return true;
+  }
+
+  async #applyWorshipperResourceChange(selection) {
+    const resource = selection.resource;
+    const delta = Number(selection.resourceDelta ?? 0);
+    if (!resource || !delta) return [];
+
+    const path = `system.resources.${resource}`;
+    const current = foundry.utils.getProperty(this, path);
+
+    if (typeof current === "number") {
+      const next = Math.max(0, current + delta);
+      await this.update({ [path]: next });
+      return [`${resourceLabel(resource)} ${current} -> ${next}.`];
+    }
+
+    if (current && typeof current === "object") {
+      const value = Number(current.value ?? 0);
+      const max = Number(current.max ?? value);
+      const next = Math.max(0, Math.min(max, value + delta));
+      await this.update({ [`${path}.value`]: next });
+      return [`${resourceLabel(resource)} ${value} -> ${next}.`];
+    }
+
+    return [`${resourceLabel(resource)} change ${signedNumber(delta)} recorded; no matching actor resource path.`];
   }
 
   async #createFailingFromAttachment(item) {
@@ -1204,6 +1285,124 @@ function attachmentDefinitionPlaceholder(attachment) {
   }[attachment.kind] ?? "What this Attachment means in the fiction";
 }
 
+async function selectWorshipperRequest(item, preset = {}) {
+  const content = `
+    <div class="ptg-advancement-dialog">
+      <div class="form-group">
+        <label>Request Type</label>
+        <select name="requestType">
+          <option value="prayer">Prayer</option>
+          <option value="request">Request</option>
+          <option value="offering">Offering</option>
+          <option value="support">Support</option>
+          <option value="risk">Risk / Trouble</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Request</label>
+        <textarea name="request" rows="3" placeholder="What the god asks or what the worshippers pray for">${escapeHTML(preset.request ?? "")}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Benefit</label>
+        <div class="ptg-sheet-note">${item.system.benefit || item.system.summary || "No Worshipper benefit text recorded."}</div>
+      </div>
+      <div class="ptg-item-fields three">
+        <label>
+          <span>Cost</span>
+          <input type="text" name="cost" value="${escapeHTML(preset.cost ?? "")}" placeholder="Time, offering, promise, scene cost">
+        </label>
+        <label>
+          <span>Risk</span>
+          <select name="risk">
+            <option value="none">None</option>
+            <option value="exposure">Exposure</option>
+            <option value="demand">Demand</option>
+            <option value="harm">Harm</option>
+            <option value="obligation">Obligation</option>
+            <option value="schism">Internal Trouble</option>
+            <option value="strain">Strain</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
+        <label>
+          <span>Strain Delta</span>
+          <input type="number" name="strainDelta" value="1">
+        </label>
+      </div>
+      <div class="ptg-item-fields two">
+        <label>
+          <span>Resource</span>
+          <select name="resource">
+            <option value="">No resource change</option>
+            <option value="fragments">Fragments</option>
+            <option value="freeTime">Free Time</option>
+            <option value="wealth">Wealth</option>
+            <option value="pantheon">Pantheon Dice</option>
+          </select>
+        </label>
+        <label>
+          <span>Resource Delta</span>
+          <input type="number" name="resourceDelta" value="0">
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Consequence</label>
+        <textarea name="consequence" rows="3" placeholder="Exposure, danger, obligation, harm, schism, or demand"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Result</label>
+        <textarea name="result" rows="3" placeholder="How the prayer/request resolves"></textarea>
+      </div>
+      <div class="form-group">
+        <label>GM Notes</label>
+        <textarea name="notes" rows="3"></textarea>
+      </div>
+    </div>
+  `;
+
+  return DialogV2.prompt({
+    window: { title: `${item.name}: Worshipper Prayer / Request` },
+    content,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Post Request",
+      callback: (event, button) => ({
+        requestType: button.form.elements.requestType?.value ?? "request",
+        request: button.form.elements.request?.value?.trim() ?? "",
+        cost: button.form.elements.cost?.value?.trim() ?? "",
+        risk: button.form.elements.risk?.value ?? "none",
+        strainDelta: Number(button.form.elements.strainDelta?.value ?? 0),
+        resource: button.form.elements.resource?.value ?? "",
+        resourceDelta: Number(button.form.elements.resourceDelta?.value ?? 0),
+        consequence: button.form.elements.consequence?.value?.trim() ?? "",
+        result: button.form.elements.result?.value?.trim() ?? "",
+        notes: button.form.elements.notes?.value?.trim() ?? ""
+      })
+    }
+  });
+}
+
+function worshipperRequestCard(actor, item, selection, results) {
+  const level = Number(item.system.level ?? 1);
+  return `
+    <div class="ptg-chat-card">
+      <h3>${escapeHTML(item.name)} ${escapeHTML(labelCase(selection.requestType))}</h3>
+      <div><strong>Actor:</strong> ${escapeHTML(actor.name)}</div>
+      <div><strong>Worshippers:</strong> ${escapeHTML(item.system.group || item.name)} (Level ${level})</div>
+      ${selection.request ? `<div><strong>Request:</strong> ${escapeHTML(selection.request)}</div>` : ""}
+      <div><strong>Benefit:</strong> ${item.system.benefit || escapeHTML(item.system.summary || "No benefit recorded.")}</div>
+      ${selection.cost ? `<div><strong>Cost:</strong> ${escapeHTML(selection.cost)}</div>` : ""}
+      <div><strong>Risk:</strong> ${escapeHTML(labelCase(selection.risk))}</div>
+      ${selection.consequence ? `<div><strong>Consequence:</strong> ${escapeHTML(selection.consequence)}</div>` : ""}
+      ${selection.result ? `<div><strong>Result:</strong> ${escapeHTML(selection.result)}</div>` : ""}
+      ${results.length ? `<ul>${results.map(result => `<li>${escapeHTML(result)}</li>`).join("")}</ul>` : ""}
+      ${selection.notes ? `<div><strong>GM Notes:</strong> ${escapeHTML(selection.notes)}</div>` : ""}
+    </div>
+  `;
+}
+
 function isAttachmentItem(item) {
   return ["bond", "worshipper", "vassal"].includes(item?.type);
 }
@@ -1414,6 +1613,13 @@ function clamp(value, min, max) {
 function signedNumber(value) {
   const number = Number(value ?? 0);
   return `${number >= 0 ? "+" : ""}${number}`;
+}
+
+function labelCase(value) {
+  return String(value ?? "")
+    .replace(/([A-Z])/g, " $1")
+    .replace(/[-_]/g, " ")
+    .replace(/^./, char => char.toUpperCase());
 }
 
 function resourceActionLabel(action) {

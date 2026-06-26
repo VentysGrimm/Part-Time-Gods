@@ -789,6 +789,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       itemDetail("Choice", system.choiceLabel),
       itemDetail("Definition", system.definition),
       itemDetail("Choice Source", system.choiceSource),
+      itemDetail("Request Type", system.requestType),
+      itemDetail("Current Risk", system.currentRisk),
       itemDetail("Summary", system.summary || system.rules?.summary),
       itemDetail("Benefit", system.benefit),
       itemDetail("Effect", system.effect),
@@ -956,6 +958,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     if (action === "use") return this.actor.useOwnedItem(item);
 
     if (action === "condition-reduce") return this.actor.reduceCondition(item);
+    if (action === "worshipper-request") return this.actor.requestWorshipperPrayer(item);
 
     if (["favor", "lead", "follow-up", "devote", "split-attention", "delay", "lose"].includes(action)) {
       return this.actor.requestAttachmentAction(item, action);
