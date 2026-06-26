@@ -1299,6 +1299,150 @@
   font-weight: 700;
 }
 
+.ptg-balance-tracker-window .window-content {
+  overflow: auto;
+}
+
+.ptg-balance-tracker {
+  display: grid;
+  gap: 12px;
+  min-width: 320px;
+}
+
+.ptg-balance-actor {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.ptg-balance-actor img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 1px solid #9273c4;
+}
+
+.ptg-balance-actor h2,
+.ptg-balance-actor p,
+.ptg-balance-custom h3,
+.ptg-balance-log h3,
+.ptg-balance-empty h2,
+.ptg-balance-empty p {
+  margin: 0;
+}
+
+.ptg-balance-meter,
+.ptg-balance-custom,
+.ptg-balance-log,
+.ptg-balance-empty {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #b49bd8;
+  background: #f4effa;
+}
+
+.ptg-balance-scale,
+.ptg-balance-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.ptg-balance-scale span:first-child,
+.ptg-balance-values span:first-child {
+  text-align: left;
+}
+
+.ptg-balance-scale span:last-child,
+.ptg-balance-values span:last-child {
+  text-align: right;
+}
+
+.ptg-balance-bar {
+  position: relative;
+  height: 18px;
+  border: 1px solid #6f5599;
+  background: linear-gradient(90deg, #5f8c70 0%, #f8f4fb 50%, #7b5aa6 100%);
+}
+
+.ptg-balance-bar i {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 28px;
+  transform: translateX(-50%);
+  background: #21162d;
+}
+
+.ptg-balance-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ptg-balance-actions div {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.ptg-balance-actions h3 {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.ptg-balance-actions button,
+.ptg-balance-custom button {
+  min-height: 30px;
+  white-space: normal;
+}
+
+.ptg-balance-custom label {
+  display: grid;
+  gap: 4px;
+}
+
+.ptg-balance-custom textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.ptg-balance-log header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.ptg-balance-log ol {
+  display: grid;
+  gap: 6px;
+  max-height: 180px;
+  overflow: auto;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.ptg-balance-log li {
+  padding-bottom: 6px;
+  border-bottom: 1px solid #d5c6e8;
+}
+
+.ptg-balance-log span,
+.ptg-balance-log small {
+  display: block;
+}
+
+.ptg-balance-log p {
+  margin: 4px 0 0;
+}
+
 .ptg-dominion-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

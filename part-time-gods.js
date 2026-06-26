@@ -32,6 +32,7 @@ import { populatePremadeCompendiums } from "./module/data/premade-compendiums.mj
 import { getPremadeJournals, importRulesJournals } from "./module/data/premade-journals.mjs";
 import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
 import { openPTGCombatControls, registerPTGCombatHooks, rollPTGInitiative } from "./module/combat/ptg-combat.mjs";
+import { openMortalDivineBalanceTracker, registerMortalDivineTrackerSettings } from "./module/apps/mortal-divine-tracker.mjs";
 import { itemFromDropData } from "./module/util/drop-data.mjs";
 
 const { DocumentSheetConfig } = foundry.applications.apps;
@@ -54,6 +55,7 @@ Hooks.once("init", async () => {
     importGodTerritoryScene,
     openTerritoryControls,
     openPTGCombatControls,
+    openMortalDivineBalanceTracker,
     rollPTGInitiative,
     openAntagonistBuilder,
     populatePremadeCompendiums
@@ -118,6 +120,7 @@ Hooks.once("init", async () => {
     type: Boolean,
     default: true
   });
+  registerMortalDivineTrackerSettings();
 
   Handlebars.registerHelper("eq", (a, b) => a === b);
   Handlebars.registerHelper("gt", (a, b) => Number(a) > Number(b));
@@ -131,7 +134,8 @@ Hooks.once("init", async () => {
 
   await loadTemplates([
     "systems/part-time-gods/templates/actor/parts/item-list.hbs",
-    "systems/part-time-gods/templates/chat/item-use-card.hbs"
+    "systems/part-time-gods/templates/chat/item-use-card.hbs",
+    "systems/part-time-gods/templates/apps/mortal-divine-tracker.hbs"
   ]);
 });
 
@@ -191,6 +195,11 @@ Hooks.on("chatMessage", (chatLog, message) => {
     return false;
   }
 
+  if (message === "/ptg-balance") {
+    openMortalDivineBalanceTracker();
+    return false;
+  }
+
   if (message === "/ptg-antagonist-builder") {
     openAntagonistBuilder();
     return false;
@@ -203,7 +212,7 @@ Hooks.on("chatMessage", (chatLog, message) => {
 
   if (message !== "/ptg") return true;
 
-  ui.notifications.info("Part-Time Gods 2E loaded. Use /ptg-create-territory-scene, /ptg-territory, /ptg-combat, /ptg-antagonist-builder, or /ptg-import-rules-journals for world setup.");
+  ui.notifications.info("Part-Time Gods 2E loaded. Use /ptg-create-territory-scene, /ptg-territory, /ptg-combat, /ptg-balance, /ptg-antagonist-builder, or /ptg-import-rules-journals for world setup.");
   return false;
 });
 
