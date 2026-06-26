@@ -112,8 +112,11 @@ export async function openTerritoryControls({ scene = getTerritoryScene() } = {}
 
   const actor = selection.actorUuid ? await fromUuid(selection.actorUuid) : null;
   if (actor?.setFlag && selection.to) await actor.setFlag(SYSTEM_ID, "territoryCoordinate", selection.to);
+  const costResults = actor && selection.action === "move" && selection.applyCosts
+    ? await applyTerritoryCosts(actor, selection)
+    : [];
 
-  await postTerritoryActionCard({ actor, scene, selection, territoryData: updatedTerritoryData });
+  await postTerritoryActionCard({ actor, scene, selection, territoryData: updatedTerritoryData, costResults });
   ui.notifications.info("Updated Territory Grid data.");
 
   return updatedTerritoryData;
@@ -190,6 +193,10 @@ function createTerritoryCoordinate(column, row) {
       sphere: "",
       rating: 0,
       notes: ""
+    },
+    manifestation: {
+      modifier: 0,
+      notes: ""
     }
   };
 }
@@ -212,7 +219,7 @@ async function selectTerritoryAction({ scene, territoryData }) {
     <div class="ptg-territory-dialog">
       <div class="ptg-territory-summary">
         <strong>${escapeHTML(scene.name)}</strong>
-        <span>Movement costs are recorded as Free Time and Wealth notes; apply resource changes manually until the travel-cost slice is implemented.</span>
+        <span>Movement, influence, point-of-interest, GM notes, travel costs, and territory Manifestation modifiers are written to scene flags.</span>
       </div>
       <div class="form-group">
         <label>Action</label>
@@ -248,6 +255,10 @@ async function selectTerritoryAction({ scene, territoryData }) {
           <input type="text" name="wealthCost" value="GM sets by travel method and access">
         </div>
       </div>
+      <label class="ptg-checkbox">
+        <span>Apply numeric Free Time and Wealth costs to linked actor</span>
+        <input type="checkbox" name="applyCosts" checked>
+      </label>
       <div class="ptg-item-fields two">
         <div class="form-group">
           <label>Sphere of Influence</label>
@@ -256,6 +267,16 @@ async function selectTerritoryAction({ scene, territoryData }) {
         <div class="form-group">
           <label>Influence Rating</label>
           <input type="number" name="influenceRating" value="0" min="0">
+        </div>
+      </div>
+      <div class="ptg-item-fields two">
+        <div class="form-group">
+          <label>Manifestation Modifier</label>
+          <input type="number" name="manifestationModifier" value="0">
+        </div>
+        <div class="form-group">
+          <label>Manifestation Note</label>
+          <input type="text" name="manifestationNote" value="" placeholder="Bond location, sphere, hostile territory, etc.">
         </div>
       </div>
       <div class="form-group">
@@ -297,8 +318,11 @@ async function selectTerritoryAction({ scene, territoryData }) {
           to: form.elements.to?.value ?? "1-1",
           freeTimeCost: form.elements.freeTimeCost?.value ?? "",
           wealthCost: form.elements.wealthCost?.value ?? "",
+          applyCosts: form.elements.applyCosts?.checked ?? false,
           sphere: form.elements.sphere?.value ?? "",
           influenceRating: Number(form.elements.influenceRating?.value ?? 0),
+          manifestationModifier: Number(form.elements.manifestationModifier?.value ?? 0),
+          manifestationNote: form.elements.manifestationNote?.value ?? "",
           pointOfInterest: form.elements.pointOfInterest?.value ?? "",
           notes: form.elements.notes?.value ?? "",
           gmSecret: form.elements.gmSecret?.value ?? ""
@@ -332,6 +356,7 @@ function applyTerritoryAction(territoryData, selection) {
         to: selection.to,
         freeTimeCost: selection.freeTimeCost,
         wealthCost: selection.wealthCost,
+        costsApplied: Boolean(selection.applyCosts),
         notes: selection.notes,
         createdAt: new Date().toISOString()
       }
@@ -350,6 +375,12 @@ function applyTerritoryAction(territoryData, selection) {
         notes: selection.notes
       };
     }
+    if (Number(selection.manifestationModifier ?? 0) !== 0 || selection.manifestationNote) {
+      to.manifestation = {
+        modifier: Number(selection.manifestationModifier ?? 0),
+        notes: selection.manifestationNote
+      };
+    }
   }
 
   return territoryData;
@@ -365,7 +396,30 @@ function withoutUuid(entries, uuid) {
   return (Array.isArray(entries) ? entries : []).filter(entry => entry?.uuid !== uuid);
 }
 
-async function postTerritoryActionCard({ actor, scene, selection, territoryData }) {
+async function applyTerritoryCosts(actor, selection) {
+  const results = [];
+  const costs = {
+    freeTime: numericCost(selection.freeTimeCost),
+    wealth: numericCost(selection.wealthCost)
+  };
+
+  for (const [resource, amount] of Object.entries(costs)) {
+    if (amount <= 0) continue;
+
+    if (actor.spendResource) {
+      const spent = await actor.spendResource(resource, amount);
+      results.push(spent
+        ? `${actor.name}: spent ${amount} ${resourceLabel(resource)}.`
+        : `${actor.name}: could not spend ${amount} ${resourceLabel(resource)}.`);
+    } else {
+      results.push(`${actor.name}: ${amount} ${resourceLabel(resource)} cost recorded; actor cannot spend resources automatically.`);
+    }
+  }
+
+  return results;
+}
+
+async function postTerritoryActionCard({ actor, scene, selection, territoryData, costResults = [] }) {
   const target = territoryData.coordinates?.[selection.to];
   const actionLabel = selection.action === "influence" ? "Sphere of Influence" : "Territory Movement";
 
@@ -379,12 +433,26 @@ async function postTerritoryActionCard({ actor, scene, selection, territoryData 
         <div><strong>From:</strong> ${escapeHTML(selection.from)} <strong>To:</strong> ${escapeHTML(selection.to)}</div>
         <div><strong>Free Time:</strong> ${escapeHTML(selection.freeTimeCost || "GM note")}</div>
         <div><strong>Wealth:</strong> ${escapeHTML(selection.wealthCost || "GM note")}</div>
+        ${costResults.length ? `<ul>${costResults.map(result => `<li>${escapeHTML(result)}</li>`).join("")}</ul>` : ""}
         ${target?.pointOfInterest ? `<div><strong>Point of Interest:</strong> ${escapeHTML(target.pointOfInterest)}</div>` : ""}
         ${target?.influence?.sphere ? `<div><strong>Influence:</strong> ${escapeHTML(target.influence.sphere)} (${Number(target.influence.rating ?? 0)})</div>` : ""}
+        ${target?.manifestation ? `<div><strong>Manifestation Modifier:</strong> ${Number(target.manifestation.modifier ?? 0)} ${escapeHTML(target.manifestation.notes ?? "")}</div>` : ""}
         ${selection.notes ? `<div><strong>Notes:</strong> ${escapeHTML(selection.notes)}</div>` : ""}
       </div>
     `
   });
+}
+
+function numericCost(value) {
+  const match = String(value ?? "").match(/-?\d+/);
+  return Math.max(0, Number(match?.[0] ?? 0));
+}
+
+function resourceLabel(resource) {
+  return {
+    freeTime: "Free Time",
+    wealth: "Wealth"
+  }[resource] ?? resource;
 }
 
 async function updateExistingTerritoryScene(scene, sceneData) {
