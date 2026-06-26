@@ -548,14 +548,28 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         ${types.map((type, index) => {
           const current = identity[identityKeys[type]] || "";
           const options = choices[type] ?? [];
+          const isOccupation = type === "occupation";
 
           return `
             <fieldset>
               <legend>Step ${index + 1}: ${escapeHTML(creatorTypeLabel(type))}</legend>
-              <select name="${type}">
+              <select name="${type}" ${isOccupation ? "data-occupation-select" : ""}>
                 <option value="">${current ? `Keep ${escapeHTML(current)}` : `Choose ${escapeHTML(creatorTypeLabel(type))}`}</option>
                 ${options.map(option => `<option value="${escapeHTML(option.uuid)}">${escapeHTML(option.name)}</option>`).join("")}
               </select>
+              ${isOccupation ? `
+                <label>Career / Subtype
+                  <select name="occupationCareer" data-occupation-career disabled>
+                    <option value="">Choose an Occupation first</option>
+                    ${options.flatMap(option => creatorCareerOptions(option).map(careerOption => `
+                      <option value="${escapeHTML(careerOption.value)}" data-parent-uuid="${escapeHTML(option.uuid)}" hidden>${escapeHTML(careerOption.label)}</option>
+                    `)).join("")}
+                  </select>
+                </label>
+                <div class="ptg-career-options" data-occupation-career-details hidden>
+                  ${options.flatMap(option => creatorCareerOptions(option).map(careerOption => creatorCareerSummaryHTML(option, careerOption))).join("")}
+                </div>
+              ` : ""}
               <p class="hint">${current ? `Current: ${escapeHTML(current)}` : "No selection applied yet."}</p>
             </fieldset>
           `;
@@ -589,10 +603,12 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       content,
       rejectClose: false,
       modal: true,
+      render: (event, dialog) => wireOccupationCareerSelector(dialog.element ?? dialog),
       ok: {
         label: "Apply Choices",
         callback: (event, button) => ({
           choices: Object.fromEntries(types.map(type => [type, button.form.elements[type]?.value ?? ""])),
+          occupationCareer: button.form.elements.occupationCareer?.value ?? "",
           updates: {
             "system.attachments.bonds": button.form.elements["attachments.bonds"]?.value ?? "",
             "system.attachments.worshippers": button.form.elements["attachments.worshippers"]?.value ?? "",
@@ -609,6 +625,12 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     if (!selections) return;
 
     const selectedTypes = types.filter(type => selections.choices[type]);
+    const selectedOccupation = choices.occupation.find(item => item.uuid === selections.choices.occupation);
+    if (selectedOccupation && creatorCareerOptions(selectedOccupation).length && !selections.occupationCareer) {
+      ui.notifications.warn("Choose an Occupation career/subtype before applying character creation choices.");
+      return;
+    }
+
     await this.actor.update(selections.updates);
 
     for (const type of selectedTypes) {
@@ -625,7 +647,9 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       delete source._id;
 
       const [ownedItem] = await this.actor.createEmbeddedDocuments("Item", [source]);
-      const applied = await this.actor.applyChoice(ownedItem);
+      const applied = await this.actor.applyChoice(ownedItem, type === "occupation" ? {
+        occupationCareerOption: selections.occupationCareer
+      } : {});
       if (!applied) await ownedItem.delete();
     }
 
@@ -670,6 +694,83 @@ function creatorTypeLabel(type) {
     domain: "Dominion",
     theology: "Theology"
   }[type] ?? type;
+}
+
+function creatorCareerOptions(item) {
+  const careers = Array.from(item.system?.careerOptions ?? []);
+  return careers.flatMap((career, careerIndex) => {
+    const attachments = Array.isArray(career.attachments) && career.attachments.length ? career.attachments : [null];
+    return attachments.map((attachment, attachmentIndex) => ({
+      value: `${careerIndex}:${attachmentIndex}`,
+      label: `${item.name} - ${career.name}${attachment ? ` - ${creatorAttachmentLabel(attachment)}` : ""}`,
+      parent: item.name,
+      career,
+      careerIndex,
+      attachmentIndex,
+      attachment
+    }));
+  });
+}
+
+function creatorAttachmentLabel(attachment) {
+  return `Level ${attachment.level ?? 1} ${attachment.name} (${String(attachment.kind ?? "attachment").toUpperCase().slice(0, 1)})`;
+}
+
+function creatorCareerSummaryHTML(item, option) {
+  const career = option.career;
+  const blessing = career.blessing?.name ?? career.blessing ?? "";
+  const curse = career.curse?.name ?? career.curse ?? "";
+  return `
+    <section class="ptg-career-option" data-parent-uuid="${escapeHTML(item.uuid)}" data-career-detail="${escapeHTML(option.value)}" hidden>
+      <h3>${escapeHTML(item.name)} - ${escapeHTML(career.name)}</h3>
+      <dl>
+        <div><dt>Free Time</dt><dd>${Number(career.resources?.freeTime ?? 0)}</dd></div>
+        <div><dt>Wealth</dt><dd>${Number(career.resources?.wealth ?? 0)}</dd></div>
+      </dl>
+      ${option.attachment ? `<p><strong>Attachment:</strong> ${escapeHTML(creatorAttachmentLabel(option.attachment))}</p>` : ""}
+      ${blessing ? `<p><strong>Blessing:</strong> ${escapeHTML(blessing)}</p>` : ""}
+      ${curse ? `<p><strong>Curse:</strong> ${escapeHTML(curse)}</p>` : ""}
+    </section>
+  `;
+}
+
+function wireOccupationCareerSelector(element) {
+  const root = element instanceof HTMLElement ? element : element?.querySelector?.(".ptg-creator-dialog");
+  const occupation = root?.querySelector?.("[data-occupation-select]");
+  const career = root?.querySelector?.("[data-occupation-career]");
+  const details = root?.querySelector?.("[data-occupation-career-details]");
+  if (!occupation || !career) return;
+
+  const refresh = () => {
+    const parentUuid = occupation.value;
+    let visible = 0;
+    for (const option of career.querySelectorAll("option[data-parent-uuid]")) {
+      const show = option.dataset.parentUuid === parentUuid;
+      option.hidden = !show;
+      if (show) visible += 1;
+    }
+
+    career.disabled = !visible;
+    career.options[0].textContent = visible ? "Choose a career/subtype" : "Choose an Occupation first";
+    if (!visible || career.selectedOptions[0]?.dataset.parentUuid !== parentUuid) career.value = "";
+    if (details) details.hidden = !visible;
+    refreshOccupationCareerDetails(root);
+  };
+
+  occupation.addEventListener("change", refresh);
+  career.addEventListener("change", () => refreshOccupationCareerDetails(root));
+  refresh();
+}
+
+function refreshOccupationCareerDetails(root) {
+  const occupation = root.querySelector("[data-occupation-select]");
+  const career = root.querySelector("[data-occupation-career]");
+  const details = root.querySelector("[data-occupation-career-details]");
+  if (!occupation || !career || !details) return;
+
+  for (const section of details.querySelectorAll("[data-career-detail]")) {
+    section.hidden = !(section.dataset.parentUuid === occupation.value && section.dataset.careerDetail === career.value);
+  }
 }
 
 async function selectSkillComboRollOptions({ actor, primary, secondary, difficulty }) {

@@ -66,7 +66,7 @@ export class PartTimeGodsActor extends Actor {
     return true;
   }
 
-  async applyChoice(item) {
+  async applyChoice(item, options = {}) {
     if (!["occupation", "archetype", "domain", "theology"].includes(item.type)) return false;
 
     const applied = this.getFlag("part-time-gods", "appliedChoices") ?? {};
@@ -77,7 +77,7 @@ export class PartTimeGodsActor extends Actor {
       return false;
     }
 
-    const careerSelection = item.type === "occupation" ? await selectOccupationCareer(item) : null;
+    const careerSelection = item.type === "occupation" ? await selectOccupationCareer(item, options) : null;
     if (careerSelection === false) return false;
 
     const archetypeSelection = item.type === "archetype" ? await selectArchetypeOptions(item) : null;
@@ -98,7 +98,7 @@ export class PartTimeGodsActor extends Actor {
       theology: "system.identity.theology"
     }[item.type];
 
-    updates[identityPath] = careerSelection?.career ? `${careerSelection.career.name} (${item.name})` : domainSelection?.title || item.name;
+    updates[identityPath] = careerSelection?.career ? `${item.name} - ${careerSelection.career.name}` : domainSelection?.title || item.name;
 
     if (domainSelection) {
       updates["system.identity.concept"] = domainSelection.title;
@@ -172,9 +172,22 @@ export class PartTimeGodsActor extends Actor {
       [key]: true
     });
 
+    if (careerSelection?.career) {
+      const choiceDetails = this.getFlag("part-time-gods", "choiceDetails") ?? {};
+      await this.setFlag("part-time-gods", "choiceDetails", {
+        ...choiceDetails,
+        occupation: {
+          parent: item.name,
+          career: careerSelection.career.name,
+          attachment: careerSelection.attachment?.name ?? "",
+          uuid: item.uuid
+        }
+      });
+    }
+
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      content: `<p><strong>${this.name}</strong> applied <strong>${careerSelection?.career ? `${careerSelection.career.name} (${item.name})` : item.name}</strong>.</p>`
+      content: `<p><strong>${this.name}</strong> applied <strong>${careerSelection?.career ? `${item.name} - ${careerSelection.career.name}` : item.name}</strong>.</p>`
     });
 
     return true;
@@ -540,11 +553,23 @@ export class PartTimeGodsActor extends Actor {
   }
 }
 
-async function selectOccupationCareer(item) {
+async function selectOccupationCareer(item, selectionOptions = {}) {
   const careers = Array.from(item.system.careerOptions ?? []);
   if (!careers.length) return null;
 
   const options = careerAttachmentOptions(careers);
+  const requestedOption = String(selectionOptions.occupationCareerOption ?? "");
+  if (requestedOption) {
+    const [careerIndex, attachmentIndex] = requestedOption.split(":").map(value => Number(value));
+    const option = options.find(entry => entry.careerIndex === careerIndex && entry.attachmentIndex === attachmentIndex);
+    if (option) {
+      return {
+        career: careers[option.careerIndex],
+        attachment: careers[option.careerIndex].attachments?.[option.attachmentIndex] ?? null
+      };
+    }
+  }
+
   if (options.length === 1) {
     const option = options[0];
     return {
