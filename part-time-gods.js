@@ -362,6 +362,14 @@ export const PTG = {
     tangible: "Tangible",
     crossover: "Crossover"
   },
+  measureOptions: {
+    damage: "Damage",
+    range: "Range",
+    targets: "Additional Targets",
+    duration: "Duration",
+    scale: "Scale",
+    detail: "Effect Detail"
+  },
   choiceTypes: {
     occupation: "Occupation",
     archetype: "Archetype",

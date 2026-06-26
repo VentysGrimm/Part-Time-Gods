@@ -149,12 +149,25 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (!selection) return;
 
-    await this.actor.rollManifestation(selection.manifestation, selection.skill, {
+    const outcome = await this.actor.rollManifestation(selection.manifestation, selection.skill, {
       difficulty: selection.difficulty,
       bonus: selection.bonus,
       penalty: selection.penalty,
       checkMode: "manifestation"
     });
+
+    await postManifestationMeasureSummary(this.actor, outcome, selection);
+
+    if (selection.resistance.enabled) {
+      const resistor = Array.from(game.user?.targets ?? [])
+        .map(token => token.actor)
+        .find(actor => actor?.rollSkillCombo) ?? this.actor;
+
+      await resistor.rollSkillCombo(selection.resistance.primary, selection.resistance.secondary, {
+        difficulty: outcome.successes,
+        flavor: `${resistor.name}: Resist ${CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation}`
+      });
+    }
   }
 
   #prepareInventory() {
@@ -382,7 +395,15 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     `;
 
     const selections = await DialogV2.prompt({
-      window: { title: `${this.actor.name}: Character Creator` },
+      window: {
+        title: `${this.actor.name}: Character Creator`,
+        resizable: true
+      },
+      classes: ["part-time-gods", "ptg-character-creator-window"],
+      position: {
+        width: 760,
+        height: 720
+      },
       content,
       rejectClose: false,
       modal: true,
@@ -686,6 +707,28 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
         <label>Penalty</label>
         <input type="number" name="penalty" value="0">
       </div>
+      <div class="form-group">
+        <label>Measure Focus</label>
+        <select name="measure">
+          ${Object.entries(CONFIG.PTG.measureOptions ?? {}).map(([key, label]) => `<option value="${escapeHTML(key)}">${escapeHTML(label)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Measure Notes</label>
+        <input type="text" name="measureNotes" value="" placeholder="Damage, range, duration, scale, etc.">
+      </div>
+      <label class="ptg-checkbox">
+        <input type="checkbox" name="resistanceEnabled">
+        <span>Roll Resistance</span>
+      </label>
+      <div class="form-group">
+        <label>Resistance Primary Skill</label>
+        <select name="resistancePrimary">${skillEntries.map(skillOption).join("")}</select>
+      </div>
+      <div class="form-group">
+        <label>Resistance Secondary Skill</label>
+        <select name="resistanceSecondary">${skillEntries.map(skillOption).join("")}</select>
+      </div>
       <p class="ptg-sheet-note" data-pool-preview>${manifestationPoolPreview(actor, manifestation, skill, 0, 0)}</p>
     </div>
   `;
@@ -709,7 +752,14 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
             ? Number(form.elements.customDifficulty?.value ?? 0)
             : Number(difficultyValue ?? 0),
           bonus: Number(form.elements.bonus?.value ?? 0),
-          penalty: Number(form.elements.penalty?.value ?? 0)
+          penalty: Number(form.elements.penalty?.value ?? 0),
+          measure: form.elements.measure?.value ?? "detail",
+          measureNotes: form.elements.measureNotes?.value?.trim() ?? "",
+          resistance: {
+            enabled: Boolean(form.elements.resistanceEnabled?.checked),
+            primary: form.elements.resistancePrimary?.value ?? "discipline",
+            secondary: form.elements.resistanceSecondary?.value ?? "intuition"
+          }
         };
       }
     }
@@ -749,6 +799,29 @@ function manifestationPoolPreview(actor, manifestation, skill, bonus, penalty) {
   const fate = finalPool <= 0 ? " Fate Die" : "";
 
   return `Pool: ${manifestationRank} + ${skillRank} + ${Number(bonus ?? 0)} - ${Number(penalty ?? 0)} = ${finalPool}${fate}`;
+}
+
+async function postManifestationMeasureSummary(actor, outcome, selection) {
+  if (!outcome?.passed || Number(outcome.successes ?? 0) <= 0) return;
+
+  const measureLabel = CONFIG.PTG.measureOptions?.[selection.measure] ?? selection.measure ?? "Effect Detail";
+  const options = Object.entries(CONFIG.PTG.measureOptions ?? {})
+    .map(([, label]) => `<li>${escapeHTML(label)}</li>`)
+    .join("");
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `
+      <div class="ptg-chat-card">
+        <h3>${escapeHTML(CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation)} Measures</h3>
+        <div>Successes Available: ${Number(outcome.successes ?? 0)}</div>
+        <div>Selected Focus: ${escapeHTML(measureLabel)}</div>
+        ${selection.measureNotes ? `<div>Notes: ${escapeHTML(selection.measureNotes)}</div>` : ""}
+        <div>Common Measure Categories</div>
+        <ul>${options}</ul>
+      </div>
+    `
+  });
 }
 
 function labelCase(key) {

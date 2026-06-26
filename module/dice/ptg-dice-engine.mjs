@@ -67,7 +67,7 @@ export class PTGDiceEngine {
       bonus,
       penalty,
       modifierDetails,
-      flavor: `${actor.name}: ${primaryLabel} + ${secondaryLabel}`
+      flavor: options.flavor ?? `${actor.name}: ${primaryLabel} + ${secondaryLabel}`
     });
   }
 
@@ -88,7 +88,7 @@ export class PTGDiceEngine {
       bonus,
       penalty,
       modifierDetails,
-      flavor: `${actor.name}: ${manifestationLabel} + ${skillLabel}`
+      flavor: options.flavor ?? `${actor.name}: ${manifestationLabel} + ${skillLabel}`
     });
   }
 
