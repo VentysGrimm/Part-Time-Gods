@@ -114,14 +114,15 @@
           <span>Free Time</span>
           <input name="system.resources.freeTime" type="number" value="{{system.resources.freeTime}}" min="0">
           <input name="system.resources.freeTimeMax" type="number" value="{{system.resources.freeTimeMax}}" min="0" aria-label="Free Time Max">
-          <em>Max</em>
+          <button type="button" data-resource-workflow="freeTime">Manage</button>
         </label>
         <label class="ptg-track">
           <span>Wealth</span>
           <input name="system.resources.wealth" type="number" value="{{system.resources.wealth}}" min="0">
           <input name="system.resources.wealthMax" type="number" value="{{system.resources.wealthMax}}" min="0" aria-label="Wealth Max">
-          <em>Max</em>
+          <button type="button" data-resource-workflow="wealth">Manage</button>
         </label>
+        <button class="ptg-resource-work" type="button" data-resource-workflow="work">Go to Work</button>
         <label class="ptg-track">
           <span>Fragments</span>
           <input name="system.resources.fragments.value" type="number" value="{{system.resources.fragments.value}}" min="0">

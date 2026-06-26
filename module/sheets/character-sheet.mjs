@@ -88,6 +88,9 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     this.element.querySelector("[data-advancement-purchase]")?.addEventListener("click", () => this.#openAdvancementPurchase());
     this.element.querySelector("[data-xp-award]")?.addEventListener("click", () => this.#openXPAward());
     this.element.querySelector("[data-spark-advancement]")?.addEventListener("click", () => this.#openSparkAdvancement());
+    for (const button of this.element.querySelectorAll("[data-resource-workflow]")) {
+      button.addEventListener("click", event => this.#openResourceWorkflow(event.currentTarget.dataset.resourceWorkflow));
+    }
 
     this.element.querySelector("[data-character-creator]")?.addEventListener("click", () => this.#openCharacterCreator());
   }
@@ -405,6 +408,111 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
           ${award.reason ? `<div>Reason: ${escapeHTML(award.reason)}</div>` : ""}
         </div>
       `
+    });
+  }
+
+  async #openResourceWorkflow(defaultMode = "freeTime") {
+    const resources = this.actor.system.resources ?? {};
+    const defaultAction = defaultMode === "work" ? "goingToWork" : "spend";
+    const defaultFreeTime = defaultMode === "work"
+      ? Number(resources.occupationFreeTime ?? 0)
+      : defaultMode === "wealth" ? 0 : 1;
+    const defaultWealth = defaultMode === "work"
+      ? Number(resources.occupationWealth ?? 0)
+      : defaultMode === "wealth" ? 1 : 0;
+    const content = `
+      <div class="ptg-advancement-dialog">
+        <div class="form-group">
+          <label>Action</label>
+          <select name="action">
+            <option value="spend" ${defaultAction === "spend" ? "selected" : ""}>Spend</option>
+            <option value="restore">Restore</option>
+            <option value="adjust">Adjust</option>
+            <option value="scene">Scene Passage</option>
+            <option value="goingToWork" ${defaultAction === "goingToWork" ? "selected" : ""}>Going to Work</option>
+          </select>
+        </div>
+        <div class="ptg-item-fields two">
+          <label>
+            <span>Free Time</span>
+            <input type="number" name="freeTime" value="${defaultFreeTime}" min="0">
+          </label>
+          <label>
+            <span>Wealth</span>
+            <input type="number" name="wealth" value="${defaultWealth}" min="0">
+          </label>
+        </div>
+        <div class="ptg-item-fields two">
+          <label>
+            <span>Occupation Free Time</span>
+            <input type="number" value="${Number(resources.occupationFreeTime ?? 0)}" readonly>
+          </label>
+          <label>
+            <span>Occupation Wealth</span>
+            <input type="number" value="${Number(resources.occupationWealth ?? 0)}" readonly>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Reason</label>
+          <input type="text" name="reason" value="${defaultAction === "goingToWork" ? "Going to Work" : ""}" placeholder="Travel, upkeep, scene passage, work, GM adjustment">
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea name="notes" rows="4" placeholder="GM override, work scene, session note, or ruling"></textarea>
+        </div>
+        <label class="ptg-checkbox">
+          <input type="checkbox" name="allowNegative">
+          <span>Allow negative values as a GM override</span>
+        </label>
+        <label class="ptg-checkbox">
+          <input type="checkbox" name="allowExceedMax">
+          <span>Allow Going to Work to exceed current max values</span>
+        </label>
+      </div>
+    `;
+
+    const selection = await DialogV2.prompt({
+      window: { title: `${this.actor.name}: Free Time and Wealth` },
+      content,
+      rejectClose: false,
+      modal: true,
+      ok: {
+        label: "Apply",
+        callback: (event, button) => ({
+          action: button.form.elements.action?.value ?? "spend",
+          freeTime: Math.max(0, Number(button.form.elements.freeTime?.value ?? 0)),
+          wealth: Math.max(0, Number(button.form.elements.wealth?.value ?? 0)),
+          reason: button.form.elements.reason?.value?.trim() ?? "",
+          notes: button.form.elements.notes?.value?.trim() ?? "",
+          allowNegative: Boolean(button.form.elements.allowNegative?.checked),
+          allowExceedMax: Boolean(button.form.elements.allowExceedMax?.checked)
+        })
+      }
+    });
+
+    if (!selection) return;
+
+    if (selection.action === "goingToWork") {
+      await this.actor.goToWork({
+        freeTimeGain: selection.freeTime,
+        wealthGain: selection.wealth,
+        notes: selection.notes,
+        allowExceedMax: selection.allowExceedMax
+      });
+      return;
+    }
+
+    const multiplier = ["spend", "scene"].includes(selection.action) ? -1 : 1;
+    const reason = selection.reason || resourceWorkflowDefaultReason(selection.action);
+
+    await this.actor.adjustDowntimeResources({
+      action: selection.action,
+      freeTimeDelta: selection.action === "scene" && selection.freeTime === 0 ? -1 : selection.freeTime * multiplier,
+      wealthDelta: selection.wealth * multiplier,
+      reason,
+      notes: selection.notes,
+      allowNegative: selection.allowNegative,
+      capAtMax: selection.action === "restore"
     });
   }
 
@@ -1066,6 +1174,16 @@ function validateCharacterCreationBudget(selections, actor) {
 
 function pointTotal(points) {
   return Object.values(points ?? {}).reduce((total, value) => total + Number(value ?? 0), 0);
+}
+
+function resourceWorkflowDefaultReason(action) {
+  return {
+    spend: "Resource Spend",
+    restore: "Resource Restore",
+    adjust: "Resource Adjustment",
+    scene: "Scene Passage",
+    goingToWork: "Going to Work"
+  }[action] ?? "Resource Change";
 }
 
 async function showCharacterCreationValidation(errors) {

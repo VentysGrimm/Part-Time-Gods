@@ -24,16 +24,17 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
         fragments: resourceField(0),
         pantheon: resourceField(0),
         spark: new fields.NumberField({ integer: true, min: 1, initial: 1 }),
-        freeTime: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
+        freeTime: new fields.NumberField({ integer: true, initial: 0 }),
         freeTimeMax: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
-        wealth: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
+        wealth: new fields.NumberField({ integer: true, initial: 0 }),
         wealthMax: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
         occupationFreeTime: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
         occupationWealth: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
         legendaryActs: new fields.StringField({ initial: "" }),
         xpGained: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
         xpSpent: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
-        xpPurchases: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] })
+        xpPurchases: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] }),
+        resourceLog: new fields.ArrayField(new fields.ObjectField({ initial: {} }), { initial: [] })
       }),
 
       derived: new fields.SchemaField({

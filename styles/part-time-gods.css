@@ -1168,13 +1168,13 @@
 
 .ptg-track {
   display: grid !important;
-  grid-template-columns: minmax(90px, 1fr) 62px 78px;
+  grid-template-columns: minmax(90px, 1fr) 62px 78px 84px;
   gap: 6px;
   align-items: end;
 }
 
 .ptg-track em {
-  grid-column: 3;
+  grid-column: 4;
   color: #4e3971;
   font-size: 11px;
   font-style: normal;
@@ -1184,6 +1184,16 @@
 .ptg-track input,
 .ptg-track strong {
   text-align: center;
+}
+
+.ptg-track button,
+.ptg-resource-work {
+  min-height: 28px;
+  white-space: nowrap;
+}
+
+.ptg-resource-work {
+  width: 100%;
 }
 
 .ptg-identity-strip {

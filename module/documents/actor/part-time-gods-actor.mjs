@@ -66,6 +66,122 @@ export class PartTimeGodsActor extends Actor {
     return true;
   }
 
+  async adjustDowntimeResources({
+    action = "adjust",
+    freeTimeDelta = 0,
+    wealthDelta = 0,
+    reason = "",
+    notes = "",
+    allowNegative = false,
+    capAtMax = false
+  } = {}) {
+    if (this.type !== "character") return false;
+
+    const resources = this.system.resources ?? {};
+    const before = {
+      freeTime: Number(resources.freeTime ?? 0),
+      wealth: Number(resources.wealth ?? 0)
+    };
+    const max = {
+      freeTime: Number(resources.freeTimeMax ?? 0),
+      wealth: Number(resources.wealthMax ?? 0)
+    };
+    const requestedDeltas = {
+      freeTime: Number(freeTimeDelta ?? 0),
+      wealth: Number(wealthDelta ?? 0)
+    };
+    const after = {
+      freeTime: before.freeTime + requestedDeltas.freeTime,
+      wealth: before.wealth + requestedDeltas.wealth
+    };
+
+    if (capAtMax) {
+      after.freeTime = Math.min(after.freeTime, max.freeTime);
+      after.wealth = Math.min(after.wealth, max.wealth);
+    }
+
+    if (!allowNegative && (after.freeTime < 0 || after.wealth < 0)) {
+      ui.notifications.warn("Free Time and Wealth cannot go below 0 without an override.");
+      return false;
+    }
+
+    const deltas = {
+      freeTime: after.freeTime - before.freeTime,
+      wealth: after.wealth - before.wealth
+    };
+
+    const nextLog = [
+      ...(Array.isArray(resources.resourceLog) ? resources.resourceLog : []),
+      {
+        order: (Array.isArray(resources.resourceLog) ? resources.resourceLog.length : 0) + 1,
+        action,
+        reason,
+        notes,
+        actorUuid: this.uuid,
+        actorName: this.name,
+        delta: deltas,
+        before,
+        after,
+        allowNegative: Boolean(allowNegative),
+        capAtMax: Boolean(capAtMax),
+        createdAt: new Date().toISOString()
+      }
+    ].slice(-100);
+
+    await this.update({
+      "system.resources.freeTime": Math.max(allowNegative ? Number.MIN_SAFE_INTEGER : 0, after.freeTime),
+      "system.resources.wealth": Math.max(allowNegative ? Number.MIN_SAFE_INTEGER : 0, after.wealth),
+      "system.resources.resourceLog": nextLog
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this }),
+      content: `
+        <div class="ptg-chat-card">
+          <h3>${escapeHTML(resourceActionLabel(action))}</h3>
+          <div><strong>Actor:</strong> ${escapeHTML(this.name)}</div>
+          <div><strong>Reason:</strong> ${escapeHTML(reason || resourceActionLabel(action))}</div>
+          <div><strong>Free Time:</strong> ${before.freeTime} ${signedNumber(deltas.freeTime)} = ${after.freeTime}</div>
+          <div><strong>Wealth:</strong> ${before.wealth} ${signedNumber(deltas.wealth)} = ${after.wealth}</div>
+          ${notes ? `<div><strong>Notes:</strong> ${escapeHTML(notes)}</div>` : ""}
+          ${allowNegative ? "<div><strong>Override:</strong> Negative values allowed.</div>" : ""}
+        </div>
+      `
+    });
+
+    return true;
+  }
+
+  async goToWork({ freeTimeGain = null, wealthGain = null, notes = "", allowExceedMax = false } = {}) {
+    const resources = this.system.resources ?? {};
+    const occupationFreeTime = Number(resources.occupationFreeTime ?? 0);
+    const occupationWealth = Number(resources.occupationWealth ?? 0);
+    const currentFreeTime = Number(resources.freeTime ?? 0);
+    const currentWealth = Number(resources.wealth ?? 0);
+    const freeTimeMax = Math.max(Number(resources.freeTimeMax ?? 0), occupationFreeTime);
+    const wealthMax = Math.max(Number(resources.wealthMax ?? 0), occupationWealth);
+    const targetFreeTime = allowExceedMax
+      ? currentFreeTime + Number(freeTimeGain ?? occupationFreeTime)
+      : Math.min(freeTimeMax, currentFreeTime + Number(freeTimeGain ?? occupationFreeTime));
+    const targetWealth = allowExceedMax
+      ? currentWealth + Number(wealthGain ?? occupationWealth)
+      : Math.min(wealthMax, currentWealth + Number(wealthGain ?? occupationWealth));
+
+    await this.update({
+      "system.resources.freeTimeMax": freeTimeMax,
+      "system.resources.wealthMax": wealthMax
+    });
+
+    return this.adjustDowntimeResources({
+      action: "goingToWork",
+      freeTimeDelta: targetFreeTime - currentFreeTime,
+      wealthDelta: targetWealth - currentWealth,
+      reason: "Going to Work",
+      notes,
+      capAtMax: !allowExceedMax
+    });
+  }
+
   async applyChoice(item, options = {}) {
     if (!["occupation", "archetype", "domain", "theology"].includes(item.type)) return false;
 
@@ -1196,6 +1312,22 @@ function syncDerivedPool(updates, system, resource, skill, spark) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(Number(value ?? max), min), max);
+}
+
+function signedNumber(value) {
+  const number = Number(value ?? 0);
+  return `${number >= 0 ? "+" : ""}${number}`;
+}
+
+function resourceActionLabel(action) {
+  return {
+    spend: "Resource Spend",
+    restore: "Resource Restore",
+    adjust: "Resource Adjustment",
+    scene: "Scene Passage",
+    session: "Session Resource Helper",
+    goingToWork: "Going to Work"
+  }[action] ?? "Resource Change";
 }
 
 function normalizeResourceName(resource) {
