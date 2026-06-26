@@ -9,6 +9,7 @@ const COLUMNS = PLAY_GRID_SIZE + LABEL_BAND_SIZE;
 const ROWS = PLAY_GRID_SIZE + LABEL_BAND_SIZE;
 const WIDTH = COLUMNS * GRID_SIZE;
 const HEIGHT = ROWS * GRID_SIZE;
+const TERRITORY_DATA_VERSION = 1;
 
 const SHEET_BACKGROUND = "#f4f0e8";
 const SHEET_INK = "#1f1a17";
@@ -17,7 +18,11 @@ export function getPremadeScenes() {
   return [getGodTerritorySceneData()];
 }
 
-export function getGodTerritorySceneData({ authorId = getAuthorId(), name = TERRITORY_SCENE_NAME } = {}) {
+export function getGodTerritorySceneData({
+  authorId = getAuthorId(),
+  name = TERRITORY_SCENE_NAME,
+  territoryData = createTerritoryData()
+} = {}) {
   return {
     name,
     active: false,
@@ -50,7 +55,8 @@ export function getGodTerritorySceneData({ authorId = getAuthorId(), name = TERR
         source: "Part-Time Gods 2E PDF p. 283 territory grid",
         columns: PLAY_GRID_SIZE,
         rows: PLAY_GRID_SIZE,
-        labelBandSize: LABEL_BAND_SIZE
+        labelBandSize: LABEL_BAND_SIZE,
+        territory: territoryData
       }
     }
   };
@@ -67,7 +73,11 @@ export async function importGodTerritoryScene({ notify = true, activate = false 
   );
 
   if (existing) {
-    await updateExistingTerritoryScene(existing, getGodTerritorySceneData({ authorId: game.user.id }));
+    const existingTerritoryData = existing.getFlag(SYSTEM_ID, "territory");
+    await updateExistingTerritoryScene(existing, getGodTerritorySceneData({
+      authorId: game.user.id,
+      territoryData: mergeTerritoryData(existingTerritoryData)
+    }));
     if (notify) ui.notifications.info("Updated the God Territory Grid Scene.");
     if (activate) await existing.activate();
     return existing;
@@ -79,6 +89,67 @@ export async function importGodTerritoryScene({ notify = true, activate = false 
   if (notify) ui.notifications.info("Created the God Territory Grid Scene.");
 
   return scene;
+}
+
+function createTerritoryData() {
+  const coordinates = {};
+
+  for (let row = 1; row <= PLAY_GRID_SIZE; row += 1) {
+    for (let column = 1; column <= PLAY_GRID_SIZE; column += 1) {
+      const key = coordinateKey(column, row);
+      coordinates[key] = createTerritoryCoordinate(column, row);
+    }
+  }
+
+  return {
+    version: TERRITORY_DATA_VERSION,
+    width: PLAY_GRID_SIZE,
+    height: PLAY_GRID_SIZE,
+    keyFormat: "column-row",
+    coordinates
+  };
+}
+
+function mergeTerritoryData(existingData) {
+  const territoryData = createTerritoryData();
+  const existingCoordinates = existingData?.coordinates ?? {};
+
+  for (const [key, coordinate] of Object.entries(territoryData.coordinates)) {
+    territoryData.coordinates[key] = {
+      ...coordinate,
+      ...(existingCoordinates[key] ?? {})
+    };
+  }
+
+  return {
+    ...territoryData,
+    ...(existingData ?? {}),
+    version: TERRITORY_DATA_VERSION,
+    width: PLAY_GRID_SIZE,
+    height: PLAY_GRID_SIZE,
+    keyFormat: "column-row",
+    coordinates: territoryData.coordinates
+  };
+}
+
+function createTerritoryCoordinate(column, row) {
+  return {
+    key: coordinateKey(column, row),
+    label: `${column}-${row}`,
+    column,
+    row,
+    pointOfInterest: "",
+    notes: "",
+    gmSecret: "",
+    bonds: [],
+    followers: [],
+    actors: [],
+    items: []
+  };
+}
+
+function coordinateKey(column, row) {
+  return `${column}-${row}`;
 }
 
 async function updateExistingTerritoryScene(scene, sceneData) {
