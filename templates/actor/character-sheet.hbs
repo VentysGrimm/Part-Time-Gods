@@ -313,7 +313,10 @@
               <td>{{item.system.group}}</td>
               <td>{{item.system.level}}</td>
               <td>{{item.system.strain.value}}</td>
-              <td><button type="button" data-item-action="edit">Edit</button></td>
+              <td>
+                <button type="button" data-item-action="use">Use</button>
+                <button type="button" data-item-action="edit">Edit</button>
+              </td>
             </tr>
           {{/each}}
           {{#each inventory.vassals as |item|}}
@@ -323,7 +326,10 @@
               <td>{{item.system.concept}}</td>
               <td>{{item.system.level}}</td>
               <td>{{item.system.loyalty}}</td>
-              <td><button type="button" data-item-action="edit">Edit</button></td>
+              <td>
+                <button type="button" data-item-action="use">Use</button>
+                <button type="button" data-item-action="edit">Edit</button>
+              </td>
             </tr>
           {{/each}}
         </tbody>
@@ -339,6 +345,7 @@
             <div class="ptg-mini-item" data-item-id="{{item.id}}">
               <span>{{item.name}}</span>
               <span>Level {{item.system.level}}</span>
+              <button type="button" data-item-action="use">Use</button>
               <button type="button" data-item-action="edit">Edit</button>
             </div>
           {{/each}}

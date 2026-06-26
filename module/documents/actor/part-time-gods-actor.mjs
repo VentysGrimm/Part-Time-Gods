@@ -193,6 +193,9 @@ export class PartTimeGodsActor extends Actor {
       if (!spent) return false;
     }
 
+    const costResults = await this.#spendUsageCosts(item);
+    if (costResults === false) return false;
+
     if (item.type === "weapon") {
       const difficulty = 1;
       await this.rollSkillCombo("fighting", "might", {
@@ -211,10 +214,14 @@ export class PartTimeGodsActor extends Actor {
     const automationResults = item.system.automation?.enabled
       ? await this.#applyItemAutomation(item)
       : [];
+    const results = [
+      ...costResults,
+      ...automationResults
+    ];
 
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      content: await this.#renderItemUseCard({ item, results: automationResults })
+      content: await this.#renderItemUseCard({ item, results })
     });
 
     return true;
@@ -272,6 +279,39 @@ export class PartTimeGodsActor extends Actor {
     }
 
     return result;
+  }
+
+  async #spendUsageCosts(item) {
+    const costs = Object.entries(item.system.usage?.cost ?? {})
+      .map(([resource, amount]) => ({
+        resource: normalizeResourceName(resource),
+        amount: Number(amount ?? 0)
+      }))
+      .filter(cost => cost.amount > 0);
+
+    if (!costs.length) return [];
+
+    for (const cost of costs) {
+      const current = actorResource(this, cost.resource);
+      if (!current) continue;
+
+      if (current.value < cost.amount) {
+        ui.notifications.warn(`Not enough ${resourceLabel(cost.resource)}.`);
+        return false;
+      }
+    }
+
+    const results = [];
+
+    for (const cost of costs) {
+      const current = actorResource(this, cost.resource);
+      if (!current) continue;
+
+      await this.spendResource(cost.resource, cost.amount);
+      results.push(`${resourceLabel(cost.resource)} -${cost.amount}.`);
+    }
+
+    return results;
   }
 
   async #applyItemAutomation(item) {
