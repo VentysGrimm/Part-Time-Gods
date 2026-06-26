@@ -107,14 +107,14 @@ export async function openTerritoryControls({ scene = getTerritoryScene() } = {}
   const selection = await selectTerritoryAction({ scene, territoryData });
   if (!selection) return null;
 
-  const updatedTerritoryData = applyTerritoryAction(territoryData, selection);
-  await scene.setFlag(SYSTEM_ID, "territory", updatedTerritoryData);
-
   const actor = selection.actorUuid ? await fromUuid(selection.actorUuid) : null;
-  if (actor?.setFlag && selection.to) await actor.setFlag(SYSTEM_ID, "territoryCoordinate", selection.to);
   const costResults = actor && selection.action === "move" && selection.applyCosts
     ? await applyTerritoryCosts(actor, selection)
     : [];
+  const updatedTerritoryData = applyTerritoryAction(territoryData, selection, { actor, costResults });
+  await scene.setFlag(SYSTEM_ID, "territory", updatedTerritoryData);
+
+  if (actor?.setFlag && selection.to) await actor.setFlag(SYSTEM_ID, "territoryCoordinate", selection.to);
 
   await postTerritoryActionCard({ actor, scene, selection, territoryData: updatedTerritoryData, costResults });
   ui.notifications.info("Updated Territory Grid data.");
@@ -247,18 +247,25 @@ async function selectTerritoryAction({ scene, territoryData }) {
       </div>
       <div class="ptg-item-fields two">
         <div class="form-group">
-          <label>Free Time Cost or Note</label>
-          <input type="text" name="freeTimeCost" value="GM sets by table distance and fiction">
+          <label>Free Time Cost</label>
+          <input type="number" name="freeTimeCost" value="0" min="0">
         </div>
         <div class="form-group">
-          <label>Wealth Cost or Note</label>
-          <input type="text" name="wealthCost" value="GM sets by travel method and access">
+          <label>Wealth Cost</label>
+          <input type="number" name="wealthCost" value="0" min="0">
         </div>
       </div>
       <label class="ptg-checkbox">
         <span>Apply numeric Free Time and Wealth costs to linked actor</span>
         <input type="checkbox" name="applyCosts" checked>
       </label>
+      <div class="form-group">
+        <label>Travel Notes</label>
+        <input type="text" name="travelNotes" value="" placeholder="Route, method, override reason, or fiction">
+      </div>
+      <div class="ptg-territory-summary" data-influence-preview>
+        ${territoryInfluencePreview(coordinates[0])}
+      </div>
       <div class="ptg-item-fields two">
         <div class="form-group">
           <label>Sphere of Influence</label>
@@ -306,21 +313,30 @@ async function selectTerritoryAction({ scene, territoryData }) {
     content,
     rejectClose: false,
     modal: true,
+    render: (event, dialog) => wireTerritoryDialog(dialog.element ?? dialog, territoryData),
     ok: {
       label: "Update Territory",
       callback: (event, button) => {
         const form = button.form;
+        const to = form.elements.to?.value ?? "1-1";
+        const previousInfluence = territoryData.coordinates?.[to]?.influence ?? {};
 
         return {
           action: form.elements.action?.value ?? "move",
           actorUuid: form.elements.actorUuid?.value ?? "",
           from: form.elements.from?.value ?? "1-1",
-          to: form.elements.to?.value ?? "1-1",
-          freeTimeCost: form.elements.freeTimeCost?.value ?? "",
-          wealthCost: form.elements.wealthCost?.value ?? "",
+          to,
+          freeTimeCost: Math.max(0, Number(form.elements.freeTimeCost?.value ?? 0)),
+          wealthCost: Math.max(0, Number(form.elements.wealthCost?.value ?? 0)),
           applyCosts: form.elements.applyCosts?.checked ?? false,
+          travelNotes: form.elements.travelNotes?.value ?? "",
           sphere: form.elements.sphere?.value ?? "",
           influenceRating: Number(form.elements.influenceRating?.value ?? 0),
+          previousInfluence: {
+            sphere: previousInfluence.sphere ?? "",
+            rating: Number(previousInfluence.rating ?? 0),
+            notes: previousInfluence.notes ?? ""
+          },
           manifestationModifier: Number(form.elements.manifestationModifier?.value ?? 0),
           manifestationNote: form.elements.manifestationNote?.value ?? "",
           pointOfInterest: form.elements.pointOfInterest?.value ?? "",
@@ -332,13 +348,41 @@ async function selectTerritoryAction({ scene, territoryData }) {
   });
 }
 
-function applyTerritoryAction(territoryData, selection) {
+function wireTerritoryDialog(element, territoryData) {
+  const root = element instanceof HTMLElement ? element : element?.querySelector?.(".ptg-territory-dialog")?.closest("form");
+  const form = root?.querySelector?.("form") ?? root;
+  if (!form?.elements) return;
+
+  const preview = form.querySelector("[data-influence-preview]");
+  const updatePreview = () => {
+    if (!preview) return;
+    preview.innerHTML = territoryInfluencePreview(territoryData.coordinates?.[form.elements.to?.value]);
+  };
+
+  form.elements.to?.addEventListener("change", updatePreview);
+  updatePreview();
+}
+
+function territoryInfluencePreview(coordinate) {
+  const influence = coordinate?.influence ?? {};
+  const sphere = influence.sphere || "None";
+  const rating = Number(influence.rating ?? 0);
+  const notes = influence.notes ? `; ${escapeHTML(influence.notes)}` : "";
+  return `<strong>Current Influence at ${escapeHTML(coordinate?.label ?? coordinate?.key ?? "")}</strong><span>${escapeHTML(sphere)} (${rating})${notes}</span>`;
+}
+
+function applyTerritoryAction(territoryData, selection, { actor = null, costResults = [] } = {}) {
   const coordinates = territoryData.coordinates ?? {};
   const from = coordinates[selection.from];
   const to = coordinates[selection.to];
   const actorRef = selection.actorUuid ? { uuid: selection.actorUuid } : null;
 
   if (selection.action === "move" && from && to) {
+    const previousMovements = territoryData.movements ?? [];
+    const costApplied = costResults.length
+      ? costResults.every(result => result.spent)
+      : Boolean(selection.applyCosts);
+
     if (actorRef) {
       from.actors = withoutUuid(from.actors, actorRef.uuid);
       to.actors = withUniqueUuid(to.actors, actorRef);
@@ -349,15 +393,23 @@ function applyTerritoryAction(territoryData, selection) {
     }
 
     territoryData.movements = [
-      ...(territoryData.movements ?? []),
+      ...previousMovements,
       {
+        order: previousMovements.length + 1,
         actorUuid: selection.actorUuid || null,
+        actorName: actor?.name ?? "",
+        actorType: actor?.type ?? "",
         from: selection.from,
         to: selection.to,
-        freeTimeCost: selection.freeTimeCost,
-        wealthCost: selection.wealthCost,
-        costsApplied: Boolean(selection.applyCosts),
-        notes: selection.notes,
+        cost: {
+          freeTime: Number(selection.freeTimeCost ?? 0),
+          wealth: Number(selection.wealthCost ?? 0),
+          requested: Boolean(selection.applyCosts),
+          applied: costApplied,
+          results: costResults
+        },
+        costsApplied: costApplied,
+        notes: selection.travelNotes || selection.notes,
         createdAt: new Date().toISOString()
       }
     ].slice(-50);
@@ -399,8 +451,8 @@ function withoutUuid(entries, uuid) {
 async function applyTerritoryCosts(actor, selection) {
   const results = [];
   const costs = {
-    freeTime: numericCost(selection.freeTimeCost),
-    wealth: numericCost(selection.wealthCost)
+    freeTime: Number(selection.freeTimeCost ?? 0),
+    wealth: Number(selection.wealthCost ?? 0)
   };
 
   for (const [resource, amount] of Object.entries(costs)) {
@@ -408,11 +460,21 @@ async function applyTerritoryCosts(actor, selection) {
 
     if (actor.spendResource) {
       const spent = await actor.spendResource(resource, amount);
-      results.push(spent
-        ? `${actor.name}: spent ${amount} ${resourceLabel(resource)}.`
-        : `${actor.name}: could not spend ${amount} ${resourceLabel(resource)}.`);
+      results.push({
+        resource,
+        amount,
+        spent,
+        message: spent
+          ? `${actor.name}: spent ${amount} ${resourceLabel(resource)}.`
+          : `${actor.name}: could not spend ${amount} ${resourceLabel(resource)}.`
+      });
     } else {
-      results.push(`${actor.name}: ${amount} ${resourceLabel(resource)} cost recorded; actor cannot spend resources automatically.`);
+      results.push({
+        resource,
+        amount,
+        spent: false,
+        message: `${actor.name}: ${amount} ${resourceLabel(resource)} cost recorded; actor cannot spend resources automatically.`
+      });
     }
   }
 
@@ -431,21 +493,18 @@ async function postTerritoryActionCard({ actor, scene, selection, territoryData,
         <div><strong>Scene:</strong> ${escapeHTML(scene.name)}</div>
         ${actor ? `<div><strong>Actor:</strong> ${escapeHTML(actor.name)}</div>` : ""}
         <div><strong>From:</strong> ${escapeHTML(selection.from)} <strong>To:</strong> ${escapeHTML(selection.to)}</div>
-        <div><strong>Free Time:</strong> ${escapeHTML(selection.freeTimeCost || "GM note")}</div>
-        <div><strong>Wealth:</strong> ${escapeHTML(selection.wealthCost || "GM note")}</div>
-        ${costResults.length ? `<ul>${costResults.map(result => `<li>${escapeHTML(result)}</li>`).join("")}</ul>` : ""}
+        <div><strong>Free Time Cost:</strong> ${Number(selection.freeTimeCost ?? 0)}</div>
+        <div><strong>Wealth Cost:</strong> ${Number(selection.wealthCost ?? 0)}</div>
+        ${costResults.length ? `<ul>${costResults.map(result => `<li>${escapeHTML(result.message ?? result)}</li>`).join("")}</ul>` : ""}
+        ${selection.travelNotes ? `<div><strong>Travel:</strong> ${escapeHTML(selection.travelNotes)}</div>` : ""}
         ${target?.pointOfInterest ? `<div><strong>Point of Interest:</strong> ${escapeHTML(target.pointOfInterest)}</div>` : ""}
+        ${selection.action === "influence" ? `<div><strong>Previous Influence:</strong> ${escapeHTML(selection.previousInfluence?.sphere || "None")} (${Number(selection.previousInfluence?.rating ?? 0)})</div>` : ""}
         ${target?.influence?.sphere ? `<div><strong>Influence:</strong> ${escapeHTML(target.influence.sphere)} (${Number(target.influence.rating ?? 0)})</div>` : ""}
         ${target?.manifestation ? `<div><strong>Manifestation Modifier:</strong> ${Number(target.manifestation.modifier ?? 0)} ${escapeHTML(target.manifestation.notes ?? "")}</div>` : ""}
         ${selection.notes ? `<div><strong>Notes:</strong> ${escapeHTML(selection.notes)}</div>` : ""}
       </div>
     `
   });
-}
-
-function numericCost(value) {
-  const match = String(value ?? "").match(/-?\d+/);
-  return Math.max(0, Number(match?.[0] ?? 0));
 }
 
 function resourceLabel(resource) {
