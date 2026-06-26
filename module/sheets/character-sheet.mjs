@@ -180,21 +180,26 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       boostChoice: selection.boostChoice
     });
 
-    if (outcome.criticalFailure) await postManifestationBacklashSummary(this.actor, selection);
-
-    await postManifestationMeasureSummary(this.actor, outcome, selection);
+    if (outcome.criticalFailure) {
+      await postManifestationBacklashSummary(this.actor, selection);
+    } else if (outcome.passed) {
+      const measures = await selectManifestationMeasureSpending(outcome, selection);
+      if (measures === false) return;
+      await postManifestationMeasureSummary(this.actor, outcome, selection, measures);
+    }
 
     if (selection.resistance.enabled) {
       const resistor = Array.from(game.user?.targets ?? [])
         .map(token => token.actor)
         .find(actor => actor?.rollSkillCombo) ?? this.actor;
 
-      await resistor.rollSkillCombo(selection.resistance.primary, selection.resistance.secondary, {
+      const resistanceOutcome = await resistor.rollSkillCombo(selection.resistance.primary, selection.resistance.secondary, {
         difficulty: outcome.successes,
         modifierDetails: selection.resistance.modifierDetails,
         checkMode: "opposed",
         flavor: `${resistor.name}: Resist ${CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation}`
       });
+      await postManifestationResistanceSummary(this.actor, resistor, outcome, resistanceOutcome, selection);
     }
 
     if (selection.ritual.kind !== "none") await postManifestationRitualSummary(this.actor, selection);
@@ -2217,12 +2222,73 @@ function sparkTruthItem(name, spark) {
   };
 }
 
-async function postManifestationMeasureSummary(actor, outcome, selection) {
+async function selectManifestationMeasureSpending(outcome, selection) {
+  const successes = Math.max(0, Number(outcome.successes ?? 0));
+  if (!successes) return null;
+
+  const entries = Object.entries(CONFIG.PTG.measureOptions ?? {});
+  const selectedMeasure = selection.measure ?? "detail";
+  const content = `
+    <div class="ptg-advancement-dialog">
+      <p class="ptg-sheet-note">${successes} success${successes === 1 ? "" : "es"} available for Measures.</p>
+      <div class="ptg-creator-budget-grid">
+        ${entries.map(([key, label]) => `
+          <label>
+            <span>${escapeHTML(label)}</span>
+            <input type="number" name="measure.${escapeHTML(key)}" value="${key === selectedMeasure ? Math.min(1, successes) : 0}" min="0" max="${successes}">
+          </label>
+        `).join("")}
+      </div>
+      <div class="form-group">
+        <label>Measure Notes</label>
+        <textarea name="measureNotes" rows="4">${escapeHTML(selection.measureNotes ?? "")}</textarea>
+      </div>
+    </div>
+  `;
+
+  const spending = await DialogV2.prompt({
+    window: { title: "Spend Manifestation Measures" },
+    content,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Post Measures",
+      callback: (event, button) => {
+        const spent = Object.fromEntries(entries.map(([key]) => [
+          key,
+          Math.max(0, Number(button.form.elements[`measure.${key}`]?.value ?? 0))
+        ]));
+        const total = Object.values(spent).reduce((sum, value) => sum + Number(value ?? 0), 0);
+        return {
+          spent,
+          total,
+          remaining: Math.max(0, successes - total),
+          notes: button.form.elements.measureNotes?.value?.trim() ?? ""
+        };
+      }
+    }
+  });
+
+  if (spending === null || spending === undefined) return false;
+
+  if (spending.total > successes) {
+    ui.notifications.warn(`Measures spent (${spending.total}) cannot exceed successes available (${successes}).`);
+    return false;
+  }
+
+  return spending;
+}
+
+async function postManifestationMeasureSummary(actor, outcome, selection, measures) {
   if (!outcome?.passed || Number(outcome.successes ?? 0) <= 0) return;
 
   const measureLabel = CONFIG.PTG.measureOptions?.[selection.measure] ?? selection.measure ?? "Effect Detail";
   const options = Object.entries(CONFIG.PTG.measureOptions ?? {})
-    .map(([, label]) => `<li>${escapeHTML(label)}</li>`)
+    .map(([key, label]) => {
+      const count = Number(measures?.spent?.[key] ?? 0);
+      return count > 0 ? `<li>${escapeHTML(label)}: ${count}</li>` : "";
+    })
+    .filter(Boolean)
     .join("");
 
   await ChatMessage.create({
@@ -2233,23 +2299,79 @@ async function postManifestationMeasureSummary(actor, outcome, selection) {
         <div>Successes Available: ${Number(outcome.successes ?? 0)}</div>
         <div>Difficulty Margin: ${Number(outcome.margin ?? 0)}</div>
         <div>Selected Focus: ${escapeHTML(measureLabel)}</div>
-        ${selection.measureNotes ? `<div>Notes: ${escapeHTML(selection.measureNotes)}</div>` : ""}
+        <div>Measures Spent: ${Number(measures?.total ?? 0)}</div>
+        <div>Unspent Successes: ${Number(measures?.remaining ?? outcome.successes ?? 0)}</div>
+        ${measures?.notes ? `<div>Notes: ${escapeHTML(measures.notes)}</div>` : ""}
         ${selection.boostChoice ? `<div>Planned Boost: ${escapeHTML(selection.boostChoice)}</div>` : ""}
-        <div>Common Measure Categories</div>
-        <ul>${options}</ul>
+        ${options ? `<div>Chosen Measures</div><ul>${options}</ul>` : "<div>No Measures assigned; successes remain available for table rulings.</div>"}
         <div>Spend successes on effect Measures such as damage, range, targets, duration, scale, or narrative detail. Any resistance roll should be compared against this Manifestation's successes.</div>
       </div>
     `
   });
 }
 
+async function postManifestationResistanceSummary(actor, resistor, manifestationOutcome, resistanceOutcome, selection) {
+  const manifestationSuccesses = Number(manifestationOutcome.successes ?? 0);
+  const resistanceSuccesses = Number(resistanceOutcome.successes ?? 0);
+  const resisted = resistanceSuccesses >= manifestationSuccesses;
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `
+      <div class="ptg-chat-card">
+        <h3>${escapeHTML(CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation)} Resistance</h3>
+        <div>Manifestation Successes: ${manifestationSuccesses}</div>
+        <div>Resistor: ${escapeHTML(resistor.name)}</div>
+        <div>Resistance Roll: ${escapeHTML(skillComboLabel(selection.resistance.primary, selection.resistance.secondary))}</div>
+        <div>Resistance Successes: ${resistanceSuccesses}</div>
+        <strong>${resisted ? "Resistance Holds" : "Manifestation Overcomes Resistance"}</strong>
+      </div>
+    `
+  });
+}
+
 async function postManifestationBacklashSummary(actor, selection) {
+  const consequence = await DialogV2.prompt({
+    window: { title: "Manifestation Backlash" },
+    content: `
+      <div class="ptg-advancement-dialog">
+        <div class="form-group">
+          <label>Backlash Result</label>
+          <select name="result">
+            <option value="Unintended divine effect">Unintended divine effect</option>
+            <option value="Condition">Condition</option>
+            <option value="Collateral damage">Collateral damage</option>
+            <option value="Attachment Strain">Attachment Strain</option>
+            <option value="Lost time or resources">Lost time or resources</option>
+            <option value="Dominion consequence">Dominion consequence</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea name="notes" rows="4" placeholder="GM consequence, affected target, Condition, Strain, or scene change"></textarea>
+        </div>
+      </div>
+    `,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Post Backlash",
+      callback: (event, button) => ({
+        result: button.form.elements.result?.value ?? "Custom",
+        notes: button.form.elements.notes?.value?.trim() ?? ""
+      })
+    }
+  });
+
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content: `
       <div class="ptg-chat-card">
         <h3>${escapeHTML(CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation)} Backlash</h3>
         <div>The Manifestation critically failed. Apply Backlash according to the power, scene stakes, and GM ruling.</div>
+        ${consequence?.result ? `<div>Selected Result: ${escapeHTML(consequence.result)}</div>` : ""}
+        ${consequence?.notes ? `<div>Notes: ${escapeHTML(consequence.notes)}</div>` : ""}
         <div>Common results include unintended divine effects, Conditions, collateral damage, Attachment Strain, lost time, resistance complications, or consequences tied to the Dominion.</div>
         ${selection.ritual.kind !== "none" ? `<div>Ritual Context: ${escapeHTML(ritualLabel(selection.ritual.kind))}${selection.ritual.requirement ? `; ${escapeHTML(selection.ritual.requirement)}` : ""}</div>` : ""}
       </div>
