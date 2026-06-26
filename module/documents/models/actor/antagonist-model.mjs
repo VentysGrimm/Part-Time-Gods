@@ -18,6 +18,7 @@ export class PTGAntagonistData extends foundry.abstract.TypeDataModel {
       damage: new fields.NumberField({ integer: true, min: 0, initial: 1 }),
       skills: new fields.StringField({ initial: "" }),
       powers: new fields.HTMLField({ initial: "" }),
+      conditionHandling: new fields.StringField({ initial: "" }),
       sourcePage: new fields.NumberField({ integer: true, min: 0, nullable: true, initial: null }),
       description: new fields.HTMLField({ initial: "" }),
       notes: new fields.HTMLField({ initial: "" })

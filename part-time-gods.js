@@ -27,6 +27,7 @@ import { PTGItemSheet } from "./module/sheets/item-sheet.mjs";
 import { PTGDiceEngine } from "./module/dice/ptg-dice-engine.mjs";
 import { PTG_PREMADE_ITEMS, importPremadeItems } from "./module/data/premade-items.mjs";
 import { PTG_PREMADE_CHOICES, importPremadeChoices } from "./module/data/premade-choices.mjs";
+import { openAntagonistBuilder } from "./module/data/premade-actors.mjs";
 import { populatePremadeCompendiums } from "./module/data/premade-compendiums.mjs";
 import { getPremadeJournals, importRulesJournals } from "./module/data/premade-journals.mjs";
 import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
@@ -54,6 +55,7 @@ Hooks.once("init", async () => {
     openTerritoryControls,
     openPTGCombatControls,
     rollPTGInitiative,
+    openAntagonistBuilder,
     populatePremadeCompendiums
   };
 
@@ -189,6 +191,11 @@ Hooks.on("chatMessage", (chatLog, message) => {
     return false;
   }
 
+  if (message === "/ptg-antagonist-builder") {
+    openAntagonistBuilder();
+    return false;
+  }
+
   if (message === "/ptg-import-rules-journals") {
     importRulesJournals();
     return false;
@@ -196,7 +203,7 @@ Hooks.on("chatMessage", (chatLog, message) => {
 
   if (message !== "/ptg") return true;
 
-  ui.notifications.info("Part-Time Gods 2E loaded. Use /ptg-create-territory-scene, /ptg-territory, /ptg-combat, or /ptg-import-rules-journals for world setup.");
+  ui.notifications.info("Part-Time Gods 2E loaded. Use /ptg-create-territory-scene, /ptg-territory, /ptg-combat, /ptg-antagonist-builder, or /ptg-import-rules-journals for world setup.");
   return false;
 });
 
