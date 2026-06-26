@@ -76,6 +76,10 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       button.addEventListener("click", event => this.#onItemAction(event.currentTarget));
     }
 
+    for (const button of this.element.querySelectorAll("[data-ritual-action]")) {
+      button.addEventListener("click", event => this.#postRitualCard(event.currentTarget.dataset.ritualAction));
+    }
+
     this.element.querySelector("[data-character-creator]")?.addEventListener("click", () => this.#openCharacterCreator());
   }
 
@@ -156,6 +160,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       checkMode: "manifestation"
     });
 
+    if (outcome.criticalFailure) await postManifestationBacklashSummary(this.actor, selection);
+
     await postManifestationMeasureSummary(this.actor, outcome, selection);
 
     if (selection.resistance.enabled) {
@@ -168,6 +174,25 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         flavor: `${resistor.name}: Resist ${CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation}`
       });
     }
+  }
+
+  async #postRitualCard(kind) {
+    const labels = {
+      territory: "Territory Ritual",
+      spark: "Spark Ritual",
+      otherworldly: "Otherworldly Ritual"
+    };
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="ptg-chat-card">
+          <h3>${escapeHTML(labels[kind] ?? "Ritual")}</h3>
+          <div>${escapeHTML(this.actor.name)} begins a ${escapeHTML((labels[kind] ?? "ritual").toLowerCase())}.</div>
+          <div>Use this card to record requirements, participants, costs, rolls, and GM rulings. Territory map mechanics are not automated in this slice.</div>
+        </div>
+      `
+    });
   }
 
   #prepareInventory() {
@@ -819,6 +844,19 @@ async function postManifestationMeasureSummary(actor, outcome, selection) {
         ${selection.measureNotes ? `<div>Notes: ${escapeHTML(selection.measureNotes)}</div>` : ""}
         <div>Common Measure Categories</div>
         <ul>${options}</ul>
+      </div>
+    `
+  });
+}
+
+async function postManifestationBacklashSummary(actor, selection) {
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `
+      <div class="ptg-chat-card">
+        <h3>${escapeHTML(CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation)} Backlash</h3>
+        <div>The Manifestation critically failed. Apply Backlash according to the power, scene stakes, and GM ruling.</div>
+        <div>Common results include unintended divine effects, Conditions, collateral damage, Strain, lost time, or complications tied to the Dominion.</div>
       </div>
     `
   });
