@@ -752,13 +752,22 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     const content = `
       <div class="ptg-creator-dialog">
+        <nav class="ptg-creator-steps" aria-label="Character creator steps">
+          ${["Occupation", "Archetype", "Dominion", "Theology", "Attachments", "Final Touches"].map((label, index) => `
+            <button type="button" data-creator-step-button="${index}" class="${index === 0 ? "active" : ""}">
+              <span>${index + 1}</span>
+              <strong>${escapeHTML(label)}</strong>
+            </button>
+          `).join("")}
+        </nav>
+        <div class="ptg-creator-body">
         ${types.map((type, index) => {
           const current = identity[identityKeys[type]] || "";
           const options = choices[type] ?? [];
           const isOccupation = type === "occupation";
 
           return `
-            <fieldset>
+            <fieldset data-creator-step="${index}" ${index === 0 ? "" : "hidden"}>
               <legend>Step ${index + 1}: ${escapeHTML(creatorTypeLabel(type))}</legend>
               <select name="${type}" ${isOccupation ? "data-occupation-select" : ""}>
                 <option value="">${current ? `Keep ${escapeHTML(current)}` : `Choose ${escapeHTML(creatorTypeLabel(type))}`}</option>
@@ -781,19 +790,25 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
             </fieldset>
           `;
         }).join("")}
-        <fieldset>
+        <fieldset data-creator-step="4" hidden>
           <legend>Step 5: Attachments</legend>
           <label>Bonds <textarea name="attachments.bonds">${escapeHTML(attachments.bonds ?? "")}</textarea></label>
           <label>Worshippers <textarea name="attachments.worshippers">${escapeHTML(attachments.worshippers ?? "")}</textarea></label>
           <label>Vassals <textarea name="attachments.vassals">${escapeHTML(attachments.vassals ?? "")}</textarea></label>
         </fieldset>
-        <fieldset>
+        <fieldset data-creator-step="5" hidden>
           <legend>Step 6: Final Touches</legend>
           <label>God/dess Of <input type="text" name="identity.concept" value="${escapeHTML(identity.concept ?? "")}"></label>
           <label>Age & Ethnicity <input type="text" name="identity.ageEthnicity" value="${escapeHTML(identity.ageEthnicity ?? "")}"></label>
           <label>Specialties <textarea name="specialties">${escapeHTML(this.actor.system.specialties ?? "")}</textarea></label>
           <label>Legendary Acts <textarea name="resources.legendaryActs">${escapeHTML(resources.legendaryActs ?? "")}</textarea></label>
         </fieldset>
+        </div>
+        <footer class="ptg-creator-navigation">
+          <button type="button" data-creator-prev disabled>Previous</button>
+          <span data-creator-progress>Step 1 of 6</span>
+          <button type="button" data-creator-next>Next</button>
+        </footer>
       </div>
     `;
 
@@ -810,7 +825,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       content,
       rejectClose: false,
       modal: true,
-      render: (event, dialog) => wireOccupationCareerSelector(dialog.element ?? dialog),
+      render: (event, dialog) => wireCharacterCreatorDialog(dialog.element ?? dialog),
       ok: {
         label: "Apply Choices",
         callback: (event, button) => ({
@@ -967,6 +982,44 @@ function wireOccupationCareerSelector(element) {
   occupation.addEventListener("change", refresh);
   career.addEventListener("change", () => refreshOccupationCareerDetails(root));
   refresh();
+}
+
+function wireCharacterCreatorDialog(element) {
+  const root = element instanceof HTMLElement ? element.querySelector?.(".ptg-creator-dialog") ?? element : element?.querySelector?.(".ptg-creator-dialog");
+  if (!root) return;
+
+  wireOccupationCareerSelector(root);
+  wireCreatorWizard(root);
+}
+
+function wireCreatorWizard(root) {
+  const panels = Array.from(root.querySelectorAll("[data-creator-step]"));
+  const buttons = Array.from(root.querySelectorAll("[data-creator-step-button]"));
+  const previous = root.querySelector("[data-creator-prev]");
+  const next = root.querySelector("[data-creator-next]");
+  const progress = root.querySelector("[data-creator-progress]");
+  const body = root.querySelector(".ptg-creator-body");
+  let active = 0;
+
+  const show = step => {
+    active = Math.min(Math.max(Number(step) || 0, 0), panels.length - 1);
+
+    for (const panel of panels) panel.hidden = Number(panel.dataset.creatorStep) !== active;
+    for (const button of buttons) button.classList.toggle("active", Number(button.dataset.creatorStepButton) === active);
+
+    if (previous) previous.disabled = active <= 0;
+    if (next) next.disabled = active >= panels.length - 1;
+    if (progress) progress.textContent = `Step ${active + 1} of ${panels.length}`;
+    if (body) body.scrollTop = 0;
+  };
+
+  for (const button of buttons) {
+    button.addEventListener("click", () => show(button.dataset.creatorStepButton));
+  }
+
+  previous?.addEventListener("click", () => show(active - 1));
+  next?.addEventListener("click", () => show(active + 1));
+  show(0);
 }
 
 function refreshOccupationCareerDetails(root) {
