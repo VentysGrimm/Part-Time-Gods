@@ -295,7 +295,11 @@ export class PartTimeGodsActor extends Actor {
   }
 
   async adjustBondStrain(item, delta = 1, reason = "Bond Strain") {
-    if (!item || item.type !== "bond") return false;
+    return this.adjustAttachmentStrain(item, delta, reason);
+  }
+
+  async adjustAttachmentStrain(item, delta = 1, reason = "Attachment Strain") {
+    if (!isAttachmentItem(item)) return false;
 
     const current = Number(item.system.strain?.value ?? 0);
     const max = Math.max(0, Number(item.system.strain?.max ?? item.system.level ?? 0));
@@ -310,25 +314,64 @@ export class PartTimeGodsActor extends Actor {
   }
 
   async requestBondFavor(item) {
-    if (!item || item.type !== "bond") return false;
+    return this.requestAttachmentAction(item, "favor");
+  }
 
-    const kind = kindLabel(item.system.kind);
-    const result = await this.adjustBondStrain(item, 1, "Bond Favor Requested");
+  async requestAttachmentAction(item, action = "favor") {
+    if (!isAttachmentItem(item)) return false;
 
-    if (result) {
-      await ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor: this }),
-        content: `
-          <div class="ptg-chat-card">
-            <h3>${escapeHTML(item.name)} Favor</h3>
-            <div>Bond Type: ${escapeHTML(kind)}</div>
-            <div>${escapeHTML(this.name)} asks this Bond for help. Apply the Favor details from the Bond's rules, related bonus, or table agreement.</div>
-          </div>
-        `
-      });
+    const config = attachmentActionConfig(action, item);
+    if (!config) return false;
+    const results = [];
+
+    if (config.strainDelta) {
+      const changed = await this.adjustAttachmentStrain(item, config.strainDelta, config.reason);
+      if (!changed) return false;
+      const strain = item.system.strain ?? {};
+      results.push(`${item.name}: Strain ${Number(strain.value ?? 0)} / ${Math.max(0, Number(strain.max ?? item.system.level ?? 0))}.`);
     }
 
-    return result;
+    if (action === "lose") {
+      const failing = await this.#createFailingFromAttachment(item);
+      results.push(failing ? `${item.name} was converted into Failing: ${failing.name}.` : `${item.name} was marked as lost.`);
+    }
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this }),
+      content: `
+        <div class="ptg-chat-card">
+          <h3>${escapeHTML(item.name)} ${escapeHTML(config.title)}</h3>
+          <div>Attachment Type: ${escapeHTML(attachmentTypeLabel(item))}</div>
+          <div>${escapeHTML(config.text)}</div>
+          ${results.length ? `<ul>${results.map(result => `<li>${escapeHTML(result)}</li>`).join("")}</ul>` : ""}
+        </div>
+      `
+    });
+
+    return true;
+  }
+
+  async #createFailingFromAttachment(item) {
+    if (!item || item.type === "curse") return null;
+
+    const [failing] = await this.createEmbeddedDocuments("Item", [{
+      name: `Failing: ${item.name}`,
+      type: "curse",
+      img: "icons/magic/unholy/silhouette-robe-evil-power.webp",
+      system: {
+        source: item.name,
+        trigger: "Lost Attachment",
+        pantheonDice: 0,
+        effect: `<p>${escapeHTML(item.name)} was lost or cut away. Define the exact Failing with the GM using the PTG2E Losing Bonds guidance.</p>`,
+        notes: sourceNotes(item),
+        rules: sourceRules(`Failing created from losing ${item.name}.`, item, "curse"),
+        usage: narrativeUsage("triggered"),
+        automation: defaultAutomation()
+      }
+    }]);
+
+    await item.delete();
+    return failing;
   }
 
   async #spendUsageCosts(item) {
@@ -879,6 +922,70 @@ function attachmentLabel(attachment) {
   return `Level ${attachment.level ?? 1} ${attachment.name} (${kindCode(attachment.kind)})`;
 }
 
+function isAttachmentItem(item) {
+  return ["bond", "worshipper", "vassal"].includes(item?.type);
+}
+
+function attachmentTypeLabel(item) {
+  if (item.type === "bond") return `${kindLabel(item.system.kind)} Bond`;
+  if (item.type === "worshipper") return "Worshippers";
+  if (item.type === "vassal") return "Vassal";
+  return typeLabel(item.type);
+}
+
+function attachmentActionConfig(action, item) {
+  const label = attachmentTypeLabel(item);
+  const worshipper = item.type === "worshipper";
+  const vassal = item.type === "vassal";
+  const bond = item.type === "bond";
+
+  return {
+    favor: {
+      title: worshipper ? "Prayer / Request" : vassal ? "Vassal Task" : "Favor",
+      reason: `${label} Favor Requested`,
+      strainDelta: 1,
+      text: worshipper
+        ? "The god calls on these Worshippers for prayer, offerings, action, or support. Apply the listed benefit and table rulings, then track Strain."
+        : vassal
+          ? "The god directs this Vassal to act. Apply its benefit, loyalty, and limits, then track Strain."
+          : "The god asks this Bond for help. Apply the Favor details from the Bond rules, related bonus, or table agreement."
+    },
+    lead: {
+      title: "Lead",
+      reason: `${label} Lead`,
+      strainDelta: 1,
+      text: "The god takes the Lead through this Attachment. Use the Attachment's related bonus, position in the fiction, and current Strain to resolve the action."
+    },
+    "follow-up": {
+      title: "Follow-up",
+      reason: `${label} Follow-up`,
+      strainDelta: 1,
+      text: "The god asks this Attachment for a Follow-up after prior help. Apply any free Follow-up exceptions from Blessings, then track Strain if it is not free."
+    },
+    devote: {
+      title: "Devote Scene",
+      reason: `${label} Devote Scene`,
+      strainDelta: -1,
+      text: "The god devotes a Scene to this Attachment. Reduce Strain where the fiction supports recovery and note what attention or care was given."
+    },
+    "split-attention": {
+      title: "Split Attention",
+      strainDelta: 0,
+      text: "The god tries to balance this Attachment with another demand. Use this chat card to record the competing Scene, cost, or GM ruling."
+    },
+    delay: {
+      title: "Delay",
+      strainDelta: 0,
+      text: "The god delays answering this Attachment's need. Note the postponed obligation and apply Strain or complications if the GM calls for them."
+    },
+    lose: {
+      title: "Lost Attachment",
+      strainDelta: 0,
+      text: "This Attachment is lost or cut away. The system creates a Failing item as a prompt for the GM and player to define the lasting consequence."
+    }
+  }[action] ?? null;
+}
+
 function careerSummaryHTML(career) {
   const attachments = Array.isArray(career.attachments) && career.attachments.length
     ? career.attachments.map(attachment => `<li>${escapeHTML(attachmentLabel(attachment))}</li>`).join("")
@@ -1083,30 +1190,107 @@ function embeddedAttachmentItems(attachments, sourceItem) {
     const name = attachment.name;
     const label = attachment.label ?? `${kindLabel(attachment.kind)} Bond`;
     const sourceName = sourceItem.name;
+    const type = attachmentDocumentType(attachment.kind);
+    const strain = {
+      value: 0,
+      max: level
+    };
+    const common = {
+      level,
+      description: `<p>${escapeHTML(sourceName)} grants this ${escapeHTML(label.toLowerCase())}.</p>${attachment.linkedDominion ? `<p>Linked Dominion: ${escapeHTML(attachment.linkedDominion)}.</p>` : ""}`,
+      notes: sourceNotes(sourceItem),
+      rules: sourceRules(`${sourceName} grants ${label.toLowerCase()} ${level}.`, sourceItem, type),
+      usage: narrativeUsage(type === "truth" || type === "relic" ? "active" : "narrative"),
+      automation: defaultAutomation()
+    };
 
     items.push({
       name,
-      type: "bond",
-      img: "icons/sundries/documents/document-sealed-red.webp",
-      system: {
-        kind: attachment.kind,
-        location: attachment.location ?? "",
-        linkedDominionUuid: sourceItem.uuid ?? "",
-        level,
-        strain: {
-          value: 0,
-          max: level
-        },
-        description: `<p>${escapeHTML(sourceName)} grants this ${escapeHTML(label.toLowerCase())}.</p>${attachment.linkedDominion ? `<p>Linked Dominion: ${escapeHTML(attachment.linkedDominion)}.</p>` : ""}`,
-        notes: sourceNotes(sourceItem),
-        rules: sourceRules(`${sourceName} grants ${label.toLowerCase()} ${level}.`, sourceItem, "bond"),
-        usage: narrativeUsage(),
-        automation: defaultAutomation()
-      }
+      type,
+      img: attachmentIcon(type),
+      system: embeddedAttachmentSystem(type, attachment, sourceItem, common, strain)
     });
   }
 
   return items;
+}
+
+function embeddedAttachmentSystem(type, attachment, sourceItem, common, strain) {
+  if (type === "bond") {
+    return {
+      ...common,
+      kind: attachment.kind,
+      location: attachment.location ?? "",
+      linkedDominionUuid: sourceItem.uuid ?? "",
+      strain
+    };
+  }
+
+  if (type === "worshipper") {
+    return {
+      ...common,
+      group: attachment.name,
+      size: "",
+      benefit: common.description,
+      strain
+    };
+  }
+
+  if (type === "vassal") {
+    return {
+      ...common,
+      concept: attachment.name,
+      loyalty: 0,
+      benefit: common.description,
+      strain
+    };
+  }
+
+  if (type === "relic") {
+    return {
+      ...common,
+      cost: 0,
+      bonus: "",
+      effect: common.description
+    };
+  }
+
+  if (type === "truth") {
+    return {
+      ...common,
+      statement: attachment.name,
+      rank: levelFromCommon(common),
+      cost: 0,
+      fragmentCost: 0,
+      activation: "Passive",
+      effect: common.description
+    };
+  }
+
+  return common;
+}
+
+function levelFromCommon(common) {
+  return Math.max(1, Number(common.level ?? 1));
+}
+
+function attachmentDocumentType(kind) {
+  if (["individual", "group", "landmark", "bond"].includes(kind)) return "bond";
+  if (kind === "worshipper") return "worshipper";
+  if (kind === "vassal") return "vassal";
+  if (kind === "relic") return "relic";
+  if (kind === "truth") return "truth";
+  return "bond";
+}
+
+function attachmentIcon(type) {
+  return {
+    bond: "icons/sundries/documents/document-sealed-red.webp",
+    worshipper: "icons/environment/people/group.webp",
+    vassal: "icons/creatures/magical/spirit-undead-winged-blue.webp",
+    relic: "icons/commodities/treasure/token-runed-os-grey.webp",
+    truth: "icons/magic/symbols/rune-sigil-black-pink.webp"
+  }[type] ?? "icons/svg/item-bag.svg";
 }
 
 function normalizeAttachmentGrants(attachments) {
@@ -1115,7 +1299,7 @@ function normalizeAttachmentGrants(attachments) {
       kind: attachment.kind,
       name: attachment.name,
       level: attachment.level ?? 1,
-      label: `${kindLabel(attachment.kind)} Bond`
+      label: attachmentGrantLabel(attachment.kind)
     })).filter(attachment => attachment.name && attachment.kind);
   }
 
@@ -1284,7 +1468,11 @@ function kindLabel(kind) {
   return {
     individual: "Individual",
     group: "Group",
-    landmark: "Landmark"
+    landmark: "Landmark",
+    worshipper: "Worshipper",
+    vassal: "Vassal",
+    relic: "Relic",
+    truth: "Truth"
   }[kind] ?? "Group";
 }
 
@@ -1292,8 +1480,21 @@ function kindCode(kind) {
   return {
     individual: "I",
     group: "G",
-    landmark: "L"
+    landmark: "L",
+    worshipper: "W",
+    vassal: "V",
+    relic: "R",
+    truth: "T"
   }[kind] ?? "G";
+}
+
+function attachmentGrantLabel(kind) {
+  if (["individual", "group", "landmark"].includes(kind)) return `${kindLabel(kind)} Bond`;
+  if (kind === "worshipper") return "Worshippers Entitlement";
+  if (kind === "vassal") return "Vassal Entitlement";
+  if (kind === "relic") return "Relic Entitlement";
+  if (kind === "truth") return "Truth Entitlement";
+  return `${kindLabel(kind)} Attachment`;
 }
 
 const ATTACHMENT_GRANTS = {

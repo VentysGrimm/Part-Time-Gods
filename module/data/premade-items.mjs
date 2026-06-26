@@ -213,6 +213,10 @@ function relic(name, level, page, bonus, effect) {
 function worshipper(name, level, page, benefit) {
   return baseItem("worshipper", name, page, {
     level,
+    strain: {
+      value: 0,
+      max: level
+    },
     group: name,
     size: "",
     benefit: paragraph(benefit),
@@ -268,6 +272,10 @@ function curse(name, sourceName, page, pantheonDice, effect) {
 function vassal(name, level, page, benefit) {
   return baseItem("vassal", name, page, {
     level,
+    strain: {
+      value: 0,
+      max: level
+    },
     concept: "",
     loyalty: 0,
     benefit: paragraph(benefit),

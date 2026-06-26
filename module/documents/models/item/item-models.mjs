@@ -258,6 +258,10 @@ export class PTGWorshipperData extends PTGBaseItemData {
       ...this.rulesAutomationFields("worshipper"),
       ...this.attachmentDetailFields(),
       level: this.numberField(1),
+      strain: new fields.SchemaField({
+        value: this.numberField(),
+        max: this.numberField()
+      }),
       group: this.textField(),
       size: this.textField(),
       benefit: this.htmlField(),
@@ -273,6 +277,10 @@ export class PTGVassalData extends PTGBaseItemData {
       ...this.rulesAutomationFields("vassal"),
       ...this.attachmentDetailFields(),
       level: this.numberField(1),
+      strain: new fields.SchemaField({
+        value: this.numberField(),
+        max: this.numberField()
+      }),
       concept: this.textField(),
       loyalty: this.numberField(),
       benefit: this.htmlField(),

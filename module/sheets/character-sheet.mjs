@@ -512,7 +512,9 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (action === "condition-reduce") return this.actor.reduceCondition(item);
 
-    if (action === "favor") return this.actor.requestBondFavor(item);
+    if (["favor", "lead", "follow-up", "devote", "split-attention", "delay", "lose"].includes(action)) {
+      return this.actor.requestAttachmentAction(item, action);
+    }
 
     if (action === "equip") {
       await item.update({ "system.equipped": !item.system.equipped });
@@ -526,7 +528,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (action === "strain-plus" || action === "strain-minus") {
       const delta = action === "strain-plus" ? 1 : -1;
-      await this.actor.adjustBondStrain(item, delta, "Bond Strain Changed");
+      await this.actor.adjustAttachmentStrain(item, delta, "Attachment Strain Changed");
     }
   }
 
