@@ -217,32 +217,6 @@
           {{/each}}
         </div>
         <p class="ptg-sheet-note">Manifestation + Skill: 7-9 = 1 Success, 10 = 2 successes. Level 0 Manifestations cannot be used.</p>
-        <div class="ptg-roll-controls ptg-paper-rolls">
-          <label>
-            <span>Second Skill</span>
-            <select data-roll-secondary>
-              {{#each skills as |label key|}}
-                <option value="{{key}}">{{label}}</option>
-              {{/each}}
-            </select>
-          </label>
-          <label>
-            <span>Manifest Skill</span>
-            <select data-roll-manifestation-skill>
-              {{#each skills as |label key|}}
-                <option value="{{key}}" {{#if (eq key "discipline")}}selected{{/if}}>{{label}}</option>
-              {{/each}}
-            </select>
-          </label>
-          <label>
-            <span>Difficulty</span>
-            <select data-roll-difficulty>
-              {{#each difficulties as |value key|}}
-                <option value="{{value}}">{{ptgLabel "difficulties" key}} ({{value}})</option>
-              {{/each}}
-            </select>
-          </label>
-        </div>
         <div class="ptg-roll-controls ptg-ritual-controls">
           <button type="button" data-ritual-action="territory">Territory Ritual</button>
           <button type="button" data-ritual-action="spark">Spark Ritual</button>

@@ -406,6 +406,27 @@
   resize: vertical;
 }
 
+.ptg-ritual-dialog {
+  min-height: 260px;
+}
+
+.ptg-ritual-heading {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid #72559e;
+  background: #2f2441;
+  color: #f5f0fb;
+}
+
+.ptg-ritual-heading strong {
+  font-size: 15px;
+}
+
+.ptg-ritual-heading span {
+  font-size: 12px;
+}
+
 .ptg-advancement-dialog {
   display: grid;
   gap: 10px;

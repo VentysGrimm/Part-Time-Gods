@@ -80,7 +80,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
 
     for (const button of this.element.querySelectorAll("[data-ritual-action]")) {
-      button.addEventListener("click", event => this.#postRitualCard(event.currentTarget.dataset.ritualAction));
+      button.addEventListener("click", event => this.#openRitualDialog(event.currentTarget.dataset.ritualAction));
     }
 
     this.element.querySelector("[data-advancement-purchase]")?.addEventListener("click", () => this.#openAdvancementPurchase());
@@ -124,12 +124,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
   async #rollSkill(button) {
     const primary = button.dataset.rollSkill;
+    const secondary = primary;
     const selection = await selectSkillComboRollOptions({
       actor: this.actor,
       primary,
-      secondary: this.element.querySelector("[data-roll-secondary]")?.value ?? primary,
-      difficulty: Number(this.element.querySelector("[data-roll-difficulty]")?.value ?? 1),
-      repetition: skillRepetitionState(this.actor, primary, this.element.querySelector("[data-roll-secondary]")?.value ?? primary)
+      secondary,
+      difficulty: 1,
+      repetition: skillRepetitionState(this.actor, primary, secondary)
     });
 
     if (!selection) return;
@@ -157,8 +158,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     const selection = await selectManifestationRollOptions({
       actor: this.actor,
       manifestation,
-      skill: this.element.querySelector("[data-roll-manifestation-skill]")?.value ?? "discipline",
-      difficulty: Number(this.element.querySelector("[data-roll-difficulty]")?.value ?? 1)
+      skill: "discipline",
+      difficulty: 1
     });
 
     if (!selection) return;
@@ -197,20 +198,52 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     if (selection.ritual.kind !== "none") await postManifestationRitualSummary(this.actor, selection);
   }
 
-  async #postRitualCard(kind) {
-    const labels = {
-      territory: "Territory Ritual",
-      spark: "Spark Ritual",
-      otherworldly: "Otherworldly Ritual"
-    };
+  async #openRitualDialog(kind) {
+    const label = ritualLabel(kind);
+    const selection = await selectRitualRollOptions({
+      actor: this.actor,
+      kind,
+      primary: "discipline",
+      secondary: "intuition",
+      difficulty: 1
+    });
+
+    if (!selection) return;
+
+    if (!selection.primary || !selection.secondary) {
+      ui.notifications.warn("Choose the required ritual skills before rolling.");
+      return;
+    }
+
+    if (!Number.isFinite(selection.difficulty) || selection.difficulty < 0) {
+      ui.notifications.warn("Choose a valid ritual difficulty before rolling.");
+      return;
+    }
+
+    if (selection.pantheonDice > 0) {
+      const spent = await this.actor.spendResource("pantheon", selection.pantheonDice);
+      if (!spent) return;
+    }
+
+    await this.actor.rollSkillCombo(selection.primary, selection.secondary, {
+      difficulty: selection.difficulty,
+      bonus: selection.bonus,
+      penalty: selection.penalty,
+      modifierDetails: selection.modifierDetails,
+      checkMode: "ritual",
+      boostChoice: selection.boostChoice,
+      flavor: `${this.actor.name}: ${label}`
+    });
 
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: `
         <div class="ptg-chat-card">
-          <h3>${escapeHTML(labels[kind] ?? "Ritual")}</h3>
-          <div>${escapeHTML(this.actor.name)} begins a ${escapeHTML((labels[kind] ?? "ritual").toLowerCase())}.</div>
-          <div>Use this card to record requirements, participants, costs, rolls, and GM rulings. Territory map mechanics are not automated in this slice.</div>
+          <h3>${escapeHTML(label)}</h3>
+          <div>${escapeHTML(this.actor.name)} resolves a ritual with ${escapeHTML(skillComboLabel(selection.primary, selection.secondary))} against difficulty ${Number(selection.difficulty)}.</div>
+          ${selection.requirement ? `<div>Requirement: ${escapeHTML(selection.requirement)}</div>` : ""}
+          ${selection.notes ? `<div>Notes: ${escapeHTML(selection.notes)}</div>` : ""}
+          <div>Track participants, time, costs, scene effects, resistance, and final GM ruling here.</div>
         </div>
       `
     });
@@ -1356,6 +1389,129 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
       }
     }
   });
+}
+
+async function selectRitualRollOptions({ actor, kind, primary, secondary, difficulty }) {
+  const skillEntries = Object.entries(CONFIG.PTG.skills ?? {});
+  const difficulties = Object.entries(CONFIG.PTG.difficulties ?? {});
+  const skillOption = (selected) => ([key, label]) => `<option value="${escapeHTML(key)}" data-rank="${Number(actor.system.skills?.[key] ?? 0)}" ${key === selected ? "selected" : ""}>${escapeHTML(label)} (${Number(actor.system.skills?.[key] ?? 0)})</option>`;
+  const difficultyOptions = difficulties
+    .map(([key, value]) => `<option value="${Number(value)}" ${Number(value) === Number(difficulty) ? "selected" : ""}>${escapeHTML(`${labelCase(key)} (${value})`)}</option>`)
+    .join("");
+  const label = ritualLabel(kind);
+
+  const content = `
+    <div class="ptg-roll-dialog ptg-ritual-dialog">
+      <div class="ptg-ritual-heading">
+        <strong>${escapeHTML(label)}</strong>
+        <span>Configure the ritual roll, then confirm to create the roll and chat workflow.</span>
+      </div>
+      <div class="form-group">
+        <label>Primary Skill</label>
+        <select name="primary" required>${skillEntries.map(skillOption(primary)).join("")}</select>
+      </div>
+      <div class="form-group">
+        <label>Secondary Skill</label>
+        <select name="secondary" required>${skillEntries.map(skillOption(secondary)).join("")}</select>
+      </div>
+      <div class="form-group">
+        <label>Difficulty</label>
+        <select name="difficulty">${difficultyOptions}<option value="custom">Custom</option></select>
+      </div>
+      <div class="form-group">
+        <label>Custom Difficulty</label>
+        <input type="number" name="customDifficulty" value="${Number(difficulty)}" min="0">
+      </div>
+      <div class="form-group">
+        <label>Bonus</label>
+        <input type="number" name="bonus" value="0">
+      </div>
+      <div class="form-group">
+        <label>Penalty</label>
+        <input type="number" name="penalty" value="0">
+      </div>
+      <div class="form-group">
+        <label>Pantheon Dice</label>
+        <input type="number" name="pantheonDice" value="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>Boost Choice</label>
+        <input type="text" name="boostChoice" value="" placeholder="Optional planned Boost">
+      </div>
+      <div class="form-group">
+        <label>Ritual Requirement</label>
+        <input type="text" name="requirement" value="" placeholder="Participants, time, Spark, place, or scene cost">
+      </div>
+      <div class="form-group">
+        <label>GM Notes</label>
+        <textarea name="notes" placeholder="Territory, Spark, Otherworldly setup, resistance, or rulings"></textarea>
+      </div>
+      <p class="ptg-sheet-note" data-pool-preview>${skillPoolPreview(actor, primary, secondary, 0, 0)}</p>
+    </div>
+  `;
+
+  return DialogV2.prompt({
+    window: { title: label, resizable: true },
+    content,
+    rejectClose: false,
+    modal: true,
+    render: (event, dialog) => wireRitualPoolPreview(dialog.element ?? dialog, actor),
+    ok: {
+      label: "Roll Ritual",
+      callback: (event, button) => {
+        const form = button.form;
+        const difficultyValue = form.elements.difficulty?.value;
+        const pantheonDice = Math.max(0, Number(form.elements.pantheonDice?.value ?? 0));
+        const bonus = Number(form.elements.bonus?.value ?? 0);
+        const penalty = Number(form.elements.penalty?.value ?? 0);
+        const selectedDifficulty = difficultyValue === "custom"
+          ? Number(form.elements.customDifficulty?.value ?? 0)
+          : Number(difficultyValue ?? 0);
+
+        return {
+          kind,
+          primary: form.elements.primary?.value ?? primary,
+          secondary: form.elements.secondary?.value ?? secondary,
+          difficulty: selectedDifficulty,
+          bonus,
+          penalty,
+          pantheonDice,
+          boostChoice: form.elements.boostChoice?.value?.trim() ?? "",
+          requirement: form.elements.requirement?.value?.trim() ?? "",
+          notes: form.elements.notes?.value?.trim() ?? "",
+          modifierDetails: {
+            "Pantheon Dice": pantheonDice
+          }
+        };
+      }
+    }
+  });
+}
+
+function wireRitualPoolPreview(element, actor) {
+  const root = element instanceof HTMLElement ? element : element?.querySelector?.(".ptg-roll-dialog")?.closest("form");
+  const form = root?.querySelector?.("form") ?? root;
+  if (!form?.elements) return;
+
+  const update = () => {
+    const preview = form.querySelector("[data-pool-preview]");
+    if (!preview) return;
+    preview.textContent = skillPoolPreview(
+      actor,
+      form.elements.primary?.value,
+      form.elements.secondary?.value,
+      Number(form.elements.bonus?.value ?? 0),
+      Number(form.elements.penalty?.value ?? 0),
+      { pantheonDice: Number(form.elements.pantheonDice?.value ?? 0) }
+    );
+  };
+
+  for (const name of ["primary", "secondary", "bonus", "penalty", "pantheonDice"]) {
+    form.elements[name]?.addEventListener("change", update);
+    form.elements[name]?.addEventListener("input", update);
+  }
+
+  update();
 }
 
 function wireSkillPoolPreview(element, actor) {
