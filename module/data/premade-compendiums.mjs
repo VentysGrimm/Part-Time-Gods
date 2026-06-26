@@ -53,7 +53,7 @@ async function populatePack(packId, documents, folderLabels, documentName, { rem
     return 0;
   }
 
-  await pack.getIndex({ fields: ["name", "type", "folder"] });
+  await pack.getIndex({ fields: ["name", "type", "folder", "flags"] });
 
   const existing = new Set(pack.index.map(entry => documentKey(entry, documentName)));
   const missing = documents.filter(document => !existing.has(documentKey(document, documentName)));
@@ -71,6 +71,9 @@ async function populatePack(packId, documents, folderLabels, documentName, { rem
   }
 
   let packDocuments = await pack.getDocuments();
+  const updated = documentName === "Actor"
+    ? await updateExistingPremadeDocuments(packDocuments, documents, folders, documentName)
+    : 0;
   const removed = removeStale
     ? await removeStaleDocuments(documentClass, pack, packDocuments, documents, documentName, stalePredicate)
     : 0;
@@ -84,7 +87,7 @@ async function populatePack(packId, documents, folderLabels, documentName, { rem
 
   if (wasLocked) await pack.configure({ locked: true });
 
-  return missing.length + removed + moved;
+  return missing.length + updated + removed + moved;
 }
 
 async function ensurePackFolders(pack, documents, folderLabels, documentName) {
@@ -130,6 +133,27 @@ async function organizeExistingDocuments(documents, folders, documentName) {
     if (!folder || document.folder?.id === folder.id) continue;
 
     updates.push(document.update({ folder: folder.id }));
+  }
+
+  await Promise.all(updates);
+  return updates.length;
+}
+
+async function updateExistingPremadeDocuments(documents, sourceDocuments, folders, documentName) {
+  const sourceByKey = new Map(sourceDocuments.map(document => [documentKey(document, documentName), document]));
+  const updates = [];
+
+  for (const document of documents) {
+    const source = sourceByKey.get(documentKey(document, documentName));
+    if (!source) continue;
+
+    const folder = folders[documentTypeKey(source, documentName)];
+    const updateData = {
+      ...foundry.utils.deepClone(source),
+      folder: folder?.id ?? document.folder?.id ?? null
+    };
+    const diff = foundry.utils.diffObject(document.toObject(), updateData);
+    if (Object.keys(diff).length) updates.push(document.update(updateData));
   }
 
   await Promise.all(updates);
