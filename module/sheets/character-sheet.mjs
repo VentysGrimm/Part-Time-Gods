@@ -157,11 +157,18 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (!selection) return;
 
+    if (selection.pantheonDice > 0) {
+      const spent = await this.actor.spendResource("pantheon", selection.pantheonDice);
+      if (!spent) return;
+    }
+
     const outcome = await this.actor.rollManifestation(selection.manifestation, selection.skill, {
       difficulty: selection.difficulty,
       bonus: selection.bonus,
       penalty: selection.penalty,
-      checkMode: "manifestation"
+      modifierDetails: selection.modifierDetails,
+      checkMode: "manifestation",
+      boostChoice: selection.boostChoice
     });
 
     if (outcome.criticalFailure) await postManifestationBacklashSummary(this.actor, selection);
@@ -175,9 +182,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
       await resistor.rollSkillCombo(selection.resistance.primary, selection.resistance.secondary, {
         difficulty: outcome.successes,
+        modifierDetails: selection.resistance.modifierDetails,
+        checkMode: "opposed",
         flavor: `${resistor.name}: Resist ${CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation}`
       });
     }
+
+    if (selection.ritual.kind !== "none") await postManifestationRitualSummary(this.actor, selection);
   }
 
   async #postRitualCard(kind) {
@@ -993,6 +1004,18 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
         <input type="number" name="penalty" value="0">
       </div>
       <div class="form-group">
+        <label>Pantheon Dice</label>
+        <input type="number" name="pantheonDice" value="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>Dominion Fit</label>
+        <select name="dominionFit">
+          <option value="0">Neutral or GM Set (+0)</option>
+          <option value="1">Strongly within Dominion (+1)</option>
+          <option value="-1">Weak or indirect Dominion (-1)</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label>Measure Focus</label>
         <select name="measure">
           ${Object.entries(CONFIG.PTG.measureOptions ?? {}).map(([key, label]) => `<option value="${escapeHTML(key)}">${escapeHTML(label)}</option>`).join("")}
@@ -1001,6 +1024,10 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
       <div class="form-group">
         <label>Measure Notes</label>
         <input type="text" name="measureNotes" value="" placeholder="Damage, range, duration, scale, etc.">
+      </div>
+      <div class="form-group">
+        <label>Boost Choice</label>
+        <input type="text" name="boostChoice" value="" placeholder="Optional planned Boost">
       </div>
       <label class="ptg-checkbox">
         <input type="checkbox" name="resistanceEnabled">
@@ -1013,6 +1040,27 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
       <div class="form-group">
         <label>Resistance Secondary Skill</label>
         <select name="resistanceSecondary">${skillEntries.map(skillOption).join("")}</select>
+      </div>
+      <div class="form-group">
+        <label>Resistance Bonus</label>
+        <input type="number" name="resistanceBonus" value="0">
+      </div>
+      <div class="form-group">
+        <label>Resistance Penalty</label>
+        <input type="number" name="resistancePenalty" value="0">
+      </div>
+      <div class="form-group">
+        <label>Ritual Context</label>
+        <select name="ritualKind">
+          <option value="none">None</option>
+          <option value="territory">Territory Ritual</option>
+          <option value="spark">Spark Ritual</option>
+          <option value="otherworldly">Otherworldly Ritual</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ritual Cost / Requirement</label>
+        <input type="text" name="ritualRequirement" value="" placeholder="Participants, time, Spark, or scene cost">
       </div>
       <p class="ptg-sheet-note" data-pool-preview>${manifestationPoolPreview(actor, manifestation, skill, 0, 0)}</p>
     </div>
@@ -1029,6 +1077,10 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
       callback: (event, button) => {
         const form = button.form;
         const difficultyValue = form.elements.difficulty?.value;
+        const pantheonDice = Math.max(0, Number(form.elements.pantheonDice?.value ?? 0));
+        const dominionFit = Number(form.elements.dominionFit?.value ?? 0);
+        const resistanceBonus = Number(form.elements.resistanceBonus?.value ?? 0);
+        const resistancePenalty = Number(form.elements.resistancePenalty?.value ?? 0);
 
         return {
           manifestation: form.elements.manifestation?.value ?? manifestation,
@@ -1038,12 +1090,27 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
             : Number(difficultyValue ?? 0),
           bonus: Number(form.elements.bonus?.value ?? 0),
           penalty: Number(form.elements.penalty?.value ?? 0),
+          pantheonDice,
+          dominionFit,
           measure: form.elements.measure?.value ?? "detail",
           measureNotes: form.elements.measureNotes?.value?.trim() ?? "",
+          boostChoice: form.elements.boostChoice?.value?.trim() ?? "",
+          modifierDetails: {
+            "Pantheon Dice": pantheonDice,
+            "Dominion Fit": dominionFit
+          },
           resistance: {
             enabled: Boolean(form.elements.resistanceEnabled?.checked),
             primary: form.elements.resistancePrimary?.value ?? "discipline",
-            secondary: form.elements.resistanceSecondary?.value ?? "intuition"
+            secondary: form.elements.resistanceSecondary?.value ?? "intuition",
+            modifierDetails: {
+              "Resistance Bonus": resistanceBonus,
+              "Resistance Penalty": -resistancePenalty
+            }
+          },
+          ritual: {
+            kind: form.elements.ritualKind?.value ?? "none",
+            requirement: form.elements.ritualRequirement?.value?.trim() ?? ""
           }
         };
       }
@@ -1065,11 +1132,15 @@ function wireManifestationPoolPreview(element, actor) {
       form.elements.manifestation?.value,
       form.elements.skill?.value,
       Number(form.elements.bonus?.value ?? 0),
-      Number(form.elements.penalty?.value ?? 0)
+      Number(form.elements.penalty?.value ?? 0),
+      {
+        pantheonDice: Number(form.elements.pantheonDice?.value ?? 0),
+        dominionFit: Number(form.elements.dominionFit?.value ?? 0)
+      }
     );
   };
 
-  for (const name of ["manifestation", "skill", "bonus", "penalty"]) {
+  for (const name of ["manifestation", "skill", "bonus", "penalty", "pantheonDice", "dominionFit"]) {
     form.elements[name]?.addEventListener("change", update);
     form.elements[name]?.addEventListener("input", update);
   }
@@ -1077,13 +1148,14 @@ function wireManifestationPoolPreview(element, actor) {
   update();
 }
 
-function manifestationPoolPreview(actor, manifestation, skill, bonus, penalty) {
+function manifestationPoolPreview(actor, manifestation, skill, bonus, penalty, extra = {}) {
   const manifestationRank = Number(actor.system.manifestations?.[manifestation] ?? 0);
   const skillRank = Number(actor.system.skills?.[skill] ?? 0);
-  const finalPool = manifestationRank + skillRank + Number(bonus ?? 0) - Number(penalty ?? 0);
+  const extraTotal = Number(extra.pantheonDice ?? 0) + Number(extra.dominionFit ?? 0);
+  const finalPool = manifestationRank + skillRank + Number(bonus ?? 0) - Number(penalty ?? 0) + extraTotal;
   const fate = finalPool <= 0 ? " Fate Die" : "";
 
-  return `Pool: ${manifestationRank} + ${skillRank} + ${Number(bonus ?? 0)} - ${Number(penalty ?? 0)} = ${finalPool}${fate}`;
+  return `Pool: ${manifestationRank} + ${skillRank} + ${Number(bonus ?? 0)} - ${Number(penalty ?? 0)} + ${extraTotal} = ${finalPool}${fate}`;
 }
 
 function sparkTruthItem(name, spark) {
@@ -1153,10 +1225,13 @@ async function postManifestationMeasureSummary(actor, outcome, selection) {
       <div class="ptg-chat-card">
         <h3>${escapeHTML(CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation)} Measures</h3>
         <div>Successes Available: ${Number(outcome.successes ?? 0)}</div>
+        <div>Difficulty Margin: ${Number(outcome.margin ?? 0)}</div>
         <div>Selected Focus: ${escapeHTML(measureLabel)}</div>
         ${selection.measureNotes ? `<div>Notes: ${escapeHTML(selection.measureNotes)}</div>` : ""}
+        ${selection.boostChoice ? `<div>Planned Boost: ${escapeHTML(selection.boostChoice)}</div>` : ""}
         <div>Common Measure Categories</div>
         <ul>${options}</ul>
+        <div>Spend successes on effect Measures such as damage, range, targets, duration, scale, or narrative detail. Any resistance roll should be compared against this Manifestation's successes.</div>
       </div>
     `
   });
@@ -1169,10 +1244,33 @@ async function postManifestationBacklashSummary(actor, selection) {
       <div class="ptg-chat-card">
         <h3>${escapeHTML(CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation)} Backlash</h3>
         <div>The Manifestation critically failed. Apply Backlash according to the power, scene stakes, and GM ruling.</div>
-        <div>Common results include unintended divine effects, Conditions, collateral damage, Strain, lost time, or complications tied to the Dominion.</div>
+        <div>Common results include unintended divine effects, Conditions, collateral damage, Attachment Strain, lost time, resistance complications, or consequences tied to the Dominion.</div>
+        ${selection.ritual.kind !== "none" ? `<div>Ritual Context: ${escapeHTML(ritualLabel(selection.ritual.kind))}${selection.ritual.requirement ? `; ${escapeHTML(selection.ritual.requirement)}` : ""}</div>` : ""}
       </div>
     `
   });
+}
+
+async function postManifestationRitualSummary(actor, selection) {
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `
+      <div class="ptg-chat-card">
+        <h3>${escapeHTML(ritualLabel(selection.ritual.kind))}</h3>
+        <div>${escapeHTML(actor.name)} is resolving ${escapeHTML(CONFIG.PTG.manifestations[selection.manifestation] ?? selection.manifestation)} as a ritual.</div>
+        ${selection.ritual.requirement ? `<div>Requirement: ${escapeHTML(selection.ritual.requirement)}</div>` : ""}
+        <div>Track participants, time, costs, rolls, resistance, and final GM ruling here. Territory, Spark, and Otherworldly rituals may require scene-specific setup beyond the roll.</div>
+      </div>
+    `
+  });
+}
+
+function ritualLabel(kind) {
+  return {
+    territory: "Territory Ritual",
+    spark: "Spark Ritual",
+    otherworldly: "Otherworldly Ritual"
+  }[kind] ?? "Ritual";
 }
 
 function labelCase(key) {
