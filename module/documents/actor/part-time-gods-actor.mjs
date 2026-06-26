@@ -237,6 +237,43 @@ export class PartTimeGodsActor extends Actor {
     return true;
   }
 
+  async adjustBondStrain(item, delta = 1, reason = "Bond Strain") {
+    if (!item || item.type !== "bond") return false;
+
+    const current = Number(item.system.strain?.value ?? 0);
+    const max = Math.max(0, Number(item.system.strain?.max ?? item.system.level ?? 0));
+    const next = clamp(current + Number(delta ?? 0), 0, max);
+
+    await item.update({ "system.strain.value": next });
+    await this.#postAutomationMessage(reason, [
+      `${item.name}: Strain ${current} -> ${next} / ${max}.`
+    ], item);
+
+    return true;
+  }
+
+  async requestBondFavor(item) {
+    if (!item || item.type !== "bond") return false;
+
+    const kind = kindLabel(item.system.kind);
+    const result = await this.adjustBondStrain(item, 1, "Bond Favor Requested");
+
+    if (result) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        content: `
+          <div class="ptg-chat-card">
+            <h3>${escapeHTML(item.name)} Favor</h3>
+            <div>Bond Type: ${escapeHTML(kind)}</div>
+            <div>${escapeHTML(this.name)} asks this Bond for help. Apply the Favor details from the Bond's rules, related bonus, or table agreement.</div>
+          </div>
+        `
+      });
+    }
+
+    return result;
+  }
+
   async #applyItemAutomation(item) {
     const automation = item.system.automation ?? {};
     const results = [];

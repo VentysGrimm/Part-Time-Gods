@@ -306,6 +306,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (action === "condition-reduce") return this.actor.reduceCondition(item);
 
+    if (action === "favor") return this.actor.requestBondFavor(item);
+
     if (action === "equip") {
       await item.update({ "system.equipped": !item.system.equipped });
       return;
@@ -317,10 +319,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
 
     if (action === "strain-plus" || action === "strain-minus") {
-      const current = Number(item.system.strain?.value ?? 0);
-      const max = Number(item.system.strain?.max ?? item.system.level ?? 0);
       const delta = action === "strain-plus" ? 1 : -1;
-      await item.update({ "system.strain.value": Math.clamp(current + delta, 0, max) });
+      await this.actor.adjustBondStrain(item, delta, "Bond Strain Changed");
     }
   }
 

@@ -52,6 +52,7 @@
 
           {{#if (eq ../mode "attachment")}}
             {{#if (eq item.type "bond")}}
+              <button type="button" data-item-action="favor">Favor</button>
               <button type="button" data-item-action="strain-minus">-</button>
               <button type="button" data-item-action="strain-plus">+</button>
             {{else}}
