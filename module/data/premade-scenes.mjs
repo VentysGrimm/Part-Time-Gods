@@ -24,6 +24,8 @@ export function getGodTerritorySceneData({
   name = TERRITORY_SCENE_NAME,
   territoryData = createTerritoryData()
 } = {}) {
+  const slug = slugify(name);
+
   return {
     name,
     active: false,
@@ -53,6 +55,8 @@ export function getGodTerritorySceneData({
       [SYSTEM_ID]: {
         premade: true,
         kind: TERRITORY_KIND,
+        slug,
+        sourceId: `scene:${TERRITORY_KIND}:${slug}`,
         source: "Part-Time Gods 2E PDF p. 283 territory grid",
         columns: PLAY_GRID_SIZE,
         rows: PLAY_GRID_SIZE,
@@ -61,6 +65,14 @@ export function getGodTerritorySceneData({
       }
     }
   };
+}
+
+function slugify(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export async function importGodTerritoryScene({ notify = true, activate = false } = {}) {

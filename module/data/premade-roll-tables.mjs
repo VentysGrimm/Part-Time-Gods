@@ -4,6 +4,8 @@ const SYSTEM_ID = "part-time-gods";
 const TEXT_RESULT = "text";
 
 function table(name, formula, sourcePage, rows, { description = "" } = {}) {
+  const slug = slugify(name);
+
   return {
     name,
     img: "icons/svg/d20-grey.svg",
@@ -23,6 +25,8 @@ function table(name, formula, sourcePage, rows, { description = "" } = {}) {
       [SYSTEM_ID]: {
         premade: true,
         kind: "random-table",
+        slug,
+        sourceId: `roll-table:${slug}`,
         source: {
           book: "Part-Time Gods Second Edition",
           page: sourcePage
@@ -30,6 +34,14 @@ function table(name, formula, sourcePage, rows, { description = "" } = {}) {
       }
     }
   };
+}
+
+function slugify(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 const reroll = "ReRoll";

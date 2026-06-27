@@ -1,6 +1,8 @@
 const SYSTEM_ID = "part-time-gods";
 
 function antagonist(name, category, sourcePage, system) {
+  const slug = slugify(name);
+
   return {
     name,
     type: "antagonist",
@@ -31,6 +33,8 @@ function antagonist(name, category, sourcePage, system) {
         premade: true,
         kind: "opposition-actor",
         category,
+        slug,
+        sourceId: `actor:opposition:${slug}`,
         powerHooks: system.powerHooks ?? [],
         source: {
           book: "Part-Time Gods Second Edition",
@@ -39,6 +43,14 @@ function antagonist(name, category, sourcePage, system) {
       }
     }
   };
+}
+
+function slugify(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export async function openAntagonistBuilder() {
