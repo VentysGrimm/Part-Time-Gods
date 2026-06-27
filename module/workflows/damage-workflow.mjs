@@ -1,61 +1,63 @@
+import { localize } from "../util/localization.mjs";
+
 const { DialogV2 } = foundry.applications.api;
 
 export async function openApplyDamageDialog(options = {}) {
   const targetActors = selectableActors(options.targetActor);
   if (!targetActors.length) {
-    ui.notifications.warn("No editable actors are available for applying damage.");
+    ui.notifications.warn(localize("PTG.Damage.NoEditableActors"));
     return null;
   }
 
   const defaultTargetUuid = options.targetActor?.uuid ?? targetActors[0]?.uuid ?? "";
   const defaultResource = options.resource === "psyche" ? "psyche" : "health";
-  const defaultAmount = Math.max(0, Number(options.amount ?? 0));
-  const defaultApplyArmor = options.applyArmor ?? defaultResource === "health";
-  const sourceLabel = options.sourceItem?.name || options.sourceActor?.name || options.reason || "Chat card action";
+  const defaultAmount = nonNegativeNumber(options.amount);
+  const defaultApplyArmor = Boolean(options.applyArmor ?? defaultResource === "health");
+  const sourceLabel = options.sourceItem?.name || options.sourceActor?.name || options.reason || localize("PTG.Damage.SourceFallback");
 
   const content = `
     <div class="ptg-damage-apply-dialog">
       <div class="ptg-territory-summary">
-        <strong>Apply PTG2E Damage</strong>
+        <strong>${escapeHTML(localize("PTG.Damage.Title"))}</strong>
         <span>${escapeHTML(sourceLabel)}</span>
       </div>
       <div class="form-group">
-        <label>Target Actor</label>
+        <label>${escapeHTML(localize("PTG.Damage.TargetActor"))}</label>
         <select name="targetUuid">
           ${targetActors.map(actor => `<option value="${escapeHTML(actor.uuid)}" ${actor.uuid === defaultTargetUuid ? "selected" : ""}>${escapeHTML(actor.name)}</option>`).join("")}
         </select>
       </div>
       <section class="ptg-item-fields three">
         <label>
-          <span>Track</span>
+          <span>${escapeHTML(localize("PTG.Damage.Track"))}</span>
           <select name="resource">
-            <option value="health" ${defaultResource === "health" ? "selected" : ""}>Health</option>
-            <option value="psyche" ${defaultResource === "psyche" ? "selected" : ""}>Psyche</option>
+            <option value="health" ${defaultResource === "health" ? "selected" : ""}>${escapeHTML(resourceLabel("health"))}</option>
+            <option value="psyche" ${defaultResource === "psyche" ? "selected" : ""}>${escapeHTML(resourceLabel("psyche"))}</option>
           </select>
         </label>
         <label>
-          <span>Damage</span>
+          <span>${escapeHTML(localize("PTG.Damage.Damage"))}</span>
           <input name="amount" type="number" value="${defaultAmount}" min="0">
         </label>
         <label>
-          <span>Tag / Range</span>
-          <input name="damageTag" type="text" value="${escapeHTML(options.damageTag ?? "")}" placeholder="Close, fire, bullets, etc.">
+          <span>${escapeHTML(localize("PTG.Damage.TagRange"))}</span>
+          <input name="damageTag" type="text" value="${escapeHTML(options.damageTag ?? "")}" placeholder="${escapeHTML(localize("PTG.Damage.TagRangePlaceholder"))}">
         </label>
       </section>
       <label class="ptg-checkbox">
         <input type="checkbox" name="applyArmor" ${defaultApplyArmor ? "checked" : ""}>
-        <span>Apply equipped armor to Health damage</span>
+        <span>${escapeHTML(localize("PTG.Damage.ApplyArmor"))}</span>
       </label>
       <label>
-        <span>Reason</span>
-        <input name="reason" type="text" value="${escapeHTML(options.reason ?? "Chat card action")}">
+        <span>${escapeHTML(localize("PTG.Damage.Reason"))}</span>
+        <input name="reason" type="text" value="${escapeHTML(options.reason ?? localize("PTG.Damage.SourceFallback"))}">
       </label>
     </div>
   `;
 
   const result = await DialogV2.prompt({
     window: {
-      title: "Apply Damage",
+      title: localize("PTG.Damage.DialogTitle"),
       resizable: true
     },
     position: {
@@ -66,11 +68,11 @@ export async function openApplyDamageDialog(options = {}) {
     rejectClose: false,
     modal: true,
     ok: {
-      label: "Apply Damage",
+      label: localize("PTG.Damage.ApplyButton"),
       callback: (event, button) => ({
         targetUuid: button.form.elements.targetUuid?.value ?? "",
         resource: button.form.elements.resource?.value ?? defaultResource,
-        amount: Number(button.form.elements.amount?.value ?? 0),
+        amount: nonNegativeNumber(button.form.elements.amount?.value),
         damageTag: button.form.elements.damageTag?.value?.trim() ?? "",
         applyArmor: button.form.elements.applyArmor?.checked ?? false,
         reason: button.form.elements.reason?.value?.trim() ?? ""
@@ -80,9 +82,9 @@ export async function openApplyDamageDialog(options = {}) {
 
   if (!result) return null;
 
-  const actor = result.targetUuid ? await fromUuid(result.targetUuid) : null;
+  const actor = result.targetUuid ? await actorFromUuid(result.targetUuid) : null;
   if (!actor) {
-    ui.notifications.warn("Choose an actor before applying damage.");
+    ui.notifications.warn(localize("PTG.Damage.ChooseActor"));
     return null;
   }
 
@@ -95,18 +97,23 @@ export async function openApplyDamageDialog(options = {}) {
 
 export async function applyDamageToActor(actor, options = {}) {
   if (!actor || !canModifyActor(actor)) {
-    ui.notifications.warn(`You do not have permission to update ${actor?.name ?? "that actor"}.`);
+    ui.notifications.warn(localize("PTG.Damage.NoPermission", {
+      actorName: actor?.name ?? localize("PTG.Damage.TargetActor")
+    }));
     return null;
   }
 
   const resource = options.resource === "psyche" ? "psyche" : "health";
   const resourceInfo = actorResource(actor, resource);
   if (!resourceInfo) {
-    ui.notifications.warn(`${actor.name} does not have a ${resourceLabel(resource)} track.`);
+    ui.notifications.warn(localize("PTG.Damage.MissingTrack", {
+      actorName: actor.name,
+      resource: resourceLabel(resource)
+    }));
     return null;
   }
 
-  const rawAmount = Math.max(0, Number(options.amount ?? 0));
+  const rawAmount = nonNegativeNumber(options.amount);
   const baseArmor = resource === "health" && options.applyArmor ? actorArmor(actor) : 0;
   const proofArmor = resource === "health" && options.applyArmor ? armorProofBonus(actor, options.damageTag) : 0;
   const armor = baseArmor + proofArmor;
@@ -130,8 +137,8 @@ export async function applyDamageToActor(actor, options = {}) {
     finalAmount,
     before: resourceInfo.value,
     after: next,
-    damageTag: options.damageTag ?? "",
-    reason: options.reason ?? "Chat card action",
+    damageTag: String(options.damageTag ?? "").trim(),
+    reason: String(options.reason ?? "").trim() || localize("PTG.Damage.SourceFallback"),
     appliedAt: new Date().toISOString()
   };
 
@@ -144,22 +151,24 @@ export async function applyDamageToActor(actor, options = {}) {
 }
 
 function damageChatCard(entry) {
+  const resource = resourceLabel(entry.resource);
+
   return `
     <div class="ptg-chat-card" data-ptg-chat-card="damage" data-actor-uuid="${escapeHTML(entry.actorUuid)}">
-      <h3>${escapeHTML(resourceLabel(entry.resource))} Damage</h3>
-      <div><strong>Target:</strong> ${escapeHTML(entry.actorName)}</div>
-      ${entry.sourceActorName ? `<div><strong>Source:</strong> ${escapeHTML(entry.sourceActorName)}</div>` : ""}
-      ${entry.sourceItemName ? `<div><strong>Item:</strong> ${escapeHTML(entry.sourceItemName)}</div>` : ""}
-      <div><strong>Reason:</strong> ${escapeHTML(entry.reason)}</div>
-      ${entry.damageTag ? `<div><strong>Tag:</strong> ${escapeHTML(entry.damageTag)}</div>` : ""}
-      <div><strong>Raw Damage:</strong> ${entry.rawAmount}</div>
-      ${entry.baseArmor ? `<div><strong>Armor:</strong> -${entry.baseArmor}</div>` : ""}
-      ${entry.proofArmor ? `<div><strong>Tag Armor:</strong> -${entry.proofArmor}</div>` : ""}
-      <div><strong>Applied:</strong> ${entry.finalAmount}</div>
-      <div><strong>${escapeHTML(resourceLabel(entry.resource))}:</strong> ${entry.before} -> ${entry.after}</div>
+      <h3>${escapeHTML(localize("PTG.Damage.ChatTitle", { resource }))}</h3>
+      <div><strong>${escapeHTML(localize("PTG.Damage.Target"))}:</strong> ${escapeHTML(entry.actorName)}</div>
+      ${entry.sourceActorName ? `<div><strong>${escapeHTML(localize("PTG.Damage.Source"))}:</strong> ${escapeHTML(entry.sourceActorName)}</div>` : ""}
+      ${entry.sourceItemName ? `<div><strong>${escapeHTML(localize("PTG.Damage.Item"))}:</strong> ${escapeHTML(entry.sourceItemName)}</div>` : ""}
+      <div><strong>${escapeHTML(localize("PTG.Damage.Reason"))}:</strong> ${escapeHTML(entry.reason)}</div>
+      ${entry.damageTag ? `<div><strong>${escapeHTML(localize("PTG.Damage.Tag"))}:</strong> ${escapeHTML(entry.damageTag)}</div>` : ""}
+      <div><strong>${escapeHTML(localize("PTG.Damage.RawDamage"))}:</strong> ${entry.rawAmount}</div>
+      ${entry.baseArmor ? `<div><strong>${escapeHTML(localize("PTG.Damage.Armor"))}:</strong> -${entry.baseArmor}</div>` : ""}
+      ${entry.proofArmor ? `<div><strong>${escapeHTML(localize("PTG.Damage.TagArmor"))}:</strong> -${entry.proofArmor}</div>` : ""}
+      <div><strong>${escapeHTML(localize("PTG.Damage.Applied"))}:</strong> ${entry.finalAmount}</div>
+      <div><strong>${escapeHTML(resource)}:</strong> ${entry.before} -&gt; ${entry.after}</div>
       <div class="ptg-chat-actions">
-        <button type="button" data-ptg-chat-action="open-actor">Open Target</button>
-        <button type="button" data-ptg-chat-action="apply-condition">Apply Condition</button>
+        <button type="button" data-ptg-chat-action="open-actor">${escapeHTML(localize("PTG.Damage.OpenTarget"))}</button>
+        <button type="button" data-ptg-chat-action="apply-condition">${escapeHTML(localize("PTG.Damage.ApplyCondition"))}</button>
       </div>
     </div>
   `;
@@ -185,38 +194,40 @@ function selectableActors(preferredActor = null) {
 }
 
 function canModifyActor(actor) {
-  return Boolean(actor && (game.user?.isGM || actor.isOwner));
+  return Boolean(isActorDocument(actor) && (game.user?.isGM || actor.isOwner));
 }
 
 function actorResource(actor, resource) {
-  const data = actor.system.resources?.[resource];
+  const data = actor.system?.resources?.[resource];
   if (!data || typeof data !== "object") return null;
+  const value = finiteNumber(data.value, 0);
+  const max = finiteNumber(data.max, 0);
 
   return {
     path: `system.resources.${resource}.value`,
-    value: Number(data.value ?? 0),
-    max: Number(data.max ?? 0)
+    value,
+    max
   };
 }
 
 function actorArmor(actor) {
-  const derived = Number(actor.system.derived?.armor ?? 0);
+  const derived = nonNegativeNumber(actor.system?.derived?.armor);
   if (derived > 0) return derived;
 
-  return actor.items
+  return Array.from(actor.items ?? [])
     .filter(item => item.type === "armor" && item.system.equipped)
-    .reduce((total, item) => total + Number(item.system.rating ?? 0), 0);
+    .reduce((total, item) => total + nonNegativeNumber(item.system.rating), 0);
 }
 
 function armorProofBonus(actor, damageTag = "") {
   const tag = slugify(damageTag);
   if (!tag) return 0;
 
-  return actor.items
+  return Array.from(actor.items ?? [])
     .filter(item => item.type === "armor" && item.system.equipped)
     .flatMap(item => qualityEntries(item))
     .filter(quality => quality.key.endsWith("proof") && tagMatchesProof(tag, quality.key))
-    .reduce((total, quality) => total + Math.max(0, Number(quality.value ?? 0)), 0);
+    .reduce((total, quality) => total + nonNegativeNumber(quality.value), 0);
 }
 
 function qualityEntries(item) {
@@ -238,7 +249,7 @@ function normalizeQuality(quality) {
   return {
     key: slugify(quality.key || name),
     name,
-    value: Number(quality.value ?? 0)
+    value: nonNegativeNumber(quality.value)
   };
 }
 
@@ -251,7 +262,7 @@ function legacyQuality(entry) {
   return {
     key: slugify(name),
     name,
-    value: Number(match?.[2] ?? 0) || 2
+    value: nonNegativeNumber(match?.[2], 2)
   };
 }
 
@@ -262,9 +273,33 @@ function tagMatchesProof(tag, proofKey) {
 
 function resourceLabel(resource) {
   return {
-    health: "Health",
-    psyche: "Psyche"
+    health: localize("PTG.Resources.Health"),
+    psyche: localize("PTG.Resources.Psyche")
   }[resource] ?? resource;
+}
+
+async function actorFromUuid(uuid) {
+  try {
+    const document = await fromUuid(uuid);
+    return isActorDocument(document) ? document : null;
+  } catch (error) {
+    console.warn("Part-Time Gods 2E | Unable to resolve damage target UUID.", uuid, error);
+    return null;
+  }
+}
+
+function nonNegativeNumber(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, number) : fallback;
+}
+
+function finiteNumber(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function isActorDocument(document) {
+  return document?.documentName === "Actor" || document?.constructor?.documentName === "Actor";
 }
 
 function slugify(value) {

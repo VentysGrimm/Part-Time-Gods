@@ -1,9 +1,9 @@
 <div class="ptg-roll-card">
 
   <header>
-    <h3>{{skill}} Roll</h3>
+    <h3>{{localize "PTG.Chat.RollTitle" skill=skill}}</h3>
     <div class="ptg-meta">
-      Pool: {{pool}} | Surge Used: {{surgeUsed}}
+      {{localize "PTG.Chat.Pool"}}: {{pool}} | {{localize "PTG.Chat.SurgeUsed"}}: {{surgeUsed}}
     </div>
   </header>
 
@@ -16,7 +16,7 @@
   </section>
 
   <footer>
-    <strong>Successes:</strong> {{successes}}
+    <strong>{{localize "PTG.Chat.Successes"}}:</strong> {{successes}}
   </footer>
 
 </div>

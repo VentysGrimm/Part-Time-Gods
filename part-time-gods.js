@@ -39,6 +39,7 @@ import { registerPTGMigrationSettings, runPTGMigrations } from "./module/migrati
 import { migrateWorldActorsToCanonicalEmbeddedItems } from "./module/migration/canonical-embedded-items.mjs";
 import { registerPTGChatCardActions } from "./module/chat/chat-actions.mjs";
 import { itemFromDropData } from "./module/util/drop-data.mjs";
+import { SYSTEM_ID, localize, localizeFallback, localizeRecord } from "./module/util/localization.mjs";
 
 const { DocumentSheetConfig } = foundry.applications.apps;
 const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
@@ -46,9 +47,10 @@ const { loadTemplates } = foundry.applications.handlebars;
 
 Hooks.once("init", async () => {
   console.log("Part-Time Gods 2E | Initializing");
+  const config = localizedPTGConfig();
 
   game.partTimeGods = {
-    config: PTG,
+    config,
     dice: PTGDiceEngine,
     premadeItems: PTG_PREMADE_ITEMS,
     premadeChoices: PTG_PREMADE_CHOICES,
@@ -71,7 +73,7 @@ Hooks.once("init", async () => {
   registerPTGCombatHooks();
   registerPTGChatCardActions();
 
-  CONFIG.PTG = PTG;
+  CONFIG.PTG = config;
   CONFIG.Actor.documentClass = PartTimeGodsActor;
   CONFIG.Actor.dataModels = {
     character: PTGCharacterData,
@@ -100,38 +102,38 @@ Hooks.once("init", async () => {
   };
 
   if (ActorSheetV2) DocumentSheetConfig.unregisterSheet(Actor, "core", ActorSheetV2);
-  DocumentSheetConfig.registerSheet(Actor, "part-time-gods", PTGCharacterSheet, {
+  DocumentSheetConfig.registerSheet(Actor, SYSTEM_ID, PTGCharacterSheet, {
     types: ["character"],
     makeDefault: true,
     label: "PTG.Sheet.CharacterSheet"
   });
-  DocumentSheetConfig.registerSheet(Actor, "part-time-gods", PTGAntagonistSheet, {
+  DocumentSheetConfig.registerSheet(Actor, SYSTEM_ID, PTGAntagonistSheet, {
     types: ["antagonist"],
     makeDefault: true,
     label: "PTG.Sheet.AntagonistSheet"
   });
-  DocumentSheetConfig.registerSheet(Actor, "part-time-gods", PTGPantheonSheet, {
+  DocumentSheetConfig.registerSheet(Actor, SYSTEM_ID, PTGPantheonSheet, {
     types: ["pantheon"],
     makeDefault: true,
     label: "PTG.Sheet.PantheonSheet"
   });
   if (ItemSheetV2) DocumentSheetConfig.unregisterSheet(Item, "core", ItemSheetV2);
-  DocumentSheetConfig.registerSheet(Item, "part-time-gods", PTGItemSheet, {
+  DocumentSheetConfig.registerSheet(Item, SYSTEM_ID, PTGItemSheet, {
     types: Object.keys(CONFIG.Item.dataModels),
     makeDefault: true,
     label: "PTG.Sheet.ItemSheet"
   });
 
-  game.settings.register("part-time-gods", "autoPopulatePremadeCompendiums", {
-    name: "Auto-populate premade Part-Time Gods compendiums",
-    hint: "Creates the system's premade character creation choices, play items, maps, and rules journals in system compendiums for GMs.",
+  game.settings.register(SYSTEM_ID, "autoPopulatePremadeCompendiums", {
+    name: localize("PTG.Settings.AutoPopulate.Name"),
+    hint: localize("PTG.Settings.AutoPopulate.Hint"),
     scope: "world",
     config: true,
     type: Boolean,
     default: true
   });
-  game.settings.register("part-time-gods", "canonicalEmbeddedItemsMigration", {
-    name: "Canonical embedded Items migration",
+  game.settings.register(SYSTEM_ID, "canonicalEmbeddedItemsMigration", {
+    name: localize("PTG.Settings.CanonicalEmbeddedItemsMigration.Name"),
     scope: "world",
     config: false,
     type: String,
@@ -143,8 +145,9 @@ Hooks.once("init", async () => {
   Handlebars.registerHelper("eq", (a, b) => a === b);
   Handlebars.registerHelper("gt", (a, b) => Number(a) > Number(b));
   Handlebars.registerHelper("gte", (a, b) => Number(a) >= Number(b));
-  Handlebars.registerHelper("skillLabel", key => CONFIG.PTG.skills[key] ?? key);
-  Handlebars.registerHelper("manifestationLabel", key => CONFIG.PTG.manifestations[key] ?? key);
+  Handlebars.registerHelper("ptgLocalize", (key, options) => localizeFallback(key, key, options.hash ?? {}));
+  Handlebars.registerHelper("skillLabel", key => localizeFallback(`PTG.Skills.${key}`, CONFIG.PTG.skills[key] ?? key));
+  Handlebars.registerHelper("manifestationLabel", key => localizeFallback(`PTG.Manifestations.${key}`, CONFIG.PTG.manifestations[key] ?? key));
   Handlebars.registerHelper("ptgLabel", (collection, key) => CONFIG.PTG[collection]?.[key] ?? key);
   Handlebars.registerHelper("ptgEntries", collection => Object.entries(collection ?? {}));
   Handlebars.registerHelper("ptgItemTypeLabel", type => game.i18n.localize(`TYPES.Item.${type}`));
@@ -167,14 +170,16 @@ Hooks.once("ready", async () => {
   try {
     const migration = await migrateWorldActorsToCanonicalEmbeddedItems({ notify: false });
     if (migration.createdItems || migration.clearedFields) {
-      ui.notifications.info(`Part-Time Gods migrated ${migration.createdItems} legacy sheet note(s) into owned Items.`);
+      ui.notifications.info(localize("PTG.Notifications.EmbeddedItemsMigrated", {
+        createdItems: migration.createdItems
+      }));
     }
   } catch (error) {
     console.error("Part-Time Gods 2E | Canonical embedded Items migration failed.", error);
-    ui.notifications.error("Part-Time Gods embedded Item migration failed. Check the console for details.");
+    ui.notifications.error(localize("PTG.Notifications.EmbeddedItemsMigrationFailed"));
   }
 
-  if (!game.settings.get("part-time-gods", "autoPopulatePremadeCompendiums")) return;
+  if (!game.settings.get(SYSTEM_ID, "autoPopulatePremadeCompendiums")) return;
 
   await populatePremadeCompendiums({ notify: true });
 });
@@ -186,7 +191,7 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
   if (!item || !["worshipper", "vassal"].includes(item.type)) return true;
 
   if (!game.user?.isGM) {
-    ui.notifications.warn("Only a GM can create Worshipper and Vassal actors on a scene.");
+    ui.notifications.warn(localize("PTG.Notifications.OnlyGMFollowerScene"));
     return false;
   }
 
@@ -243,14 +248,14 @@ Hooks.on("chatMessage", (chatLog, message) => {
 
   if (message !== "/ptg") return true;
 
-  ui.notifications.info("Part-Time Gods 2E loaded. Use /ptg-create-territory-scene, /ptg-territory, /ptg-combat, /ptg-balance, /ptg-antagonist-builder, or /ptg-import-rules-journals for world setup.");
+  ui.notifications.info(localize("PTG.Notifications.LoadedSlash"));
   return false;
 });
 
 async function getOrCreateFollowerActor(item) {
   const sourceUuid = item.uuid;
   if (sourceUuid) {
-    const existing = game.actors.find(actor => actor.getFlag("part-time-gods", "sourceItemUuid") === sourceUuid);
+    const existing = game.actors.find(actor => actor.getFlag(SYSTEM_ID, "sourceItemUuid") === sourceUuid);
     if (existing) return existing;
   }
 
@@ -259,7 +264,7 @@ async function getOrCreateFollowerActor(item) {
 }
 
 async function ensureFollowerActorFolder(type) {
-  const folderName = type === "vassal" ? "PTG Vassals" : "PTG Worshippers";
+  const folderName = type === "vassal" ? localize("PTG.Folders.Vassals") : localize("PTG.Folders.Worshippers");
   const existing = game.folders.find(folder => folder.type === "Actor" && folder.name === folderName);
   if (existing) return existing;
 
@@ -274,22 +279,22 @@ function followerActorData(item, folder, sourceUuid) {
   const level = followerLevel(item);
   const img = item.img || followerIcon(item.type);
   const disposition = CONST?.TOKEN_DISPOSITIONS?.FRIENDLY ?? 1;
-  const template = item.type === "vassal" && item.system?.actorTemplate && Object.keys(item.system.actorTemplate).length
-    ? item.system.actorTemplate
-    : null;
+  const template = followerActorTemplate(item);
   const templateSystem = template?.system ?? {};
+  const actorType = CONFIG.Actor.dataModels?.[template?.type] ? template.type : "antagonist";
+  const threshold = finiteNumber(templateSystem.threshold ?? templateSystem.health ?? level, level, 0);
 
   return {
     name: template?.name ?? item.name,
-    type: template?.type ?? "antagonist",
+    type: actorType,
     img: template?.img ?? img,
     folder: folder?.id,
     system: {
       ...templateSystem,
-      threat: Number(templateSystem.threat ?? level),
-      threshold: Number(templateSystem.threshold ?? templateSystem.health ?? level),
-      health: Number(templateSystem.health ?? templateSystem.threshold ?? level),
-      psyche: Number(templateSystem.psyche ?? templateSystem.threshold ?? level),
+      threat: finiteNumber(templateSystem.threat ?? level, level, 1),
+      threshold,
+      health: finiteNumber(templateSystem.health ?? threshold, threshold, 0),
+      psyche: finiteNumber(templateSystem.psyche ?? threshold, threshold, 0),
       description: followerActorDescription(item, templateSystem)
     },
     prototypeToken: {
@@ -302,17 +307,24 @@ function followerActorData(item, folder, sourceUuid) {
       }
     },
     flags: {
-      "part-time-gods": {
+      [SYSTEM_ID]: {
         sourceItemUuid: sourceUuid ?? null,
         sourceItemType: item.type,
         sourceActorName: item.system?.sourceActorName ?? null,
-        powerHooks: item.system?.powerHooks ?? []
+        powerHooks: Array.isArray(item.system?.powerHooks)
+          ? item.system.powerHooks.filter(hook => typeof hook === "string")
+          : []
       }
     }
   };
 }
 
 async function createFollowerToken(canvas, actor, data) {
+  if (!canvas?.scene) {
+    ui.notifications.warn(localize("PTG.Notifications.NoActiveScene"));
+    return;
+  }
+
   const tokenDocument = await actor.getTokenDocument({
     x: Number(data.x) || 0,
     y: Number(data.y) || 0
@@ -325,22 +337,29 @@ function followerActorDescription(item, templateSystem = {}) {
   const system = item.system ?? {};
   const rulesSummary = system.rules?.summary;
   const parts = [
-    `<p><strong>Source Item:</strong> ${escapeHTML(item.name)} (${escapeHTML(game.i18n.localize(`TYPES.Item.${item.type}`))})</p>`
+    `<p><strong>${label("SourceItem")}:</strong> ${escapeHTML(item.name)} (${escapeHTML(localizeFallback(`TYPES.Item.${item.type}`, item.type))})</p>`
   ];
 
-  if (system.level) parts.push(`<p><strong>Level:</strong> ${escapeHTML(String(system.level))}</p>`);
-  if (system.sourceActorName) parts.push(`<p><strong>Source Actor:</strong> ${escapeHTML(system.sourceActorName)}</p>`);
-  if (rulesSummary) parts.push(`<p><strong>Rules:</strong> ${escapeHTML(rulesSummary)}</p>`);
-  if (system.benefit) parts.push(`<h3>Benefit</h3>${system.benefit}`);
-  if (templateSystem.powers) parts.push(`<h3>Actor Powers</h3>${templateSystem.powers}`);
-  if (system.description) parts.push(`<h3>Description</h3>${system.description}`);
-  if (system.notes) parts.push(`<h3>Notes</h3>${system.notes}`);
+  if (system.level) parts.push(`<p><strong>${label("Level")}:</strong> ${escapeHTML(String(system.level))}</p>`);
+  if (system.sourceActorName) parts.push(`<p><strong>${label("SourceActor")}:</strong> ${escapeHTML(system.sourceActorName)}</p>`);
+  if (rulesSummary) parts.push(`<p><strong>${label("Rules")}:</strong> ${escapeHTML(rulesSummary)}</p>`);
+  if (system.benefit) parts.push(`<h3>${label("Benefit")}</h3>${system.benefit}`);
+  if (templateSystem.powers) parts.push(`<h3>${label("ActorPowers")}</h3>${templateSystem.powers}`);
+  if (system.description) parts.push(`<h3>${label("Description")}</h3>${system.description}`);
+  if (system.notes) parts.push(`<h3>${label("Notes")}</h3>${system.notes}`);
 
   return parts.join("");
 }
 
+function followerActorTemplate(item) {
+  const source = item.type === "vassal" ? item.system?.actorTemplate : null;
+  if (!source || typeof source !== "object" || !Object.keys(source).length) return null;
+
+  return foundry.utils.deepClone(source);
+}
+
 function followerLevel(item) {
-  const level = Number(item.system?.level ?? 1);
+  const level = finiteNumber(item.system?.level, 1, 1);
   return Number.isFinite(level) && level > 0 ? level : 1;
 }
 
@@ -359,6 +378,29 @@ function escapeHTML(text) {
     '"': "&quot;",
     "'": "&#39;"
   }[char]));
+}
+
+function finiteNumber(value, fallback = 0, min = Number.NEGATIVE_INFINITY) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(min, number) : fallback;
+}
+
+function label(key) {
+  return escapeHTML(localizeFallback(`PTG.Follower.${key}`, key));
+}
+
+function localizedPTGConfig() {
+  return {
+    ...PTG,
+    skills: localizeRecord("PTG.Skills", PTG.skills),
+    manifestations: localizeRecord("PTG.Manifestations", PTG.manifestations),
+    attachments: localizeRecord("PTG.Attachments", PTG.attachments),
+    activationTypes: localizeRecord("PTG.Config.ActivationTypes", PTG.activationTypes),
+    bondKinds: localizeRecord("PTG.Config.BondKinds", PTG.bondKinds),
+    domainCategories: localizeRecord("PTG.Config.DomainCategories", PTG.domainCategories),
+    measureOptions: localizeRecord("PTG.Config.MeasureOptions", PTG.measureOptions),
+    choiceTypes: localizeRecord("PTG.Config.ChoiceTypes", PTG.choiceTypes)
+  };
 }
 
 export const PTG = {

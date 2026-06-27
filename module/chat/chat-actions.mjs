@@ -1,5 +1,6 @@
 import { openApplyConditionDialog } from "../conditions/condition-workflow.mjs";
 import { openApplyDamageDialog } from "../workflows/damage-workflow.mjs";
+import { localize } from "../util/localization.mjs";
 
 export function registerPTGChatCardActions() {
   Hooks.on("renderChatMessageHTML", bindChatCardActions);
@@ -41,7 +42,7 @@ async function handleChatAction(button, message) {
       targetActor: preferredTargetActor() ?? actor,
       sourceActor: actor,
       sourceItem: item,
-      reason: button.dataset.reason || card.dataset.reason || "Chat card action",
+      reason: button.dataset.reason || card.dataset.reason || localize("PTG.Chat.ChatCardAction"),
       severity: Math.max(1, Number(button.dataset.severity ?? card.dataset.margin ?? 1)),
       effect: button.dataset.effect ?? ""
     });
@@ -56,21 +57,21 @@ async function handleChatAction(button, message) {
       amount: Number(button.dataset.amount ?? card.dataset.margin ?? 0),
       applyArmor: button.dataset.applyArmor !== "false",
       damageTag: button.dataset.damageTag ?? "",
-      reason: button.dataset.reason || card.dataset.reason || "Chat card action"
+      reason: button.dataset.reason || card.dataset.reason || localize("PTG.Chat.ChatCardAction")
     });
   }
 
   if (action === "condition-reduce") {
-    if (!actor || !item) return ui.notifications.warn("This Condition could not be resolved from the chat card.");
+    if (!actor || !item) return ui.notifications.warn(localize("PTG.Chat.ConditionUnresolved"));
     return actor.reduceCondition?.(item);
   }
 
   if (action === "condition-recover") {
-    if (!actor || !item) return ui.notifications.warn("This Condition could not be resolved from the chat card.");
+    if (!actor || !item) return ui.notifications.warn(localize("PTG.Chat.ConditionUnresolved"));
     return actor.recoverCondition?.(item);
   }
 
-  ui.notifications.warn(`Unsupported Part-Time Gods chat action: ${action}`);
+  ui.notifications.warn(localize("PTG.Chat.UnsupportedAction", { action }));
   return null;
 }
 

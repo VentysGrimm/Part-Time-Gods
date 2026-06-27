@@ -1,58 +1,58 @@
 const OCCUPATION_CAREERS = {
   "Academic": [
-    career("Explorer", 3, 3, [attachment("individual", "My Personal Assistant", 2), attachment("group", "The Explorer's Guild", 2)], blessing("The Undiscovered", "Gain +1 Perception when searching or exploring somewhere new."), curse("On to the Next", "Gain 1 Pantheon Die when chasing a new venture leaves important projects behind.")),
-    career("Professor", 2, 4, [attachment("group", "The Academic Community", 2), attachment("landmark", "My College", 2)], blessing("I Know Just the Book", "Gain +1 Speed when quickly researching a topic."), curse("A Slight Miscalculation", "Gain 1 Pantheon Die when a theory or plan proves disastrously wrong.")),
-    career("Student", 4, 1, [attachment("group", "Fellow Students", 3), attachment("landmark", "My Campus", 3)], blessing("Omegas Rule!", "Gain +1 Influence when carousing or gathering information from peers."), curse("Pop Quiz", "Gain 1 Pantheon Die when pressure freezes the character and the group suffers."))
+    career("Explorer", 3, 3, [attachment("individual", "My Personal Assistant", 2), attachment("group", "The Explorer's Guild", 2)], careerBlessing("The Undiscovered", "Encountering new locations is exciting, and Explorers know just how to take advantage of this opportunity. Gain +1 Perception when searching or exploring a place they've never been before."), careerCurse("On to the Next", "The rush of something new drives an Explorer to greatness but is also their worst enemy. Gain 1 Pantheon Die if they pursue a new venture, leaving other important projects to fester."), { sourcePage: 37 }),
+    career("Professor", 2, 4, [attachment("group", "The Academic Community", 2), attachment("landmark", "My College", 2)], careerBlessing("I Know Just the Book", "Professors always know exactly where they've heard that quote before or the best references for specific information. Gain +1 Speed whenever they need to quickly research a topic."), careerCurse("A Slight Miscalculation", "They have lots of ideas, but not all of them are golden. Gain 1 Pantheon Die when one of their theories/plans proves to be completely and utterly wrong to the detriment of the group."), { sourcePage: 38 }),
+    career("Student", 4, 1, [attachment("group", "Fellow Students", 3), attachment("landmark", "My Campus", 3)], careerBlessing("Omegas Rule!", "The real lessons from college are often how to operate during keggers or stay abreast of the latest gossip making its way through campus. Gain +1 Influence when carousing at parties and to gather information from your peers."), careerCurse("Pop Quiz", "Students often have problems making important decisions when put on the spot, freezing under the pressure. Gain 1 Pantheon Die if a decision ever leaves them stunned, and the group suffers due to their lack of adaptability."), { sourcePage: 38 })
   ],
   "Blue Collar": [
-    career("Business Owner", 2, 3, [attachment("landmark", "My Business", 3)], blessing("Solo Ingenuity", "Gain +1 Crafts to jury-rig something well enough on the fly."), curse("Didn't Hear the Knock", "Gain 1 Pantheon Die when sacrificing 2 Wealth reflects major missed business.")),
-    career("Manual Labor", 3, 3, [attachment("landmark", "The Factory", 2), attachment("group", "Factory Workers", 2)], blessing("Keep My Head Down", "Gain +1 Discipline to ignore distractions and focus on the current job."), curse("Old Injuries", "Gain 1 Pantheon Die when an old injury causes failure at an important task.")),
-    career("Minimum Wage", 4, 1, [attachment("individual", "The Boss", 3), attachment("group", "My Friends", 3)], blessing("Quick Leaner", "Gain +1 Tech when figuring out unfamiliar systems."), curse("Bored Now", "Gain 1 Pantheon Die when walking away leaves an important task undone."))
+    career("Business Owner", 2, 3, [attachment("landmark", "My Business", 3)], careerBlessing("Solo Ingenuity", "Business owners know how to work with the materials they have, as they are often not able to afford expensive repairs. Gain +1 Crafts to jury-rig an item to work \"well-enough\" on the fly - a trick they've come to master having their own business."), careerCurse("Didn't Hear the Knock", "These characters tend to miss opportunities if they aren't 100% attached to their business at all times. Gain 1 Pantheon Die if the player sacrifices 2 Wealth, representing major income they've lost while pursuing other responsibilities."), { sourcePage: 39 }),
+    career("Manual Labor", 3, 3, [attachment("landmark", "The Factory", 2), attachment("group", "Factory Workers", 2)], careerBlessing("Keep My Head Down", "They know how to focus entirely on the job at hand. Gain +1 Discipline to ignore distractions and just concentrate on their current duties."), careerCurse("Old Injuries", "Labor jobs put strain on the body and injuries occur often on poorly managed job sites. Gain 1 Pantheon Die when an old injury (i.e. bad knee, bum shoulder, etc.) causes the character to fail to complete an important task."), { sourcePage: 39 }),
+    career("Minimum Wage", 4, 1, [attachment("individual", "The Boss", 3), attachment("group", "My Friends", 3)], careerBlessing("Quick Leaner", "They've run into their fair number of computer systems jumping from job to job. Gain +1 Tech when figuring out or operating systems they haven't seen before."), careerCurse("Bored Now", "These characters get bored easily and tend to give up on a job. Gain 1 Pantheon Die when they walk away from an important task and leave it undone to the detriment of the group."), { sourcePage: 39 })
   ],
   "Creative": [
-    career("Artist", 4, 1, [attachment("individual", "My Muse", 3), attachment("landmark", "My Studio", 3)], blessing("Pull an All-Nighter", "Gain +1 Fortitude for spending a long time on one activity."), curse("I Can't Even", "Gain 1 Pantheon Die when stress causes an outburst or unwanted tension.")),
-    career("Homemaker", 3, 2, [attachment("individual", "My Child", 3), attachment("landmark", "My Home", 3)], blessing("Keen Eye", "Gain +1 Perception to notice when something is out of place."), curse("Patronizing", "Gain 1 Pantheon Die when a harsh or condescending tone causes trouble.")),
-    career("Performer", 3, 3, [attachment("individual", "My Manager", 2), attachment("group", "My Troupe", 2)], blessing("Show Stopper", "Gain +1 Athletics when using physicality to improve a performance."), curse("Outtakes", "Gain 1 Pantheon Die when a poor performance damages reputation."))
+    career("Artist", 4, 1, [attachment("individual", "My Muse", 3), attachment("landmark", "My Studio", 3)], careerBlessing("Pull an All-Nighter", "When an artist starts a job, they don't stop until it's done. Gain +1 Fortitude for spending a long time doing a single activity, learned from their long, caffeine-fueled nights creating."), careerCurse("I Can't Even", "Gain 1 Pantheon Die when something stressful causes the character to lash out at everyone around them. This either takes them out of the situation entirely or creates unwanted tension."), { sourcePage: 40 }),
+    career("Homemaker", 3, 2, [attachment("individual", "My Child", 3), attachment("landmark", "My Home", 3)], careerBlessing("Keen Eye", "Homemakers believe in the saying \"A place for everything and everything in its place.\" Gain +1 Perception to tell if something is out of place in a room (or crime scene)."), careerCurse("Patronizing", "Sometimes, they just can't turn off their parental, often condescending, tone. Gain 1 Pantheon Die when they come off as harsh when talking to others, causing friction or trouble."), { sourcePage: 40 }),
+    career("Performer", 3, 3, [attachment("individual", "My Manger", 2), attachment("group", "My Troupe", 2)], careerBlessing("Show Stopper", "Performers push themselves by jumping off speakers, twirling in a pirouette, or withstanding the stunt fall needed to really sell a scene. Gain +1 Athletics for using physicality to put on a better show."), careerCurse("Outtakes", "Gain 1 Pantheon Die when the character doesn't perform their best during a show, and it causes damage to their reputation. Can't win them all, right?"), { sourcePage: 41 })
   ],
   "Criminal": [
-    career("Big Time", 2, 4, [attachment("individual", "Right Hand", 2), attachment("group", "The Family", 2)], blessing("The One on Top", "Gain +1 Discipline against fear."), curse("Making Enemies", "Gain 1 Pantheon Die when an old enemy interferes with progress.")),
-    career("Sex Worker", 3, 4, [attachment("individual", "My Handler/Muscle", 1), attachment("group", "Other Workers", 1)], blessing("Spot the Creep", "Gain +1 Empathy to spot potentially dangerous intentions quickly."), curse("On the Brain", "Gain 1 Pantheon Die when flirtatious behavior creates social tension or conflict.")),
-    career("Small Time", 4, 2, [attachment("group", "The Gang", 2), attachment("landmark", "Our Turf", 2)], blessing("The Muscle", "Gain +1 Might to break things."), curse("Klepto", "Gain 1 Pantheon Die when taking something wanted causes serious consequences."))
+    career("Big Time", 2, 4, [attachment("individual", "Right Hand", 2), attachment("group", "The Family", 2)], careerBlessing("The One on Top", "They know they're on top, and everyone else wants to be where they are. Gain +1 Discipline against Fear, as there is little they haven't seen already."), careerCurse("Making Enemies", "The character has made certain enemies in the past. Gain 1 Pantheon Die when interference from an enemy impedes progress or makes their (or their pantheon's) jobs much harder."), { sourcePage: 41 }),
+    career("Sex Worker", 3, 4, [attachment("individual", "My Handler/Muscle", 1), attachment("group", "Other workers", 1)], careerBlessing("Spot the Creep", "Gain +1 Empathy to tell if someone has potentially dangerous intentions within seconds of meeting them. This has saved the character's life (or career) more than once."), careerCurse("On the Brain", "Sometimes they just don't know when to reel in their flirtatious nature. Gain 1 Pantheon Die if/when the character acts overly sexual and causes tension or conflict in a social situation."), { sourcePage: 41 }),
+    career("Small Time", 4, 2, [attachment("group", "The Gang", 2), attachment("landmark", "Our Turf", 2)], careerBlessing("The Muscle", "They often gain employment as a heavy for random destruction. Gain +1 Might to break things, such as smashing down doors, snapping bones, or shattering windows."), careerCurse("Klepto", "When they see something they want, they take it. Gain 1 Pantheon Die when this act causes horrible consequences for them (or their group)."), { sourcePage: 42 })
   ],
   "Fringe": [
-    career("Homeless", 5, 0, [attachment("group", "Homeless Community", 3), attachment("landmark", "The Fringes", 3)], blessing("Friends in Low Places", "Gain +1 Influence when negotiating with outcasts or pariahs."), curse("Like a Sore Thumb", "Gain 1 Pantheon Die when seeming out of place causes a scene.")),
-    career("Religious", 4, 2, [attachment("group", "My Congregation", 2), attachment("landmark", "My Church", 2)], blessing("Higher Learning", "Gain +1 Knowledge for myth, doctrine, or historical facts."), curse("Held to a Code", "Gain 1 Pantheon Die when a code of behavior causes problems.")),
-    career("Rural", 3, 3, [attachment("individual", "My Partner", 2), attachment("landmark", "My Land", 2)], blessing("Stand My Ground", "Gain +1 Marksman when defending land or territory."), curse("Missed the Cues", "Gain 1 Pantheon Die when blunt behavior hurts the group."))
+    career("Homeless", 5, 0, [attachment("group", "Homeless Community", 3), attachment("landmark", "The Fringes", 3)], careerBlessing("Friends in Low Places", "They have a special rapport with people who are like them. Gain +1 Influence when negotiating with other outcasts or pariahs for supplies or protection."), careerCurse("Like a Sore Thumb", "The homeless find themselves welcome in very few places. Security may be called to remove them from private property, or they might draw the eye of nearby law enforcement for no reason. Gain 1 Pantheon Die if they cause a scene because they seem very out-of-place."), { sourcePage: 42 }),
+    career("Religious", 4, 2, [attachment("group", "My Congregation", 2), attachment("landmark", "My Church", 2)], careerBlessing("Higher Learning", "They embolden their minds just as much as their spirit. Gain +1 Knowledge for reciting myth, religious doctrine, or historical facts, as they have a lot of time to read and study."), careerCurse("Held to a Code", "The scriptures state there are things they can and cannot do. Gain 1 Pantheon Die when the specific code of behavior the character adheres to causes issues for themselves or the group."), { sourcePage: 43 }),
+    career("Rural", 3, 3, [attachment("individual", "My Partner", 2), attachment("landmark", "My land", 2)], careerBlessing("Stand My Ground", "They aren't in the habit of letting others take what's theirs. Gain +1 Marksman when defending their land or territory."), careerCurse("Missed the Cues", "They have a way of saying what they mean, and they miss (or ignore) a lot of the etiquette in a metropolitan setting. Gain 1 Pantheon Die when their curt or blunt behavior has a negative impact on the group."), { sourcePage: 43 })
   ],
   "Medical": [
-    career("Professional", 1, 5, [attachment("group", "Medical Community", 2), attachment("landmark", "My Hospital", 2)], blessing("My Medical Opinion", "Gain +1 Knowledge to diagnose someone or recall treatment information."), curse("Call It", "Gain 1 Pantheon Die when someone under the character's care dies.")),
-    career("Scientist", 2, 4, [attachment("individual", "My Assistant", 2), attachment("landmark", "My Lab", 2)], blessing("The Scientific Method", "Gain +1 Crafts to mix solutions and test theories."), curse("Don't Care What It Takes", "Gain 1 Pantheon Die when sacrificing something important for experimentation.")),
-    career("Therapist", 2, 4, [attachment("group", "Therapist Community", 2), attachment("landmark", "My Office", 2)], blessing("This Isn't About Me", "Gain +1 Deception to keep emotions hidden."), curse("Not Exactly What I Said", "Gain 1 Pantheon Die when advice is misread and comes back to haunt the group."))
+    career("Professional", 1, 5, [attachment("group", "Medical Community", 2), attachment("landmark", "My Hospital", 2)], careerBlessing("My Medical Opinion", "They have a firm grasp on medical theory and jargon. Gain +1 Knowledge to properly diagnose someone or recall drug effects and treatment options."), careerCurse("Call It", "Regardless of effort, some patients just don't make it. Gain 1 Pantheon Die when someone under the character's care dies."), { sourcePage: 43 }),
+    career("Scientist", 2, 4, [attachment("individual", "My Assistant", 2), attachment("landmark", "My lab", 2)], careerBlessing("The Scientific Method", "Performing experiments is a task that falls right into their wheelhouse. Gain +1 Crafts to mix solutions and test theories, creating interesting effects, if done right."), careerCurse("Don't Care What It Takes", "They'll risk it all to discover the truth! Gain 1 Pantheon Die if they sacrifice something important (to themselves or to the pantheon) in the name of experimentation!"), { sourcePage: 44 }),
+    career("Therapist", 2, 4, [attachment("group", "Therapist Community", 2), attachment("landmark", "My Office", 2)], careerBlessing("This Isn't About Me", "It can be difficult to figure out the character. Gain +1 Deception to keep their own emotions hidden, since they know all the defense mechanisms."), careerCurse("Not Exactly What I Said", "Some clients only hear what they want to hear. Gain 1 Pantheon Die when counsel (or perceived counsel) the character gave to someone comes back to haunt them (or their group)."), { sourcePage: 44 })
   ],
   "Peacekeepers": [
-    career("Detective", 3, 3, [attachment("individual", "My Partner", 2), attachment("group", "The Precinct", 2)], blessing("Eye on the Perp", "Gain +1 Stealth to shadow someone."), curse("Haunted", "Gain 1 Pantheon Die when a case memory freezes the character.")),
-    career("Emergency Services", 3, 3, [attachment("group", "Other Workers", 2), attachment("landmark", "The Station", 2)], blessing("Field Medicine", "Gain +1 Medicine to perform medical aid in the field."), curse("Can't Save Them All", "Gain 1 Pantheon Die when forced to save one person over another.")),
-    career("Officer", 4, 2, [attachment("individual", "My Partner", 2), attachment("group", "Blue Brotherhood", 2)], blessing("Subdue the Perp", "Gain +1 Fighting to wrestle and pin someone."), curse("Always on the Job", "Gain 1 Pantheon Die in exchange for sacrificing 2 Free Time after an Occupation scene."))
+    career("Detective", 3, 3, [attachment("individual", "My Partner", 2), attachment("group", "The Precinct", 2)], careerBlessing("Eye on the Perp", "Detectives know how to follow a person of interest. Gain +1 Stealth to shadow someone else, always staying right outside their view."), careerCurse("Haunted", "Gain 1 Pantheon Die when the current situation reminds the character of a terrible case they once worked, and they freeze up in contemplation instead of acting."), { sourcePage: 45 }),
+    career("Emergency Services", 3, 3, [attachment("group", "Other Workers", 2), attachment("landmark", "The Station", 2)], careerBlessing("Field Medicine", "They arrive, assess the situation, and tend to the wounded without regard for any chaos in the area. Gain +1 Medicine to perform medical aid in the field."), careerCurse("Can't Save Them All", "If they could be everywhere at once, they would, but this just isn't a reality. Gain 1 Pantheon Die when the character must choose to save one person over another."), { sourcePage: 45 }),
+    career("Officer", 4, 2, [attachment("individual", "My Partner", 2), attachment("group", "Blue Brotherhood", 2)], careerBlessing("Subdue the Perp", "Officers are trained how to handle tense encounters. Gain +1 Fighting to wrestle and pin someone to ground, something they must do almost every day."), careerCurse("Always on the Job", "An Officer's job is rarely done when they clock out. Gain 1 Pantheon Die in exchange for sacrificing 2 Free Time after leaving a scene involving the character's Occupation."), { sourcePage: 45 })
   ],
   "Physical": [
-    career("Athlete", 2, 4, [attachment("individual", "My Coach", 2), attachment("landmark", "My Training Facility", 2)], blessing("On Your Marks", "Gain +1 Speed when racing against time or another person."), curse("Dumb Jock", "Gain 1 Pantheon Die when prejudice damages social interaction.")),
-    career("Fighter", 3, 3, [attachment("group", "Fighting Community", 2), attachment("landmark", "My Gym", 2)], blessing("You Look Strong", "Gain +1 Intuition to size up fighting styles and capabilities."), curse("Dark Past", "Gain 1 Pantheon Die when past work returns to cause trouble.")),
-    career("Soldier", 2, 4, [attachment("individual", "My Commander", 2), attachment("group", "Fellow Soldier", 2)], blessing("Carry On", "Gain +1 Fortitude against pain."), curse("Yes, Sir!", "Gain 1 Pantheon Die when following an order without thinking causes harm."))
+    career("Athlete", 2, 4, [attachment("individual", "My Coach", 2), attachment("landmark", "My Training Facility", 2)], careerBlessing("On Your Marks", "When it comes to beating the competition, the character competes to win. Gain +1 Speed when racing against the clock or another person."), careerCurse("Dumb Jock", "The assumption that athletes are not intelligent is aggravating to say the least. Gain 1 Pantheon Die when these prejudices play a part in breaking down social interactions with others."), { sourcePage: 46 }),
+    career("Fighter", 3, 3, [attachment("group", "Fighting Community", 2), attachment("landmark", "My Gym", 2)], careerBlessing("You Look Strong", "They've faced many opponents, so it's easy to tell who's a threat and who is minced meat. Gain +1 Intuition to size up a person and predict their fighting styles and capabilities."), careerCurse("Dark Past", "Fighters sometimes take on side jobs or do things they are less than proud of to make ends meet. Gain 1 Pantheon Die when something the character was once hired to do comes back to plague them."), { sourcePage: 46 }),
+    career("Soldier", 2, 4, [attachment("individual", "My Commander", 2), attachment("group", "Fellow Soldier", 2)], careerBlessing("Carry On", "They've pushed themselves beyond their limits. Gain +1 Fortitude vs. Pain."), careerCurse("Yes, Sir!", "Their impulse to carry out commands is instinctual at times. Gain 1 Pantheon Die when they follow an order without thinking and the result is bad for them (or the group)."), { sourcePage: 46 })
   ],
   "Public Life": [
-    career("Celebrity", 2, 4, [attachment("individual", "My Agent", 2), attachment("group", "My Fans", 2)], blessing("Game Face", "Gain +1 Empathy to control emotions for a convincing performance."), curse("My Adoring Fans", "Gain 1 Pantheon Die when fame makes an important task harder.")),
-    career("Media", 3, 3, [attachment("individual", "My Editor", 2), attachment("group", "Journalist Community", 2)], blessing("Anything for the Story", "Gain +1 Stealth when breaking into places for a story."), curse("Killed the Cat", "Gain 1 Pantheon Die when curiosity causes trouble.")),
-    career("Politician", 2, 4, [attachment("group", "Political Circles", 2), attachment("landmark", "My Office", 2)], blessing("It's Who You Know", "Gain +1 Knowledge to recall useful facts about people."), curse("My Name", "Gain 1 Pantheon Die when protecting reputation interferes with an important task."))
+    career("Celebrity", 2, 4, [attachment("individual", "My Agent", 2), attachment("group", "My Fans", 2)], careerBlessing("Game Face", "Gain +1 Empathy to manipulate their own emotions to give a convincing performance, even if only to a crowd of one."), careerCurse("My Adoring Fans", "Celebrities are sometimes put on a pedestal, and are expected to interact with fans in a certain way. Gain 1 Pantheon Die when their fame (even minor fame) makes it hard to perform tasks, or the celebrity reacts in a perfectly human (but not necessarily nice) manner."), { sourcePage: 47 }),
+    career("Media", 3, 3, [attachment("individual", "My Editor", 2), attachment("group", "Journalist Community", 2)], careerBlessing("Anything for the Story", "They'll go to any lengths to get to the truth. Gain +1 Stealth when breaking into places they shouldn't be."), careerCurse("Killed the Cat", "They must follow a story if one presents itself, causing trouble for not only themselves but also for their pantheon. Gain 1 Pantheon Die when curiosity gets the better of them."), { sourcePage: 47 }),
+    career("Politician", 2, 4, [attachment("group", "Political Circles", 2), attachment("landmark", "My Office", 2)], careerBlessing("It's Who You Know", "It's important for Politicians to know who people are. Gain +1 Knowledge to recall facts about who someone is, what they do, what their family is like, and other helpful information."), careerCurse("My Name", "A politician's name is their most valued asset. Gain 1 Pantheon Die when their need to protect their reputation gets in the way of an important task, and they (or their group) suffer for it."), { sourcePage: 48 })
   ],
   "Unemployed": [
-    career("Kid", 5, 1, [attachment("individual", "Responsible Parent", 2), attachment("group", "Other Kids", 2)], blessing("Hide and Seek", "Gain +1 Stealth to hide away from others."), curse("Blush", "Gain 1 Pantheon Die when embarrassment drives the character from a scene.")),
-    career("Privileged", 1, 5, [attachment("group", "Socialite Circles", 2), attachment("landmark", "My Mansion", 2)], blessing("This is My Town", "Gain +1 Survival when operating in urban environments."), curse("Can't Pass Up a Deal", "Gain 1 Pantheon Die when a deal goes sideways.")),
-    career("Retired", 4, 2, [attachment("group", "Old Coworkers", 2), attachment("group", "My Family", 2)], blessing("My Old Life", "Gain +1 to a Skill of Choice tied to a former profession."), curse("Feeling My Age", "Gain 1 Pantheon Die when age-related weakness causes trouble."))
+    career("Kid", 5, 1, [attachment("individual", "Responsible Parent", 2), attachment("group", "Other Kids", 2)], careerBlessing("Hide and Seek", "It's easy to hide when you're smaller than everyone else. Gain +1 Stealth to hide away from others, usually finding places big folk never get to."), careerCurse("*Blush*", "Nothing is worse than being embarrassed. Gain 1 Pantheon Die whenever something happens that completely embarrasses the kid, leaving them mortified and fleeing from the scene."), { sourcePage: 48 }),
+    career("Privileged", 1, 5, [attachment("group", "Socialite Circles", 2), attachment("landmark", "My Mansion", 2)], careerBlessing("This is My Town", "They know their way around everywhere, especially where to get to the best parties. Gain +1 Survival when operating in urban environments."), careerCurse("Can't Pass Up a Deal", "They often get off on gambling and initiating deals of all kinds, but sometimes things go south. Gain 1 Pantheon Die when the character makes a deal that goes sideways and causes trouble."), { sourcePage: 48 }),
+    career("Retired", 4, 2, [attachment("group", "Old Coworkers", 2), attachment("group", "My Family", 2)], careerBlessing("My Old Life", "Gain a +1 bonus to a Skill of Choice to reflect the profession they once held. A retired pilot may gain +1 Travel (Planes), while a retired boxer may gain +1 Fighting (Punches)."), careerCurse("Feeling My Age", "Age does have its drawbacks. Gain 1 Pantheon Die when the character's absent-mindedness or physical weakness causes trouble for the group."), { sourcePage: 49 })
   ],
   "White Collar": [
-    career("Computer Tech", 3, 3, [attachment("group", "Geek Squad", 2), attachment("landmark", "My Setup", 2)], blessing("Scanning for Glitches", "Gain +1 Intuition to diagnose machines or crack difficult code."), curse("Tech Jargon", "Gain 1 Pantheon Die when technical speech causes a communication breakdown.")),
-    career("Executive", 2, 4, [attachment("group", "The Board of Directors", 2), attachment("landmark", "My Office", 2)], blessing("Brown Nose", "Gain +1 Empathy to read what someone wants to hear."), curse("Coming in on Saturday", "Gain 1 Pantheon Die when forced to do important work without anyone to delegate to.")),
-    career("Lawyer", 1, 5, [attachment("individual", "My Partner", 2), attachment("landmark", "My Office", 2)], blessing("Closing Arguments", "Gain +1 Perform when orating to bring others to the character's side."), curse("Well, Actually", "Gain 1 Pantheon Die when needless debate creates conflict."))
+    career("Computer Tech", 3, 3, [attachment("group", "Geek Squad", 2), attachment("landmark", "My Setup", 2)], careerBlessing("Scanning for Glitches", "Computer diagnostics is a hobby of theirs. Gain +1 Intuition to diagnose issues with a machine or crack a difficult code, hopefully solving the issue on the first try."), careerCurse("Tech Jargon", "Communications can break down when you don't speak plainly. Gain 1 Pantheon Die when their penchant for talking over people's heads occurs to their detriment."), { sourcePage: 50 }),
+    career("Executive", 2, 4, [attachment("group", "The Board of Directors", 2), attachment("landmark", "My Office", 2)], careerBlessing("Brown Nose", "Executives are great talkers and con artists. Gain +1 Empathy to read someone and figure out what they want to hear."), careerCurse("Coming in on Saturday", "They are used to others doing the demanding work. Gain 1 Pantheon Die when no one is around to delegate to, and the character is forced to do a terrible job at an important task themselves."), { sourcePage: 50 }),
+    career("Lawyer", 1, 5, [attachment("individual", "My Partner", 2), attachment("landmark", "My Office", 2)], careerBlessing("Closing Arguments", "It's difficult to resist a lawyer's logic. Gain +1 Perform when orating before a crowd, using their words to bring others to their side."), careerCurse("Well, Actually", "Lawyers can't pass up a good debate, even when they should. Gain 1 Pantheon Die when they insufferably debates the smallest situation, creating conflict and issues for the group."), { sourcePage: 51 })
   ]
 };
 
@@ -613,28 +613,29 @@ function normalizeGrants(grants) {
 
 function normalizeOccupationCareers(occupationName, page) {
   return Array.from(OCCUPATION_CAREERS[occupationName] ?? []).map(career => {
+    const sourcePage = career.sourcePage ?? page;
     const summary = `${career.name} is a ${occupationName} career option that grants Free Time ${Number(career.resources?.freeTime ?? 0)}, Wealth ${Number(career.resources?.wealth ?? 0)}, one Attachment option, a Blessing, and a Curse.`;
 
     return {
       ...career,
       description: career.description ?? summary,
-      sourcePage: career.sourcePage ?? page,
+      sourcePage,
       rules: {
         summary,
         fullText: paragraph(summary),
         source: {
           book: "Part-Time Gods Second Edition",
-          page,
+          page: sourcePage,
           section: `${occupationName}: ${career.name}`,
           type: "occupation-career"
         }
       },
       attachments: Array.from(career.attachments ?? []).map(attachment => ({
         ...attachment,
-        sourcePage: attachment.sourcePage ?? page
+        sourcePage: attachment.sourcePage ?? sourcePage
       })),
-      blessing: career.blessing ? withAbilitySource(career.blessing, page, "blessing") : null,
-      curse: career.curse ? withAbilitySource(career.curse, page, "curse") : null
+      blessing: career.blessing ? withAbilitySource(career.blessing, sourcePage, "blessing") : null,
+      curse: career.curse ? withAbilitySource(career.curse, sourcePage, "curse") : null
     };
   });
 }
@@ -694,9 +695,10 @@ function label(key) {
   return labels[key] ?? key;
 }
 
-function career(name, freeTime, wealth, attachments, blessing, curse) {
+function career(name, freeTime, wealth, attachments, blessing, curse, { sourcePage = null } = {}) {
   return {
     name,
+    ...(sourcePage ? { sourcePage } : {}),
     resources: { freeTime, wealth },
     attachments,
     blessing,
@@ -715,9 +717,17 @@ function attachment(kind, name, level) {
   };
 }
 
-function blessing(name, effect) {
+function careerBlessing(name, effect) {
+  return blessing(name, effect, { printed: true });
+}
+
+function careerCurse(name, effect) {
+  return curse(name, effect, { printed: true });
+}
+
+function blessing(name, effect, { printed = false } = {}) {
   const automation = abilityAutomation("blessing", name, effect);
-  const playerText = abilityPlayerText("blessing", name, effect);
+  const playerText = printed ? effect : abilityPlayerText("blessing", name, effect);
   return {
     name,
     effect: playerText,
@@ -730,9 +740,9 @@ function blessing(name, effect) {
   };
 }
 
-function curse(name, effect, { pantheonDice = 1 } = {}) {
+function curse(name, effect, { pantheonDice = 1, printed = false } = {}) {
   const automation = abilityAutomation("curse", name, effect, { pantheonDice });
-  const playerText = abilityPlayerText("curse", name, effect, { pantheonDice });
+  const playerText = printed ? effect : abilityPlayerText("curse", name, effect, { pantheonDice });
   return {
     name,
     effect: playerText,

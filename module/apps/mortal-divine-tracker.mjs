@@ -1,6 +1,6 @@
 import { getDragEventData } from "../util/drop-data.mjs";
+import { SYSTEM_ID, localize, localizeFallback } from "../util/localization.mjs";
 
-const SYSTEM_ID = "part-time-gods";
 const FLAG_KEY = "mortalDivineBalance";
 const MIN_BALANCE = -10;
 const MAX_BALANCE = 10;
@@ -8,37 +8,37 @@ const MAX_BALANCE = 10;
 const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 const MORTAL_BUTTONS = [
-  { key: "helped-bond", label: "Helped a Bond", amount: 1 },
-  { key: "went-to-work", label: "Went to Work", amount: 1 },
-  { key: "protected-mortal-life", label: "Protected Mortal Life", amount: 1 },
-  { key: "human-obligations", label: "Spent Free Time on Human Obligations", amount: 1 },
-  { key: "repaired-strain", label: "Repaired Strain or Relationship Harm", amount: 1 },
-  { key: "mortal-consequences", label: "Chose Mortal Consequences", amount: 1 }
+  { key: "helped-bond", labelKey: "PTG.Balance.Buttons.HelpedBond", fallback: "Helped a Bond", amount: 1 },
+  { key: "went-to-work", labelKey: "PTG.Balance.Buttons.WentToWork", fallback: "Went to Work", amount: 1 },
+  { key: "protected-mortal-life", labelKey: "PTG.Balance.Buttons.ProtectedMortalLife", fallback: "Protected Mortal Life", amount: 1 },
+  { key: "human-obligations", labelKey: "PTG.Balance.Buttons.HumanObligations", fallback: "Spent Free Time on Human Obligations", amount: 1 },
+  { key: "repaired-strain", labelKey: "PTG.Balance.Buttons.RepairedStrain", fallback: "Repaired Strain or Relationship Harm", amount: 1 },
+  { key: "mortal-consequences", labelKey: "PTG.Balance.Buttons.MortalConsequences", fallback: "Chose Mortal Consequences", amount: 1 }
 ];
 
 const DIVINE_BUTTONS = [
-  { key: "answered-worshippers", label: "Answered Worshippers", amount: 1 },
-  { key: "public-manifestation", label: "Used Manifestation Publicly", amount: 1 },
-  { key: "ritual", label: "Performed a Ritual", amount: 1 },
-  { key: "territory-influence", label: "Claimed Territory Influence", amount: 1 },
-  { key: "ignored-mortal-life", label: "Ignored Work, Family, or Bonds", amount: 1 },
-  { key: "divine-asset", label: "Gained Truth, Relic, Vassal, or Worshippers", amount: 1 },
-  { key: "spark-dominion", label: "Advanced Spark or Leaned Into Dominion", amount: 1 }
+  { key: "answered-worshippers", labelKey: "PTG.Balance.Buttons.AnsweredWorshippers", fallback: "Answered Worshippers", amount: 1 },
+  { key: "public-manifestation", labelKey: "PTG.Balance.Buttons.PublicManifestation", fallback: "Used Manifestation Publicly", amount: 1 },
+  { key: "ritual", labelKey: "PTG.Balance.Buttons.Ritual", fallback: "Performed a Ritual", amount: 1 },
+  { key: "territory-influence", labelKey: "PTG.Balance.Buttons.TerritoryInfluence", fallback: "Claimed Territory Influence", amount: 1 },
+  { key: "ignored-mortal-life", labelKey: "PTG.Balance.Buttons.IgnoredMortalLife", fallback: "Ignored Work, Family, or Bonds", amount: 1 },
+  { key: "divine-asset", labelKey: "PTG.Balance.Buttons.DivineAsset", fallback: "Gained Truth, Relic, Vassal, or Worshippers", amount: 1 },
+  { key: "spark-dominion", labelKey: "PTG.Balance.Buttons.SparkDominion", fallback: "Advanced Spark or Leaned Into Dominion", amount: 1 }
 ];
 
 let trackerApp = null;
 
 export function registerMortalDivineTrackerSettings() {
   game.settings.register(SYSTEM_ID, "mortalDivineTrackerChatMode", {
-    name: "Mortal-Divine Balance chat output",
-    hint: "Controls whether Mortal-Divine Balance adjustments post chat cards.",
+    name: localize("PTG.Settings.BalanceChatMode.Name"),
+    hint: localize("PTG.Settings.BalanceChatMode.Hint"),
     scope: "world",
     config: true,
     type: String,
     choices: {
-      none: "No chat card",
-      gm: "Whisper to GMs",
-      public: "Public chat card"
+      none: localize("PTG.Settings.BalanceChatMode.Choices.None"),
+      gm: localize("PTG.Settings.BalanceChatMode.Choices.Gm"),
+      public: localize("PTG.Settings.BalanceChatMode.Choices.Public")
     },
     default: "none"
   });
@@ -46,7 +46,7 @@ export function registerMortalDivineTrackerSettings() {
 
 export function openMortalDivineBalanceTracker(actor = null) {
   if (!game.user?.isGM) {
-    ui.notifications.warn("Only a GM can open the Mortal-Divine Balance tracker.");
+    ui.notifications.warn(localize("PTG.Balance.OnlyGMOpen"));
     return null;
   }
 
@@ -64,7 +64,7 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
       height: 680
     },
     window: {
-      title: "Mortal-Divine Balance",
+      title: "PTG.Balance.Title",
       resizable: true
     },
     tag: "form"
@@ -96,9 +96,12 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
         percent: ((value - MIN_BALANCE) / (MAX_BALANCE - MIN_BALANCE)) * 100,
         state
       } : null,
-      mortalButtons: MORTAL_BUTTONS,
-      divineButtons: DIVINE_BUTTONS,
-      log: Array.from(state.log ?? []).slice(-20).reverse(),
+      mortalButtons: localizedButtons(MORTAL_BUTTONS),
+      divineButtons: localizedButtons(DIVINE_BUTTONS),
+      log: Array.from(state.log ?? []).slice(-20).reverse().map(entry => ({
+        ...entry,
+        directionLabel: directionLabel(entry.direction)
+      })),
       min: MIN_BALANCE,
       max: MAX_BALANCE
     };
@@ -121,7 +124,7 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
 
   setActor(actor) {
     if (actor?.type !== "character") {
-      ui.notifications.warn("Track a character actor for Mortal-Divine Balance.");
+      ui.notifications.warn(localize("PTG.Balance.TrackCharacter"));
       return;
     }
 
@@ -130,12 +133,12 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
 
   async #onDrop(event) {
     event.preventDefault();
-    if (!game.user?.isGM) return ui.notifications.warn("Only a GM can edit the Mortal-Divine Balance tracker.");
+    if (!game.user?.isGM) return ui.notifications.warn(localize("PTG.Balance.OnlyGMEdit"));
 
     const data = getDragEventData(event);
     const actor = await actorFromDropData(data);
     if (!actor || actor.type !== "character") {
-      ui.notifications.warn("Drop a character actor onto the Mortal-Divine Balance tracker.");
+      ui.notifications.warn(localize("PTG.Balance.DropCharacter"));
       return;
     }
 
@@ -150,7 +153,7 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     await adjustBalance(actor, {
       direction: button.dataset.balanceDirection,
       amount: Number(button.dataset.balanceAmount ?? 1),
-      reason: button.dataset.balanceReason ?? button.textContent?.trim() ?? "Balance adjustment",
+      reason: button.dataset.balanceReason ?? button.textContent?.trim() ?? localize("PTG.Balance.BalanceAdjustment"),
       note: ""
     });
     this.render({ force: true });
@@ -164,7 +167,7 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     await adjustBalance(actor, {
       direction: form.elements.balanceDirection?.value ?? "mortal",
       amount: Number(form.elements.balanceAmount?.value ?? 1),
-      reason: "Custom adjustment",
+      reason: localize("PTG.Balance.CustomReason"),
       note: form.elements.balanceNote?.value?.trim() ?? ""
     });
 
@@ -177,8 +180,8 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     if (!actor) return;
 
     const confirmed = await DialogV2.confirm({
-      window: { title: "Clear Balance Log" },
-      content: `<p>Clear the Mortal-Divine Balance log for <strong>${escapeHTML(actor.name)}</strong>?</p>`,
+      window: { title: localize("PTG.Balance.ClearLogTitle") },
+      content: `<p>${localize("PTG.Balance.ClearLogContent", { actorName: escapeHTML(actor.name) })}</p>`,
       modal: true
     });
     if (!confirmed) return;
@@ -193,12 +196,12 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
 
   async #requireActor() {
     if (!game.user?.isGM) {
-      ui.notifications.warn("Only a GM can edit the Mortal-Divine Balance tracker.");
+      ui.notifications.warn(localize("PTG.Balance.OnlyGMEdit"));
       return null;
     }
 
     const actor = await this.#trackedActor();
-    if (!actor) ui.notifications.warn("Drop a character actor onto the tracker first.");
+    if (!actor) ui.notifications.warn(localize("PTG.Balance.DropFirst"));
     return actor;
   }
 
@@ -209,8 +212,17 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
 }
 
 async function actorFromDropData(data) {
-  if (data?.uuid) return fromUuid(data.uuid);
-  if (data?.type === "Actor" && data.id) return game.actors.get(data.id);
+  try {
+    const actor = data?.uuid
+      ? await fromUuid(data.uuid)
+      : data?.type === "Actor" && data.id
+        ? game.actors.get(data.id)
+        : null;
+    return actor?.documentName === "Actor" || actor?.constructor?.documentName === "Actor" ? actor : null;
+  } catch (error) {
+    console.warn("Part-Time Gods 2E | Unable to resolve Mortal-Divine Balance drop data.", data, error);
+  }
+
   return null;
 }
 
@@ -218,9 +230,9 @@ async function adjustBalance(actor, { direction, amount, reason, note }) {
   if (!game.user?.isGM) return false;
 
   const state = balanceState(actor);
-  const cleanAmount = Math.max(1, Math.abs(Number(amount) || 1));
-  const normalizedDirection = direction === "divine" ? "Divine" : "Mortal";
-  const delta = normalizedDirection === "Divine" ? cleanAmount : -cleanAmount;
+  const cleanAmount = clampAdjustmentAmount(amount);
+  const normalizedDirection = normalizeDirection(direction);
+  const delta = normalizedDirection === "divine" ? cleanAmount : -cleanAmount;
   const before = clampBalance(state.value);
   const after = clampBalance(before + delta);
   const log = Array.from(state.log ?? []);
@@ -248,9 +260,13 @@ async function adjustBalance(actor, { direction, amount, reason, note }) {
 }
 
 function balanceState(actor) {
+  const saved = actor.getFlag(SYSTEM_ID, FLAG_KEY) ?? {};
+
   return {
     ...defaultBalanceState(),
-    ...(actor.getFlag(SYSTEM_ID, FLAG_KEY) ?? {})
+    ...(saved && typeof saved === "object" ? saved : {}),
+    value: clampBalance(saved?.value),
+    log: sanitizeLog(saved?.log)
   };
 }
 
@@ -263,15 +279,16 @@ function defaultBalanceState() {
 }
 
 function clampBalance(value) {
-  return Math.max(MIN_BALANCE, Math.min(MAX_BALANCE, Number(value) || 0));
+  const number = Number(value);
+  return Math.max(MIN_BALANCE, Math.min(MAX_BALANCE, Number.isFinite(number) ? number : 0));
 }
 
 function balanceLabel(value) {
-  if (value <= -7) return "Strongly Mortal";
-  if (value <= -3) return "Mortal Leaning";
-  if (value >= 7) return "Strongly Divine";
-  if (value >= 3) return "Divine Leaning";
-  return "Balanced";
+  if (value <= -7) return localize("PTG.Balance.States.StronglyMortal");
+  if (value <= -3) return localize("PTG.Balance.States.MortalLeaning");
+  if (value >= 7) return localize("PTG.Balance.States.StronglyDivine");
+  if (value >= 3) return localize("PTG.Balance.States.DivineLeaning");
+  return localize("PTG.Balance.States.Balanced");
 }
 
 async function postBalanceChat(actor, entry) {
@@ -283,15 +300,44 @@ async function postBalanceChat(actor, entry) {
     whisper: mode === "gm" ? ChatMessage.getWhisperRecipients("GM").map(user => user.id) : [],
     content: `
       <div class="ptg-chat-card">
-        <h3>Mortal-Divine Balance</h3>
-        <div><strong>Actor:</strong> ${escapeHTML(actor.name)}</div>
-        <div><strong>Direction:</strong> ${escapeHTML(entry.direction)}</div>
-        <div><strong>Reason:</strong> ${escapeHTML(entry.reason)}</div>
-        <div><strong>Meter:</strong> ${entry.before} -> ${entry.after}</div>
-        ${entry.note ? `<div><strong>Note:</strong> ${escapeHTML(entry.note)}</div>` : ""}
+        <h3>${escapeHTML(localize("PTG.Balance.ChatTitle"))}</h3>
+        <div><strong>${escapeHTML(localize("PTG.Balance.Actor"))}:</strong> ${escapeHTML(actor.name)}</div>
+        <div><strong>${escapeHTML(localize("PTG.Balance.DirectionLabel"))}:</strong> ${escapeHTML(directionLabel(entry.direction))}</div>
+        <div><strong>${escapeHTML(localize("PTG.Balance.Reason"))}:</strong> ${escapeHTML(entry.reason)}</div>
+        <div><strong>${escapeHTML(localize("PTG.Balance.Meter"))}:</strong> ${entry.before} -&gt; ${entry.after}</div>
+        ${entry.note ? `<div><strong>${escapeHTML(localize("PTG.Balance.Note"))}:</strong> ${escapeHTML(entry.note)}</div>` : ""}
       </div>
     `
   });
+}
+
+function localizedButtons(buttons) {
+  return buttons.map(button => ({
+    ...button,
+    label: localizeFallback(button.labelKey, button.fallback)
+  }));
+}
+
+function sanitizeLog(log) {
+  return Array.isArray(log)
+    ? log.filter(entry => entry && typeof entry === "object").slice(-100)
+    : [];
+}
+
+function clampAdjustmentAmount(value) {
+  const number = Math.abs(Number(value));
+  return Math.max(1, Math.min(MAX_BALANCE, Number.isFinite(number) ? number : 1));
+}
+
+function normalizeDirection(direction) {
+  return String(direction ?? "").toLowerCase() === "divine" ? "divine" : "mortal";
+}
+
+function directionLabel(direction) {
+  const normalized = normalizeDirection(direction);
+  return normalized === "divine"
+    ? localize("PTG.Balance.Directions.Divine")
+    : localize("PTG.Balance.Directions.Mortal");
 }
 
 function escapeHTML(value) {

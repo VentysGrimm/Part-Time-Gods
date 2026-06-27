@@ -1,7 +1,7 @@
 <div class="ptg-chat-card ptg-item-use-card" data-ptg-chat-card="item-use" data-actor-uuid="{{actorUuid}}" data-item-uuid="{{itemUuid}}" data-reason="{{title}}">
   <header>
     <h3>{{title}}</h3>
-    {{#if itemType}}<div class="ptg-chat-subtitle">{{itemType}} used by {{actorName}}</div>{{/if}}
+    {{#if itemType}}<div class="ptg-chat-subtitle">{{localize "PTG.Chat.ItemUsedBy" itemType=itemType actorName=actorName}}</div>{{/if}}
   </header>
 
   {{#if summary}}
@@ -18,15 +18,15 @@
 
   {{#if usage}}
     <dl class="ptg-chat-details">
-      {{#if usage.kind}}<div><dt>Use</dt><dd>{{usage.kind}}</dd></div>{{/if}}
-      {{#if usage.trigger}}<div><dt>Trigger</dt><dd>{{usage.trigger}}</dd></div>{{/if}}
-      {{#if usage.target}}<div><dt>Target</dt><dd>{{usage.target}}</dd></div>{{/if}}
+      {{#if usage.kind}}<div><dt>{{localize "PTG.Chat.Use"}}</dt><dd>{{usage.kind}}</dd></div>{{/if}}
+      {{#if usage.trigger}}<div><dt>{{localize "PTG.Chat.Trigger"}}</dt><dd>{{usage.trigger}}</dd></div>{{/if}}
+      {{#if usage.target}}<div><dt>{{localize "PTG.Chat.Target"}}</dt><dd>{{usage.target}}</dd></div>{{/if}}
     </dl>
   {{/if}}
 
   {{#if costs.length}}
     <section>
-      <h4>Cost</h4>
+      <h4>{{localize "PTG.Chat.Cost"}}</h4>
       <ul>
         {{#each costs as |cost|}}
           <li>{{cost.label}} {{cost.amount}}</li>
@@ -37,7 +37,7 @@
 
   {{#if results.length}}
     <section>
-      <h4>Applied Changes</h4>
+      <h4>{{localize "PTG.Chat.AppliedChanges"}}</h4>
       <ul>
         {{#each results as |result|}}
           <li>{{result.text}}</li>
@@ -48,7 +48,7 @@
 
   {{#if remaining.length}}
     <section>
-      <h4>Remaining</h4>
+      <h4>{{localize "PTG.Chat.Remaining"}}</h4>
       <ul>
         {{#each remaining as |resource|}}
           <li>{{resource.label}} {{resource.value}}{{#if resource.max}} / {{resource.max}}{{/if}}</li>
@@ -58,8 +58,8 @@
   {{/if}}
 
   <div class="ptg-chat-actions">
-    {{#if actorUuid}}<button type="button" data-ptg-chat-action="open-actor">Open Actor</button>{{/if}}
-    {{#if itemUuid}}<button type="button" data-ptg-chat-action="open-item">Open Item</button>{{/if}}
-    <button type="button" data-ptg-chat-action="apply-condition" data-reason="{{title}}">Apply Condition</button>
+    {{#if actorUuid}}<button type="button" data-ptg-chat-action="open-actor">{{localize "PTG.Chat.OpenActor"}}</button>{{/if}}
+    {{#if itemUuid}}<button type="button" data-ptg-chat-action="open-item">{{localize "PTG.Chat.OpenItem"}}</button>{{/if}}
+    <button type="button" data-ptg-chat-action="apply-condition" data-reason="{{title}}">{{localize "PTG.Chat.ApplyCondition"}}</button>
   </div>
 </div>

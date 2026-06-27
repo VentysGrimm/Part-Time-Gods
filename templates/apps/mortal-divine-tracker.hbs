@@ -8,11 +8,11 @@
       </div>
     </header>
 
-    <section class="ptg-balance-meter" aria-label="Mortal-Divine Balance meter">
+    <section class="ptg-balance-meter" aria-label="{{localize "PTG.Balance.MeterAria"}}">
       <div class="ptg-balance-scale">
-        <span>Mortal</span>
-        <strong>Balanced</strong>
-        <span>Divine</span>
+        <span>{{localize "PTG.Balance.Mortal"}}</span>
+        <strong>{{localize "PTG.Balance.Balanced"}}</strong>
+        <span>{{localize "PTG.Balance.Divine"}}</span>
       </div>
       <div class="ptg-balance-bar">
         <i style="left: {{actor.percent}}%;"></i>
@@ -26,7 +26,7 @@
 
     <section class="ptg-balance-actions">
       <div>
-        <h3>Mortal Pressure</h3>
+        <h3>{{localize "PTG.Balance.MortalPressure"}}</h3>
         {{#each mortalButtons as |button|}}
           <button type="button" data-balance-action data-balance-direction="mortal" data-balance-amount="{{button.amount}}" data-balance-reason="{{button.label}}">
             {{button.label}}
@@ -34,7 +34,7 @@
         {{/each}}
       </div>
       <div>
-        <h3>Divine Pressure</h3>
+        <h3>{{localize "PTG.Balance.DivinePressure"}}</h3>
         {{#each divineButtons as |button|}}
           <button type="button" data-balance-action data-balance-direction="divine" data-balance-amount="{{button.amount}}" data-balance-reason="{{button.label}}">
             {{button.label}}
@@ -44,37 +44,37 @@
     </section>
 
     <section class="ptg-balance-custom">
-      <h3>Custom Adjustment</h3>
+      <h3>{{localize "PTG.Balance.CustomAdjustment"}}</h3>
       <div class="ptg-item-fields three">
         <label>
-          <span>Direction</span>
+          <span>{{localize "PTG.Balance.Direction"}}</span>
           <select name="balanceDirection">
-            <option value="mortal">Mortal</option>
-            <option value="divine">Divine</option>
+            <option value="mortal">{{localize "PTG.Balance.Mortal"}}</option>
+            <option value="divine">{{localize "PTG.Balance.Divine"}}</option>
           </select>
         </label>
         <label>
-          <span>Amount</span>
+          <span>{{localize "PTG.Balance.Amount"}}</span>
           <input name="balanceAmount" type="number" value="1" min="1" max="10">
         </label>
-        <button type="button" data-balance-custom>Apply</button>
+        <button type="button" data-balance-custom>{{localize "PTG.Balance.Apply"}}</button>
       </div>
       <label>
-        <span>GM Note</span>
-        <textarea name="balanceNote" placeholder="What changed the balance?"></textarea>
+        <span>{{localize "PTG.Balance.GMNote"}}</span>
+        <textarea name="balanceNote" placeholder="{{localize "PTG.Balance.GMNotePlaceholder"}}"></textarea>
       </label>
     </section>
 
     <section class="ptg-balance-log">
       <header>
-        <h3>Recent Movement</h3>
-        <button type="button" data-balance-clear>Clear Log</button>
+        <h3>{{localize "PTG.Balance.RecentMovement"}}</h3>
+        <button type="button" data-balance-clear>{{localize "PTG.Balance.ClearLog"}}</button>
       </header>
       {{#if log.length}}
         <ol>
           {{#each log as |entry|}}
             <li>
-              <strong>{{entry.direction}} {{entry.amount}}</strong>
+              <strong>{{entry.directionLabel}} {{entry.amount}}</strong>
               <span>{{entry.reason}}</span>
               <small>{{entry.before}} -> {{entry.after}}</small>
               {{#if entry.note}}<p>{{entry.note}}</p>{{/if}}
@@ -82,13 +82,13 @@
           {{/each}}
         </ol>
       {{else}}
-        <p class="ptg-sheet-note">No Mortal-Divine Balance events logged yet.</p>
+        <p class="ptg-sheet-note">{{localize "PTG.Balance.NoEvents"}}</p>
       {{/if}}
     </section>
   {{else}}
     <section class="ptg-balance-empty">
-      <h2>Mortal-Divine Balance</h2>
-      <p>Drop a character actor here to begin tracking.</p>
+      <h2>{{localize "PTG.Balance.Title"}}</h2>
+      <p>{{localize "PTG.Balance.EmptyDrop"}}</p>
     </section>
   {{/if}}
 </section>

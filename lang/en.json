@@ -32,6 +32,86 @@
       "PantheonSheet": "Part-Time Gods Pantheon",
       "ItemSheet": "Part-Time Gods Item"
     },
+    "Settings": {
+      "AutoPopulate": {
+        "Name": "Auto-populate premade Part-Time Gods compendiums",
+        "Hint": "Creates the system's premade character creation choices, play items, maps, and rules journals in system compendiums for GMs."
+      },
+      "CanonicalEmbeddedItemsMigration": {
+        "Name": "Canonical embedded Items migration"
+      },
+      "BalanceChatMode": {
+        "Name": "Mortal-Divine Balance chat output",
+        "Hint": "Controls whether Mortal-Divine Balance adjustments post chat cards.",
+        "Choices": {
+          "None": "No chat card",
+          "Gm": "Whisper to GMs",
+          "Public": "Public chat card"
+        }
+      }
+    },
+    "Notifications": {
+      "EmbeddedItemsMigrated": "Part-Time Gods migrated {createdItems} legacy sheet note(s) into owned Items.",
+      "EmbeddedItemsMigrationFailed": "Part-Time Gods embedded Item migration failed. Check the console for details.",
+      "OnlyGMFollowerScene": "Only a GM can create Worshipper and Vassal actors on a scene.",
+      "NoActiveScene": "No active scene is available for token creation.",
+      "LoadedSlash": "Part-Time Gods 2E loaded. Use /ptg-create-territory-scene, /ptg-territory, /ptg-combat, /ptg-balance, /ptg-antagonist-builder, or /ptg-import-rules-journals for world setup."
+    },
+    "Folders": {
+      "Vassals": "PTG Vassals",
+      "Worshippers": "PTG Worshippers"
+    },
+    "Follower": {
+      "SourceItem": "Source Item",
+      "Level": "Level",
+      "SourceActor": "Source Actor",
+      "Rules": "Rules",
+      "Benefit": "Benefit",
+      "ActorPowers": "Actor Powers",
+      "Description": "Description",
+      "Notes": "Notes"
+    },
+    "Resources": {
+      "FreeTime": "Free Time",
+      "Health": "Health",
+      "Pantheon": "Pantheon Dice",
+      "Psyche": "Psyche",
+      "Fragments": "Fragments",
+      "Wealth": "Wealth"
+    },
+    "Skills": {
+      "athletics": "Athletics",
+      "crafts": "Crafts",
+      "deception": "Deception",
+      "discipline": "Discipline",
+      "empathy": "Empathy",
+      "fighting": "Fighting",
+      "fortitude": "Fortitude",
+      "influence": "Influence",
+      "intuition": "Intuition",
+      "knowledge": "Knowledge",
+      "marksman": "Marksman",
+      "medicine": "Medicine",
+      "might": "Might",
+      "perception": "Perception",
+      "perform": "Perform",
+      "speed": "Speed",
+      "stealth": "Stealth",
+      "survival": "Survival",
+      "tech": "Tech",
+      "travel": "Travel"
+    },
+    "Manifestations": {
+      "aegis": "Aegis",
+      "beckon": "Beckon",
+      "journey": "Journey",
+      "minion": "Minion",
+      "oracle": "Oracle",
+      "puppetry": "Puppetry",
+      "ruin": "Ruin",
+      "shaping": "Shaping",
+      "soul": "Soul"
+    },
     "Attachments": {
       "bonds": "Bonds",
       "failings": "Failings",
@@ -41,6 +121,153 @@
       "worshippers": "Worshippers",
       "blessings": "Blessings",
       "curses": "Curses"
+    },
+    "Config": {
+      "ActivationTypes": {
+        "passive": "Passive",
+        "instant": "Instant",
+        "action": "Action",
+        "scene": "Scene",
+        "sustained": "Sustained",
+        "ritual": "Ritual"
+      },
+      "BondKinds": {
+        "choice": "Choice",
+        "individual": "Individual",
+        "group": "Group",
+        "landmark": "Landmark"
+      },
+      "DomainCategories": {
+        "bestial": "Bestial",
+        "conceptual": "Conceptual",
+        "elemental": "Elemental",
+        "emotional": "Emotional",
+        "patron": "Patron",
+        "tangible": "Tangible",
+        "crossover": "Crossover"
+      },
+      "MeasureOptions": {
+        "damage": "Damage",
+        "range": "Range",
+        "targets": "Additional Targets",
+        "duration": "Duration",
+        "scale": "Scale",
+        "detail": "Effect Detail"
+      },
+      "ChoiceTypes": {
+        "occupation": "Occupation",
+        "archetype": "Archetype",
+        "domain": "Dominion",
+        "theology": "Theology"
+      }
+    },
+    "Balance": {
+      "Title": "Mortal-Divine Balance",
+      "MeterAria": "Mortal-Divine Balance meter",
+      "Mortal": "Mortal",
+      "Balanced": "Balanced",
+      "Divine": "Divine",
+      "MortalPressure": "Mortal Pressure",
+      "DivinePressure": "Divine Pressure",
+      "CustomAdjustment": "Custom Adjustment",
+      "Direction": "Direction",
+      "Amount": "Amount",
+      "Apply": "Apply",
+      "GMNote": "GM Note",
+      "GMNotePlaceholder": "What changed the balance?",
+      "RecentMovement": "Recent Movement",
+      "ClearLog": "Clear Log",
+      "NoEvents": "No Mortal-Divine Balance events logged yet.",
+      "EmptyDrop": "Drop a character actor here to begin tracking.",
+      "OnlyGMOpen": "Only a GM can open the Mortal-Divine Balance tracker.",
+      "OnlyGMEdit": "Only a GM can edit the Mortal-Divine Balance tracker.",
+      "TrackCharacter": "Track a character actor for Mortal-Divine Balance.",
+      "DropCharacter": "Drop a character actor onto the Mortal-Divine Balance tracker.",
+      "DropFirst": "Drop a character actor onto the tracker first.",
+      "ClearLogTitle": "Clear Balance Log",
+      "ClearLogContent": "Clear the Mortal-Divine Balance log for <strong>{actorName}</strong>?",
+      "ChatTitle": "Mortal-Divine Balance",
+      "Actor": "Actor",
+      "DirectionLabel": "Direction",
+      "Reason": "Reason",
+      "Meter": "Meter",
+      "Note": "Note",
+      "CustomReason": "Custom adjustment",
+      "BalanceAdjustment": "Balance adjustment",
+      "States": {
+        "StronglyMortal": "Strongly Mortal",
+        "MortalLeaning": "Mortal Leaning",
+        "StronglyDivine": "Strongly Divine",
+        "DivineLeaning": "Divine Leaning",
+        "Balanced": "Balanced"
+      },
+      "Directions": {
+        "Mortal": "Mortal",
+        "Divine": "Divine"
+      },
+      "Buttons": {
+        "HelpedBond": "Helped a Bond",
+        "WentToWork": "Went to Work",
+        "ProtectedMortalLife": "Protected Mortal Life",
+        "HumanObligations": "Spent Free Time on Human Obligations",
+        "RepairedStrain": "Repaired Strain or Relationship Harm",
+        "MortalConsequences": "Chose Mortal Consequences",
+        "AnsweredWorshippers": "Answered Worshippers",
+        "PublicManifestation": "Used Manifestation Publicly",
+        "Ritual": "Performed a Ritual",
+        "TerritoryInfluence": "Claimed Territory Influence",
+        "IgnoredMortalLife": "Ignored Work, Family, or Bonds",
+        "DivineAsset": "Gained Truth, Relic, Vassal, or Worshippers",
+        "SparkDominion": "Advanced Spark or Leaned Into Dominion"
+      }
+    },
+    "Damage": {
+      "NoEditableActors": "No editable actors are available for applying damage.",
+      "Title": "Apply PTG2E Damage",
+      "DialogTitle": "Apply Damage",
+      "SourceFallback": "Chat card action",
+      "TargetActor": "Target Actor",
+      "Track": "Track",
+      "Damage": "Damage",
+      "TagRange": "Tag / Range",
+      "TagRangePlaceholder": "Close, fire, bullets, etc.",
+      "ApplyArmor": "Apply equipped armor to Health damage",
+      "Reason": "Reason",
+      "ApplyButton": "Apply Damage",
+      "ChooseActor": "Choose an actor before applying damage.",
+      "NoPermission": "You do not have permission to update {actorName}.",
+      "MissingTrack": "{actorName} does not have a {resource} track.",
+      "ChatTitle": "{resource} Damage",
+      "Target": "Target",
+      "Source": "Source",
+      "Item": "Item",
+      "Tag": "Tag",
+      "RawDamage": "Raw Damage",
+      "Armor": "Armor",
+      "TagArmor": "Tag Armor",
+      "Applied": "Applied",
+      "OpenTarget": "Open Target",
+      "ApplyCondition": "Apply Condition"
+    },
+    "Chat": {
+      "ItemUsedBy": "{itemType} used by {actorName}",
+      "Use": "Use",
+      "Trigger": "Trigger",
+      "Target": "Target",
+      "Cost": "Cost",
+      "AppliedChanges": "Applied Changes",
+      "Remaining": "Remaining",
+      "OpenActor": "Open Actor",
+      "OpenItem": "Open Item",
+      "OpenCondition": "Open Condition",
+      "ApplyCondition": "Apply Condition",
+      "RollTitle": "{skill} Roll",
+      "Pool": "Pool",
+      "SurgeUsed": "Surge Used",
+      "Successes": "Successes",
+      "ChatCardAction": "Chat card action",
+      "ConditionUnresolved": "This Condition could not be resolved from the chat card.",
+      "UnsupportedAction": "Unsupported Part-Time Gods chat action: {action}"
     }
   },
   "TYPES": {

@@ -1230,6 +1230,7 @@ function occupationCareerItems() {
 
     for (const career of choice.system?.careerOptions ?? []) {
       const careerName = `${career.name} (${choice.name})`;
+      const careerPage = career.sourcePage ?? page;
       const resources = career.resources ?? {};
       const attachments = career.attachments ?? [];
       const summary = `${career.name} is a ${choice.name} career option with Free Time ${resources.freeTime ?? 0} and Wealth ${resources.wealth ?? 0}.`;
@@ -1239,7 +1240,7 @@ function occupationCareerItems() {
         `Blessing: ${career.blessing?.name ?? "None"}. Curse: ${career.curse?.name ?? "None"}.`
       );
 
-      items.push(baseItem("occupation", careerName, page, {
+      items.push(baseItem("occupation", careerName, careerPage, {
         category: choice.name,
         career: career.name,
         careerOptions: [],
@@ -1250,8 +1251,8 @@ function occupationCareerItems() {
           curse: career.curse?.name ?? ""
         }),
         description: fullText,
-        notes: source(page),
-        ...itemRules("occupation", careerName, page, summary, {
+        notes: source(careerPage),
+        ...itemRules("occupation", careerName, careerPage, summary, {
           fullText,
           kind: "passive",
           trigger: "character creation",
@@ -1678,11 +1679,11 @@ function choiceAbilityGrants(choice) {
     const careerCurse = concreteAbilityGrant(career.curse);
 
     if (careerBlessing) {
-      abilities.push(choiceAbilityData("blessing", careerBlessing, careerSource, page));
+      abilities.push(choiceAbilityData("blessing", careerBlessing, careerSource, career.sourcePage ?? page));
     }
 
     if (careerCurse) {
-      abilities.push(choiceAbilityData("curse", careerCurse, careerSource, page));
+      abilities.push(choiceAbilityData("curse", careerCurse, careerSource, career.sourcePage ?? page));
     }
   }
 
