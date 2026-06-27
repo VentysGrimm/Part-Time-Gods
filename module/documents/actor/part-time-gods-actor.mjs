@@ -527,6 +527,146 @@ export class PartTimeGodsActor extends Actor {
     return true;
   }
 
+  async recoverCondition(item) {
+    if (!item || item.type !== "condition") return false;
+
+    const skillEntries = Object.entries(CONFIG.PTG.skills ?? {});
+    const current = Number(item.system.severity ?? 1);
+    const content = `
+      <div class="ptg-condition-recovery-dialog">
+        <div class="ptg-territory-summary">
+          <strong>${escapeHTML(item.name)}</strong>
+          <span>Severity ${current}; ${escapeHTML(item.system.recovery || item.system.removal || "Recover when the fiction and GM ruling support it.")}</span>
+        </div>
+        <section class="ptg-item-fields two">
+          <label>
+            <span>Recovery Method</span>
+            <select name="method">
+              <option value="manual">GM-approved recovery</option>
+              <option value="treatment" selected>Medical treatment / care</option>
+              <option value="natural">Natural recovery / time passage</option>
+              <option value="divine">Divine, item, or worshipper effect</option>
+            </select>
+          </label>
+          <label>
+            <span>Reduction</span>
+            <input name="amount" type="number" value="1" min="1" max="${current}">
+          </label>
+        </section>
+        <label class="ptg-checkbox">
+          <span>Remove the Condition if recovery succeeds</span>
+          <input type="checkbox" name="remove">
+        </label>
+        <section class="ptg-item-fields three">
+          <label>
+            <span>Primary Skill</span>
+            <select name="primary">${skillEntries.map(([key, label]) => `<option value="${escapeHTML(key)}" ${key === "medicine" ? "selected" : ""}>${escapeHTML(label)} (${Number(this.system.skills?.[key] ?? 0)})</option>`).join("")}</select>
+          </label>
+          <label>
+            <span>Secondary Skill</span>
+            <select name="secondary">${skillEntries.map(([key, label]) => `<option value="${escapeHTML(key)}" ${key === "empathy" ? "selected" : ""}>${escapeHTML(label)} (${Number(this.system.skills?.[key] ?? 0)})</option>`).join("")}</select>
+          </label>
+          <label>
+            <span>Difficulty</span>
+            <input name="difficulty" type="number" value="1" min="0">
+          </label>
+        </section>
+        <section class="ptg-item-fields three">
+          <label>
+            <span>Tools / Care</span>
+            <input name="toolModifier" type="number" value="0">
+          </label>
+          <label>
+            <span>Assistance</span>
+            <input name="assistanceModifier" type="number" value="0">
+          </label>
+          <label>
+            <span>Other Modifier</span>
+            <input name="otherModifier" type="number" value="0">
+          </label>
+        </section>
+        <label>
+          <span>Notes</span>
+          <textarea name="notes" rows="3" placeholder="Care given, divine source, time passed, or GM ruling"></textarea>
+        </label>
+      </div>
+    `;
+
+    const selection = await DialogV2.prompt({
+      window: {
+        title: `${this.name}: Recover Condition`,
+        resizable: true
+      },
+      position: {
+        width: 640,
+        height: 600
+      },
+      content,
+      rejectClose: false,
+      modal: true,
+      ok: {
+        label: "Resolve Recovery",
+        callback: (event, button) => ({
+          method: button.form.elements.method?.value ?? "manual",
+          amount: Math.max(1, Number(button.form.elements.amount?.value ?? 1)),
+          remove: button.form.elements.remove?.checked ?? false,
+          primary: button.form.elements.primary?.value ?? "medicine",
+          secondary: button.form.elements.secondary?.value ?? "empathy",
+          difficulty: Math.max(0, Number(button.form.elements.difficulty?.value ?? 1)),
+          toolModifier: Number(button.form.elements.toolModifier?.value ?? 0),
+          assistanceModifier: Number(button.form.elements.assistanceModifier?.value ?? 0),
+          otherModifier: Number(button.form.elements.otherModifier?.value ?? 0),
+          notes: button.form.elements.notes?.value?.trim() ?? ""
+        })
+      }
+    });
+
+    if (!selection) return false;
+
+    const before = Number(item.system.severity ?? 1);
+    let outcome = null;
+    let success = true;
+
+    if (selection.method === "treatment") {
+      outcome = await this.rollSkillCombo(selection.primary, selection.secondary, {
+        difficulty: selection.difficulty,
+        modifierDetails: {
+          "Tools / care": selection.toolModifier,
+          Assistance: selection.assistanceModifier,
+          Other: selection.otherModifier
+        },
+        checkMode: "recovery",
+        flavor: `${this.name}: Treat ${item.name}`
+      });
+      success = Boolean(outcome?.passed);
+    }
+
+    let after = before;
+    let removed = false;
+
+    if (success) {
+      after = selection.remove ? 0 : Math.max(0, before - selection.amount);
+      if (after <= 0) {
+        await item.delete();
+        removed = true;
+      } else {
+        await item.update({ "system.severity": after });
+      }
+    }
+
+    await this.#postConditionRecoveryMessage(item, {
+      method: selection.method,
+      before,
+      after,
+      removed,
+      success,
+      outcome,
+      notes: selection.notes
+    });
+
+    return true;
+  }
+
   async adjustBondStrain(item, delta = 1, reason = "Bond Strain") {
     return this.adjustAttachmentStrain(item, delta, reason);
   }
@@ -807,9 +947,12 @@ export class PartTimeGodsActor extends Actor {
 
     if (Object.keys(updates).length) await actor.update(updates);
 
-    const conditionAmount = Number(healing.conditions ?? healing.condition ?? 0);
+    const conditionName = healing.conditionName ?? healing.name ?? "";
+    const conditionAmount = healing.removeConditions || healing.remove
+      ? Number.MAX_SAFE_INTEGER
+      : Number(healing.conditions ?? healing.conditionAmount ?? healing.condition ?? 0);
     if (conditionAmount > 0) {
-      const reduced = await this.#reduceOwnedConditions(actor, conditionAmount, healing.category ?? "");
+      const reduced = await this.#reduceOwnedConditions(actor, conditionAmount, healing.category ?? "", conditionName);
       if (reduced.length) results.push(...reduced);
     }
 
@@ -899,6 +1042,32 @@ export class PartTimeGodsActor extends Actor {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this }),
       content: await this.#renderItemUseCard({ item, title, results })
+    });
+  }
+
+  async #postConditionRecoveryMessage(item, { method, before, after, removed, success, outcome, notes }) {
+    const methodLabel = labelCase(method);
+    const rollRows = outcome
+      ? `
+        <div><strong>Roll:</strong> ${outcome.successes} successes vs Difficulty ${outcome.difficulty}</div>
+        <div><strong>Result:</strong> ${outcome.passed ? "Success" : "Failure"}</div>
+      `
+      : "";
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this }),
+      content: `
+        <div class="ptg-chat-card">
+          <h3>Condition Recovery</h3>
+          <div><strong>Actor:</strong> ${escapeHTML(this.name)}</div>
+          <div><strong>Condition:</strong> ${escapeHTML(item.name)}</div>
+          <div><strong>Method:</strong> ${escapeHTML(methodLabel)}</div>
+          ${rollRows}
+          <div><strong>Severity:</strong> ${before} -> ${success ? after : before}</div>
+          <div><strong>Outcome:</strong> ${success ? (removed ? "Removed" : "Reduced") : "Unchanged"}</div>
+          ${notes ? `<div><strong>Notes:</strong> ${escapeHTML(notes)}</div>` : ""}
+        </div>
+      `
     });
   }
 

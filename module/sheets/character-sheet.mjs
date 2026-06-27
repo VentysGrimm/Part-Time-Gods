@@ -1006,6 +1006,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     if (action === "use") return this.actor.useOwnedItem(item);
 
     if (action === "condition-reduce") return this.actor.reduceCondition(item);
+    if (action === "condition-recover") return this.actor.recoverCondition(item);
     if (action === "condition-increase") {
       const current = Number(item.system.severity ?? 1);
       const next = Math.min(10, current + 1);
