@@ -52,7 +52,7 @@
     {
       "name": "opposition-actors",
       "label": "Part-Time Gods Opposition Actors",
-      "path": "packs/opposition-actors",
+      "path": "packs/npcs",
       "type": "Actor",
       "system": "part-time-gods"
     },
