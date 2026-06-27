@@ -6,6 +6,9 @@ const { ActorSheetV2 } = foundry.applications.sheets;
 const { DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
+  #activeTab = "front";
+  #tabScrollPositions = new Map();
+
   static DEFAULT_OPTIONS = {
     classes: ["part-time-gods", "sheet", "character"],
     position: {
@@ -105,6 +108,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     this.element.querySelector("[data-mortality-workflow]")?.addEventListener("click", () => this.#openMortalityWorkflow());
 
     this.element.querySelector("[data-character-creator]")?.addEventListener("click", () => this.#openCharacterCreator());
+    this.#activateTab(this.#activeTab, { restoreScroll: true });
   }
 
   async _onDrop(event) {
@@ -128,15 +132,23 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     return false;
   }
 
-  #activateTab(tabName) {
+  #activateTab(tabName, { restoreScroll = true } = {}) {
+    const currentPanel = this.element.querySelector(`[data-ptg-panel="${this.#activeTab}"]`);
+    if (currentPanel) this.#tabScrollPositions.set(this.#activeTab, currentPanel.scrollTop);
+    this.#activeTab = tabName;
+
     for (const tab of this.element.querySelectorAll("[data-ptg-tab]")) {
       tab.classList.toggle("active", tab.dataset.ptgTab === tabName);
     }
 
+    let activePanel = null;
     for (const panel of this.element.querySelectorAll("[data-ptg-panel]")) {
       panel.hidden = panel.dataset.ptgPanel !== tabName;
       panel.classList.toggle("active", panel.dataset.ptgPanel === tabName);
+      if (panel.dataset.ptgPanel === tabName) activePanel = panel;
     }
+
+    if (activePanel && restoreScroll) activePanel.scrollTop = this.#tabScrollPositions.get(tabName) ?? 0;
   }
 
   async #rollSkill(button) {
