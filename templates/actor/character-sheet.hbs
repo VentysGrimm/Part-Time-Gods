@@ -64,28 +64,42 @@
         {{#if system.mortality.notes}}
           <p class="ptg-sheet-note">{{system.mortality.notes}}</p>
         {{/if}}
-        <label>
-          <span>Conditions</span>
-          <textarea name="system.conditions">{{system.conditions}}</textarea>
-        </label>
-        <div class="ptg-mini-item-list">
-          {{#each inventory.conditions as |item|}}
-            <div class="ptg-mini-item" data-item-id="{{item.id}}">
-              <span>{{item.name}}</span>
-              <small>{{item.system.category}} {{item.system.severity}}</small>
-              <button type="button" data-item-action="condition-reduce">Reduce</button>
-              <button type="button" data-item-action="edit">Edit</button>
-              <button type="button" data-item-action="delete">Remove</button>
-              {{#if item.sheetDetails}}
-                <div class="ptg-item-details">
-                  {{#each item.sheetDetails as |detail|}}
-                    <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
-                  {{/each}}
-                </div>
-              {{/if}}
+        <section class="ptg-condition-section">
+          <div class="ptg-panel-heading">
+            <h2>Conditions</h2>
+            <button type="button" data-condition-create>Add</button>
+          </div>
+          {{#if inventory.conditions.length}}
+            <div class="ptg-condition-list">
+              {{#each inventory.conditions as |item|}}
+                <article class="ptg-condition-card {{item.system.category}}" data-item-id="{{item.id}}">
+                  <header>
+                    <div>
+                      <h3>{{item.name}}</h3>
+                      <small>{{item.system.category}} | {{item.system.appliesTo}} | {{#if item.system.sourcePage}}p. {{item.system.sourcePage}}{{else}}No source page{{/if}}</small>
+                    </div>
+                    <strong>Level {{item.system.severity}}</strong>
+                  </header>
+                  <div class="ptg-condition-controls" aria-label="{{item.name}} severity controls">
+                    <button type="button" data-item-action="condition-reduce" aria-label="Reduce {{item.name}} severity">-</button>
+                    <span>{{item.system.severity}}</span>
+                    <button type="button" data-item-action="condition-increase" aria-label="Increase {{item.name}} severity">+</button>
+                    <button type="button" data-item-action="edit">Edit</button>
+                    <button type="button" data-item-action="delete">Remove</button>
+                  </div>
+                  {{#if item.system.effect}}<div class="ptg-condition-effect">{{{item.system.effect}}}</div>{{/if}}
+                  {{#if item.system.recovery}}<p class="ptg-sheet-note"><strong>Recovery:</strong> {{item.system.recovery}}</p>{{/if}}
+                </article>
+              {{/each}}
             </div>
-          {{/each}}
-        </div>
+          {{else}}
+            <p class="ptg-sheet-note">No active Conditions.</p>
+          {{/if}}
+          <label>
+            <span>Condition Notes</span>
+            <textarea name="system.conditions">{{system.conditions}}</textarea>
+          </label>
+        </section>
         <label>
           <span>Failings</span>
           <textarea name="system.attachments.failings">{{system.attachments.failings}}</textarea>

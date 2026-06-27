@@ -1201,6 +1201,83 @@
   gap: 8px;
 }
 
+.ptg-condition-section,
+.ptg-condition-list {
+  display: grid;
+  gap: 8px;
+}
+
+.ptg-condition-card {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #9273c4;
+  background: #f8f4fb;
+}
+
+.ptg-condition-card.physical {
+  border-left: 5px solid #9d3f45;
+}
+
+.ptg-condition-card.mental {
+  border-left: 5px solid #4e6f9d;
+}
+
+.ptg-condition-card.crossover {
+  border-left: 5px solid #7b5aa6;
+}
+
+.ptg-condition-card header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+}
+
+.ptg-condition-card h3,
+.ptg-condition-card p {
+  margin: 0;
+}
+
+.ptg-condition-card small {
+  color: #4e3971;
+  text-transform: capitalize;
+}
+
+.ptg-condition-card header strong {
+  padding: 2px 6px;
+  border: 1px solid #6f5599;
+  background: #2f2441;
+  color: #f5f0fb;
+  white-space: nowrap;
+}
+
+.ptg-condition-controls {
+  display: grid;
+  grid-template-columns: 28px 36px 28px repeat(2, minmax(54px, auto));
+  gap: 4px;
+  align-items: center;
+}
+
+.ptg-condition-controls span {
+  font-weight: 800;
+  text-align: center;
+}
+
+.ptg-condition-controls button {
+  min-height: 26px;
+  padding: 0 6px;
+}
+
+.ptg-condition-effect {
+  max-height: 88px;
+  overflow: auto;
+}
+
+.ptg-condition-effect p {
+  margin: 0 0 4px;
+}
+
 .ptg-derived-panel {
   align-content: start;
 }

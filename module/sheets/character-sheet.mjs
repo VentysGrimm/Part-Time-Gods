@@ -93,6 +93,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     for (const button of this.element.querySelectorAll("[data-resource-workflow]")) {
       button.addEventListener("click", event => this.#openResourceWorkflow(event.currentTarget.dataset.resourceWorkflow));
     }
+    this.element.querySelector("[data-condition-create]")?.addEventListener("click", () => this.#openConditionCreateDialog());
     for (const button of this.element.querySelectorAll("[data-resource-box]")) {
       button.addEventListener("click", event => this.#onResourceBox(event));
       button.addEventListener("contextmenu", event => this.#onResourceBox(event));
@@ -1004,6 +1005,12 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     if (action === "use") return this.actor.useOwnedItem(item);
 
     if (action === "condition-reduce") return this.actor.reduceCondition(item);
+    if (action === "condition-increase") {
+      const current = Number(item.system.severity ?? 1);
+      const next = Math.min(10, current + 1);
+      await item.update({ "system.severity": next });
+      return;
+    }
     if (action === "worshipper-request") return this.actor.requestWorshipperPrayer(item);
 
     if (["favor", "lead", "follow-up", "devote", "split-attention", "delay", "lose"].includes(action)) {
@@ -1252,6 +1259,114 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
 
     if (!selectedTypes.length) ui.notifications.info("Updated character creator details.");
+  }
+
+  async #openConditionCreateDialog() {
+    const premade = await this.#loadPremadeConditions();
+    const content = `
+      <div class="ptg-condition-create-dialog">
+        <div class="form-group">
+          <label>Premade Condition</label>
+          <select name="premade">
+            <option value="">Custom Condition</option>
+            ${premade.map(item => `<option value="${escapeHTML(item.uuid)}">${escapeHTML(item.name)} (${escapeHTML(item.system.category ?? "condition")})</option>`).join("")}
+          </select>
+        </div>
+        <section class="ptg-item-fields three">
+          <label>
+            <span>Name</span>
+            <input name="name" type="text" placeholder="Custom Condition">
+          </label>
+          <label>
+            <span>Category</span>
+            <select name="category">
+              <option value="physical">Physical</option>
+              <option value="mental">Mental</option>
+              <option value="crossover">Crossover</option>
+            </select>
+          </label>
+          <label>
+            <span>Severity</span>
+            <input name="severity" type="number" value="1" min="1" max="10">
+          </label>
+          <label>
+            <span>Applies To</span>
+            <select name="appliesTo">
+              <option value="health">Health</option>
+              <option value="psyche">Psyche</option>
+              <option value="both">Both</option>
+              <option value="fictional">Fictional State</option>
+            </select>
+          </label>
+          <label>
+            <span>Duration</span>
+            <input name="duration" type="text" value="scene-or-fiction">
+          </label>
+          <label>
+            <span>Source Page</span>
+            <input name="sourcePage" type="number" value="207" min="0">
+          </label>
+        </section>
+        <label>
+          <span>Effect</span>
+          <textarea name="effect" placeholder="What does this Condition do?"></textarea>
+        </label>
+        <label>
+          <span>Recovery</span>
+          <textarea name="recovery" placeholder="How can this Condition be recovered or removed?"></textarea>
+        </label>
+      </div>
+    `;
+
+    const result = await DialogV2.prompt({
+      window: { title: `${this.actor.name}: Add Condition` },
+      content,
+      rejectClose: false,
+      modal: true,
+      ok: {
+        label: "Add Condition",
+        callback: (event, button) => ({
+          premade: button.form.elements.premade?.value ?? "",
+          name: button.form.elements.name?.value?.trim() ?? "",
+          category: button.form.elements.category?.value ?? "physical",
+          severity: Number(button.form.elements.severity?.value ?? 1),
+          appliesTo: button.form.elements.appliesTo?.value ?? "fictional",
+          duration: button.form.elements.duration?.value?.trim() ?? "",
+          sourcePage: Number(button.form.elements.sourcePage?.value ?? 0),
+          effect: button.form.elements.effect?.value?.trim() ?? "",
+          recovery: button.form.elements.recovery?.value?.trim() ?? ""
+        })
+      }
+    });
+
+    if (!result) return;
+
+    const premadeItem = result.premade ? await fromUuid(result.premade) : null;
+    const source = premadeItem ? premadeItem.toObject() : customConditionItem(result);
+    delete source._id;
+
+    source.system = {
+      ...(source.system ?? {}),
+      severity: Math.max(1, Math.min(10, Number(result.severity ?? source.system?.severity ?? 1)))
+    };
+
+    if (!source.name) {
+      ui.notifications.warn("Enter a Condition name or choose a premade Condition.");
+      return;
+    }
+
+    await this.actor.createEmbeddedDocuments("Item", [source]);
+  }
+
+  async #loadPremadeConditions() {
+    const pack = game.packs.get("part-time-gods.premade-items");
+    let documents = [];
+    if (pack) documents = await pack.getDocuments();
+    if (!documents.length) documents = game.items.filter(item => item.getFlag("part-time-gods", "premade") && item.type === "condition");
+
+    return documents
+      .filter(item => item.type === "condition")
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async #loadCreationChoices() {
@@ -2619,6 +2734,83 @@ function startingTruthItem(name) {
         healing: null,
         damage: null,
         condition: null,
+        resourceChange: null,
+        chatCard: true
+      }
+    }
+  };
+}
+
+function customConditionItem(condition) {
+  const name = condition.name || "Custom Condition";
+  const effect = condition.effect || `${name} affects the character until the GM resolves its fictional cause.`;
+  const recovery = condition.recovery || "Recover when the Condition's fictional cause ends, through care, rest, or a suitable power.";
+  const sourcePage = Number(condition.sourcePage ?? 0) || null;
+  const severity = Math.max(1, Math.min(10, Number(condition.severity ?? 1)));
+  const category = condition.category || "physical";
+  const appliesTo = condition.appliesTo || "fictional";
+  const duration = condition.duration || "scene-or-fiction";
+
+  return {
+    name,
+    type: "condition",
+    img: "icons/svg/aura.svg",
+    system: {
+      category,
+      severity,
+      severityMode: "level",
+      appliesTo,
+      duration,
+      recovery,
+      removal: recovery,
+      sourcePage,
+      sourceSection: "Custom Condition",
+      rollModifier: null,
+      effect: `<p>${escapeHTML(effect)}</p>`,
+      notes: sourcePage
+        ? `<p>Source: Part-Time Gods Second Edition, p. ${sourcePage}.</p><p><strong>Recovery:</strong> ${escapeHTML(recovery)}</p>`
+        : `<p><strong>Recovery:</strong> ${escapeHTML(recovery)}</p>`,
+      rules: {
+        summary: effect,
+        fullText: `<p>${escapeHTML(effect)}</p>`,
+        source: {
+          book: "Part-Time Gods Second Edition",
+          page: sourcePage,
+          section: "Custom Condition",
+          type: "condition"
+        }
+      },
+      usage: {
+        kind: "passive",
+        trigger: "applied",
+        target: "self",
+        cost: {
+          freeTime: 0,
+          wealth: 0,
+          pantheonDice: 0,
+          fragments: 0,
+          health: 0,
+          psyche: 0,
+          strain: 0
+        }
+      },
+      automation: {
+        enabled: true,
+        action: "track-condition",
+        bonus: null,
+        penalty: null,
+        roll: null,
+        healing: null,
+        damage: null,
+        condition: {
+          name,
+          category,
+          severity,
+          appliesTo,
+          duration,
+          recovery,
+          rollModifier: null
+        },
         resourceChange: null,
         chatCard: true
       }
