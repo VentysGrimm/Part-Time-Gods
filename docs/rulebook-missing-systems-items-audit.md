@@ -25,6 +25,7 @@ The PDF pass covered 318 PDF pages, with 310 non-empty text pages. The PDF outli
 | Gear | 14 Armor Items and 9 Weapon Items from book pp. 210-212 | Covered |
 | Opposition | 53 premade antagonist Actors covering animals, mortals, the Touched, other-god templates, Outsiders, and custom threat bands | Covered |
 | Roll tables | 86 RollTables covering random character creation, PDF p. 285 / book p. 283 archetype option rolls, random territory coordinates, and territory crawl helpers | Covered |
+| Workflow macros | 11 Macro documents covering setup imports, territory, combat, balance, Pantheon Pool, opposition building, and the table tools hub | Covered |
 | Territory grid | Premade Scene plus territory controls for movement, costs, influence, notes, and position flags | Partly automated |
 | Character sheet workflows | Sheet tabs, item controls, structured conditions, XP, Spark, resources, ritual/power item rolls, Worshipper prayer requests, Vassal tasks, and roll workflows | Automated for core play loops |
 
@@ -83,6 +84,7 @@ Generated career, Dominion, Blessing, Curse, and attachment-family Items are cre
 - `opposition-actors`
 - `maps`
 - `roll-tables`
+- `macros`
 - `rules-reference`
 
 There are also physical pack directories named `domains`, `relics`, `powers`, and `conditions` in `packs/`, but they are not declared in `system.json` and are not used by `populatePremadeCompendiums()`. Current runtime organization is therefore folder-based inside `character-creation` and `premade-items`, not one pack per item family.

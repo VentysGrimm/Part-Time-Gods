@@ -92,6 +92,7 @@ const choices = await import(pathToFileURL(path.join(root, "module/data/premade-
 const journals = await import(pathToFileURL(path.join(root, "module/data/premade-journals.mjs")).href);
 const rollTables = await import(pathToFileURL(path.join(root, "module/data/premade-roll-tables.mjs")).href);
 const scenes = await import(pathToFileURL(path.join(root, "module/data/premade-scenes.mjs")).href);
+const macros = await import(pathToFileURL(path.join(root, "module/data/premade-macros.mjs")).href);
 
 function missingStableKeys(documents) {
   return documents
@@ -133,12 +134,14 @@ const result = {
   journals: journalDocuments.length,
   rollTables: rollTables.PTG_PREMADE_ROLL_TABLES.length,
   scenes: sceneDocuments.length,
+  macros: macros.PTG_PREMADE_MACROS.length,
   badActors: missingStableKeys(actors.PTG_PREMADE_ACTORS),
   badItems: missingStableKeys(items.PTG_PREMADE_ITEMS),
   badChoices: missingStableKeys(choices.PTG_PREMADE_CHOICES),
   badJournals: missingStableKeys(journalDocuments),
   badRollTables: missingStableKeys(rollTables.PTG_PREMADE_ROLL_TABLES),
   badScenes: missingStableKeys(sceneDocuments),
+  badMacros: missingStableKeys(macros.PTG_PREMADE_MACROS),
   weakItems
 };
 const emptyFamilies = Object.entries({
@@ -147,7 +150,8 @@ const emptyFamilies = Object.entries({
   choices: result.choices,
   journals: result.journals,
   rollTables: result.rollTables,
-  scenes: result.scenes
+  scenes: result.scenes,
+  macros: result.macros
 })
   .filter(([, count]) => count <= 0)
   .map(([family]) => family);
@@ -160,6 +164,7 @@ if (
   result.badJournals.length ||
   result.badRollTables.length ||
   result.badScenes.length ||
+  result.badMacros.length ||
   result.weakItems.length
 ) {
   console.error(JSON.stringify({ ...result, emptyFamilies }, null, 2));
@@ -173,6 +178,7 @@ console.log(JSON.stringify({
   journals: result.journals,
   rollTables: result.rollTables,
   scenes: result.scenes,
+  macros: result.macros,
   stableSourceKeys: true
 }, null, 2));
 '@

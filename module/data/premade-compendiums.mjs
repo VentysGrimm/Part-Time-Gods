@@ -4,6 +4,7 @@ import { PTG_PREMADE_ACTORS } from "./premade-actors.mjs";
 import { getPremadeJournals } from "./premade-journals.mjs";
 import { PTG_PREMADE_ROLL_TABLES } from "./premade-roll-tables.mjs";
 import { getPremadeScenes } from "./premade-scenes.mjs";
+import { PTG_PREMADE_MACROS } from "./premade-macros.mjs";
 
 const SYSTEM_ID = "part-time-gods";
 
@@ -12,6 +13,7 @@ const PACKS = {
   choices: "part-time-gods.character-creation",
   items: "part-time-gods.premade-items",
   maps: "part-time-gods.maps",
+  macros: "part-time-gods.macros",
   rollTables: "part-time-gods.roll-tables",
   rules: "part-time-gods.rules-reference"
 };
@@ -21,12 +23,13 @@ export async function populatePremadeCompendiums({ notify = true } = {}) {
   const choices = await populatePack(PACKS.choices, PTG_PREMADE_CHOICES, choiceFolderLabels, "Item");
   const items = await populatePack(PACKS.items, PTG_PREMADE_ITEMS, itemFolderLabels, "Item");
   const maps = await populatePack(PACKS.maps, getPremadeScenes(), sceneFolderLabels, "Scene");
+  const macros = await populatePack(PACKS.macros, PTG_PREMADE_MACROS, macroFolderLabels, "Macro");
   const rollTables = await populatePack(PACKS.rollTables, PTG_PREMADE_ROLL_TABLES, rollTableFolderLabels, "RollTable");
   const rules = await populatePack(PACKS.rules, await getPremadeJournals(), ruleFolderLabels, "JournalEntry", {
     removeStale: true,
     stalePredicate: isPremadeRulesJournal
   });
-  const total = actors + choices + items + maps + rollTables + rules;
+  const total = actors + choices + items + maps + macros + rollTables + rules;
 
   if (notify) {
     const message = total > 0
@@ -73,7 +76,7 @@ async function populatePack(packId, documents, folderLabels, documentName, { rem
   }
 
   let packDocuments = await pack.getDocuments();
-  const updated = ["Actor", "Item", "JournalEntry", "RollTable"].includes(documentName)
+  const updated = ["Actor", "Item", "JournalEntry", "Macro", "RollTable"].includes(documentName)
     ? await updateExistingPremadeDocuments(packDocuments, documents, folders, documentName)
     : 0;
   const removed = removeStale
@@ -300,6 +303,10 @@ const actorFolderLabels = {
 
 const sceneFolderLabels = {
   scene: "Maps"
+};
+
+const macroFolderLabels = {
+  script: "Workflow Macros"
 };
 
 const ruleFolderLabels = {

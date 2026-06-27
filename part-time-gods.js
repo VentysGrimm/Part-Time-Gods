@@ -31,6 +31,7 @@ import { PTG_PREMADE_ITEMS, importPremadeItems } from "./module/data/premade-ite
 import { PTG_PREMADE_CHOICES, importPremadeChoices } from "./module/data/premade-choices.mjs";
 import { openAntagonistBuilder } from "./module/data/premade-actors.mjs";
 import { populatePremadeCompendiums } from "./module/data/premade-compendiums.mjs";
+import { PTG_PREMADE_MACROS } from "./module/data/premade-macros.mjs";
 import { getPremadeJournals, importRulesJournals } from "./module/data/premade-journals.mjs";
 import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
 import { openPTGCombatControls, registerPTGCombatHooks, rollPTGInitiative } from "./module/combat/ptg-combat.mjs";
@@ -55,6 +56,7 @@ Hooks.once("init", async () => {
     dice: PTGDiceEngine,
     premadeItems: PTG_PREMADE_ITEMS,
     premadeChoices: PTG_PREMADE_CHOICES,
+    premadeMacros: PTG_PREMADE_MACROS,
     importPremadeItems,
     importPremadeChoices,
     getPremadeJournals,

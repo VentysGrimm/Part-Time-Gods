@@ -71,6 +71,13 @@
       "system": "part-time-gods"
     },
     {
+      "name": "macros",
+      "label": "Part-Time Gods Macros",
+      "path": "packs/macros",
+      "type": "Macro",
+      "system": "part-time-gods"
+    },
+    {
       "name": "rules-reference",
       "label": "Part-Time Gods Rules Reference",
       "path": "packs/rules-reference",

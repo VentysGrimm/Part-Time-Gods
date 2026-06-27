@@ -18,8 +18,9 @@ For installation steps, see `INSTALL.md`.
 - Conditions: use **Add** in the Conditions panel, combat controls, or item automation to apply Conditions. Conditions can be increased, reduced, recovered, removed, and used as transparent roll/combat modifiers when metadata is present.
 - Rituals and Manifestations: Manifestation rolls can open ritual workflows, resistance checks, and measure assignment summaries.
 - Territory and Pantheons: GM tools seed premade scenes/maps and manage Pantheon state.
+- Macros: use the Part-Time Gods Macros compendium for table tools, setup imports, territory controls, combat, balance, Pantheon Pool, and opposition building.
 - Mortal-Divine Balance: use the Pantheon sheet Table Tools section as a GM to open the tracker.
-- Premade content: on world load, GM compendium helpers populate character creation choices, premade Items, opposition actors, maps, roll tables, and rules journals from source-backed system data.
+- Premade content: on world load, GM compendium helpers populate character creation choices, premade Items, opposition actors, maps, roll tables, workflow macros, and rules journals from source-backed system data.
 
 ## Release Readiness Checklist
 
