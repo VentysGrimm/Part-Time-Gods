@@ -1,0 +1,34 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node/tooling
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment files
+.env
+.env.*
+
+# Local scratch/export working files
+.repo-git-test/
+.codex-publish-test/
+tmp/
+temp/
+
+# Foundry VTT compendium runtime files
+packs/**/LOCK
+packs/**/LOG
+packs/**/LOG.old
+
+# Local legacy pack folders not declared by system.json
+packs/conditions/
+packs/domains/
+packs/npcs/
+packs/powers/
+packs/relics/

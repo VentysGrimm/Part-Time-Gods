@@ -1,0 +1,22 @@
+<div class="ptg-roll-card">
+
+  <header>
+    <h3>{{skill}} Roll</h3>
+    <div class="ptg-meta">
+      Pool: {{pool}} | Surge Used: {{surgeUsed}}
+    </div>
+  </header>
+
+  <section class="ptg-rolls">
+    {{#each rolls}}
+      <span class="die {{#if (gte this 6)}}explode{{/if}}">
+        {{this}}
+      </span>
+    {{/each}}
+  </section>
+
+  <footer>
+    <strong>Successes:</strong> {{successes}}
+  </footer>
+
+</div>

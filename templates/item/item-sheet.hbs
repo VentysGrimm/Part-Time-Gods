@@ -1,0 +1,1033 @@
+<form class="ptg-sheet ptg-item-sheet" autocomplete="off">
+  <header class="ptg-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}">
+    <div class="ptg-title">
+      <input class="ptg-name" name="name" type="text" value="{{item.name}}" placeholder="{{itemTypeLabel}} Name">
+      <div class="ptg-subtitle">{{itemTypeLabel}}</div>
+    </div>
+  </header>
+
+  {{#if (eq item.type "occupation")}}
+    <section class="ptg-item-fields two">
+      <label>
+        <span>Category</span>
+        <input name="system.category" type="text" value="{{system.category}}">
+      </label>
+      <label>
+        <span>Career</span>
+        <input name="system.career" type="text" value="{{system.career}}">
+      </label>
+    </section>
+    <section class="ptg-grants">
+      <label><span>Skills</span><textarea readonly>{{json system.grants.skills}}</textarea></label>
+      <label><span>Manifestations</span><textarea readonly>{{json system.grants.manifestations}}</textarea></label>
+      <label><span>Resources</span><textarea readonly>{{json system.grants.resources}}</textarea></label>
+      <label><span>Attachments</span><textarea readonly>{{json system.grants.attachments}}</textarea></label>
+      <label><span>Blessing</span><input name="system.grants.blessing" type="text" value="{{system.grants.blessing}}"></label>
+      <label><span>Curse</span><input name="system.grants.curse" type="text" value="{{system.grants.curse}}"></label>
+      <label class="span-2"><span>Career Options</span><textarea readonly>{{json system.careerOptions}}</textarea></label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "archetype")}}
+    <section class="ptg-item-fields two">
+      <label class="span-2">
+        <span>Defining Trait</span>
+        <input name="system.definingTrait" type="text" value="{{system.definingTrait}}">
+      </label>
+    </section>
+    <section class="ptg-grants">
+      <label><span>Skills</span><textarea readonly>{{json system.grants.skills}}</textarea></label>
+      <label><span>Manifestations</span><textarea readonly>{{json system.grants.manifestations}}</textarea></label>
+      <label><span>Resources</span><textarea readonly>{{json system.grants.resources}}</textarea></label>
+      <label><span>Attachments</span><textarea readonly>{{json system.grants.attachments}}</textarea></label>
+      <label><span>Blessing</span><input name="system.grants.blessing" type="text" value="{{system.grants.blessing}}"></label>
+      <label><span>Curse</span><input name="system.grants.curse" type="text" value="{{system.grants.curse}}"></label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "domain")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Category</span>
+        <select name="system.category">
+          {{#each config.domainCategories as |label key|}}
+            <option value="{{key}}" {{#if (eq ../system.category key)}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      </label>
+      <label>
+        <span>Rank</span>
+        <input name="system.rank" type="number" value="{{system.rank}}" min="0">
+      </label>
+      <label>
+        <span>Manifestations</span>
+        <input name="system.manifestations" type="text" value="{{system.manifestations}}" placeholder="Aegis +1, Soul +1">
+      </label>
+      <label>
+        <span>Portfolio</span>
+        <input name="system.portfolio" type="text" value="{{system.portfolio}}" placeholder="War, Love, Storms">
+      </label>
+      <label>
+        <span>Custom Title</span>
+        <input name="system.customTitle" type="text" value="{{system.customTitle}}" placeholder="God of Storms">
+      </label>
+      <label>
+        <span>Scope</span>
+        <select name="system.specificity">
+          <option value="specific" {{#if (eq system.specificity "specific")}}selected{{/if}}>Specific</option>
+          <option value="broad" {{#if (eq system.specificity "broad")}}selected{{/if}}>Broad</option>
+        </select>
+      </label>
+      <label class="span-2">
+        <span>Specific Portfolio</span>
+        <input name="system.specificPortfolio" type="text" value="{{system.specificPortfolio}}">
+      </label>
+      <label>
+        <span>Landmark Bond</span>
+        <input name="system.landmarkBondName" type="text" value="{{system.landmarkBondName}}" readonly>
+      </label>
+      <label class="span-3">
+        <span>Landmark UUID</span>
+        <input name="system.landmarkBondUuid" type="text" value="{{system.landmarkBondUuid}}" readonly>
+      </label>
+      <label class="span-3">
+        <span>Sphere</span>
+        <input name="system.sphere" type="text" value="{{system.sphere}}">
+      </label>
+    </section>
+    <section class="ptg-grants">
+      <label><span>Skills</span><textarea readonly>{{json system.grants.skills}}</textarea></label>
+      <label><span>Manifestations</span><textarea readonly>{{json system.grants.manifestations}}</textarea></label>
+      <label><span>Resources</span><textarea readonly>{{json system.grants.resources}}</textarea></label>
+      <label><span>Attachments</span><textarea readonly>{{json system.grants.attachments}}</textarea></label>
+      <label><span>Blessing</span><input name="system.grants.blessing" type="text" value="{{system.grants.blessing}}"></label>
+      <label><span>Curse</span><input name="system.grants.curse" type="text" value="{{system.grants.curse}}"></label>
+    </section>
+
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Limitations</h2>
+      {{editor system.limitations target="system.limitations" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>GM Notes</h2>
+      {{editor system.gmNotes target="system.gmNotes" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "theology")}}
+    <section class="ptg-item-fields two">
+      <label>
+        <span>Other Names</span>
+        <input name="system.otherNames" type="text" value="{{system.otherNames}}">
+      </label>
+      <label>
+        <span>Stereotype</span>
+        <input name="system.stereotype" type="text" value="{{system.stereotype}}">
+      </label>
+    </section>
+    <section class="ptg-grants">
+      <label><span>Skills</span><textarea readonly>{{json system.grants.skills}}</textarea></label>
+      <label><span>Manifestations</span><textarea readonly>{{json system.grants.manifestations}}</textarea></label>
+      <label><span>Resources</span><textarea readonly>{{json system.grants.resources}}</textarea></label>
+      <label><span>Attachments</span><textarea readonly>{{json system.grants.attachments}}</textarea></label>
+      <label><span>Blessing</span><input name="system.grants.blessing" type="text" value="{{system.grants.blessing}}"></label>
+      <label><span>Curse</span><input name="system.grants.curse" type="text" value="{{system.grants.curse}}"></label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "power")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Domain</span>
+        <input name="system.domain" type="text" value="{{system.domain}}">
+      </label>
+      <label>
+        <span>Manifestation</span>
+        <select name="system.manifestation">
+          <option value=""></option>
+          {{#each config.manifestations as |label key|}}
+            <option value="{{key}}" {{#if (eq ../system.manifestation key)}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      </label>
+      <label>
+        <span>Rank</span>
+        <input name="system.rank" type="number" value="{{system.rank}}" min="0">
+      </label>
+      <label>
+        <span>Cost</span>
+        <input name="system.cost" type="number" value="{{system.cost}}" min="0">
+      </label>
+      <label>
+        <span>Activation</span>
+        <select name="system.activation">
+          <option value=""></option>
+          {{#each config.activationTypes as |label key|}}
+            <option value="{{key}}" {{#if (eq ../system.activation key)}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      </label>
+      <label>
+        <span>Difficulty</span>
+        <input name="system.difficulty" type="number" value="{{system.difficulty}}" min="0">
+      </label>
+      <label>
+        <span>Duration</span>
+        <input name="system.duration" type="text" value="{{system.duration}}">
+      </label>
+      <label>
+        <span>Range</span>
+        <input name="system.range" type="text" value="{{system.range}}">
+      </label>
+      <label>
+        <span>Target</span>
+        <input name="system.target" type="text" value="{{system.target}}">
+      </label>
+      <label class="ptg-checkbox">
+        <input name="system.requiresRoll" type="checkbox" {{checked system.requiresRoll}}>
+        <span>Requires Roll</span>
+      </label>
+    </section>
+
+    <section class="ptg-editor-section">
+      <h2>Effect</h2>
+      {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Limitations</h2>
+      {{editor system.limitations target="system.limitations" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "attachment")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Kind</span>
+        <input name="system.kind" type="text" value="{{system.kind}}">
+      </label>
+      <label>
+        <span>Level</span>
+        <input name="system.level" type="number" value="{{system.level}}" min="0">
+      </label>
+      <label>
+        <span>Cost</span>
+        <input name="system.cost" type="number" value="{{system.cost}}" min="0">
+      </label>
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Choice Source</span>
+        <input name="system.choiceSource" type="text" value="{{system.choiceSource}}">
+      </label>
+      <label>
+        <span>Choice</span>
+        <input name="system.choiceLabel" type="text" value="{{system.choiceLabel}}">
+      </label>
+      <label>
+        <span>Definition</span>
+        <input name="system.definition" type="text" value="{{system.definition}}">
+      </label>
+    </section>
+    <section class="ptg-item-fields three">
+      <label class="span-3">
+        <span>Summary</span>
+        <input name="system.summary" type="text" value="{{system.summary}}">
+      </label>
+      <label>
+        <span>Trigger</span>
+        <input name="system.trigger" type="text" value="{{system.trigger}}">
+      </label>
+      <label>
+        <span>Action Cost</span>
+        <input name="system.actionCost" type="text" value="{{system.actionCost}}">
+      </label>
+      <label>
+        <span>Source Page</span>
+        <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Benefit</h2>
+      {{editor system.benefit target="system.benefit" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Bonus</h2>
+      {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Detriment</h2>
+      {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Automation Notes</h2>
+      {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "bond")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Kind</span>
+        <select name="system.kind">
+          <option value=""></option>
+          {{#each config.bondKinds as |label key|}}
+            <option value="{{key}}" {{#if (eq ../system.kind key)}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      </label>
+      <label>
+        <span>Location</span>
+        <input name="system.location" type="text" value="{{system.location}}">
+      </label>
+      <label>
+        <span>Level</span>
+        <input name="system.level" type="number" value="{{system.level}}" min="0">
+      </label>
+      <label class="span-3">
+        <span>Linked Dominion UUID</span>
+        <input name="system.linkedDominionUuid" type="text" value="{{system.linkedDominionUuid}}" readonly>
+      </label>
+      <label>
+        <span>Strain</span>
+        <div class="ptg-pair triple">
+          <input name="system.strain.value" type="number" value="{{system.strain.value}}" min="0">
+          <strong>/</strong>
+          <input name="system.strain.max" type="number" value="{{system.strain.max}}" min="0">
+        </div>
+      </label>
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Choice Source</span>
+        <input name="system.choiceSource" type="text" value="{{system.choiceSource}}">
+      </label>
+      <label>
+        <span>Choice</span>
+        <input name="system.choiceLabel" type="text" value="{{system.choiceLabel}}">
+      </label>
+      <label>
+        <span>Definition</span>
+        <input name="system.definition" type="text" value="{{system.definition}}">
+      </label>
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Summary</span>
+        <input name="system.summary" type="text" value="{{system.summary}}">
+      </label>
+      <label>
+        <span>Trigger</span>
+        <input name="system.trigger" type="text" value="{{system.trigger}}">
+      </label>
+      <label>
+        <span>Action Cost</span>
+        <input name="system.actionCost" type="text" value="{{system.actionCost}}">
+      </label>
+      <label>
+        <span>Source Page</span>
+        <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Bonus</h2>
+      {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Detriment</h2>
+      {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Automation Notes</h2>
+      {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "truth")}}
+    <section class="ptg-item-fields three">
+      <label class="span-3">
+        <span>Statement</span>
+        <input name="system.statement" type="text" value="{{system.statement}}" placeholder="The god...">
+      </label>
+      <label>
+        <span>Rank</span>
+        <input name="system.rank" type="number" value="{{system.rank}}" min="0">
+      </label>
+      <label>
+        <span>Cost</span>
+        <input name="system.cost" type="number" value="{{system.cost}}" min="0">
+      </label>
+      <label>
+        <span>Fragment Cost</span>
+        <input name="system.fragmentCost" type="number" value="{{system.fragmentCost}}" min="0">
+      </label>
+      <label>
+        <span>Activation</span>
+        <select name="system.activation">
+          <option value=""></option>
+          {{#each config.activationTypes as |label key|}}
+            <option value="{{key}}" {{#if (eq ../system.activation key)}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      </label>
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Choice Source</span>
+        <input name="system.choiceSource" type="text" value="{{system.choiceSource}}">
+      </label>
+      <label>
+        <span>Choice</span>
+        <input name="system.choiceLabel" type="text" value="{{system.choiceLabel}}">
+      </label>
+      <label>
+        <span>Definition</span>
+        <input name="system.definition" type="text" value="{{system.definition}}">
+      </label>
+    </section>
+    <section class="ptg-item-fields three">
+      <label class="span-3">
+        <span>Summary</span>
+        <input name="system.summary" type="text" value="{{system.summary}}">
+      </label>
+      <label>
+        <span>Trigger</span>
+        <input name="system.trigger" type="text" value="{{system.trigger}}">
+      </label>
+      <label>
+        <span>Action Cost</span>
+        <input name="system.actionCost" type="text" value="{{system.actionCost}}">
+      </label>
+      <label>
+        <span>Source Page</span>
+        <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Benefit</h2>
+      {{editor system.benefit target="system.benefit" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Effect</h2>
+      {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Bonus</h2>
+      {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Detriment</h2>
+      {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Automation Notes</h2>
+      {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "relic")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Level</span>
+        <input name="system.level" type="number" value="{{system.level}}" min="0">
+      </label>
+      <label>
+        <span>Cost</span>
+        <input name="system.cost" type="number" value="{{system.cost}}" min="0">
+      </label>
+      <label>
+        <span>Bonus</span>
+        <input name="system.bonus" type="text" value="{{system.bonus}}">
+      </label>
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Choice Source</span>
+        <input name="system.choiceSource" type="text" value="{{system.choiceSource}}">
+      </label>
+      <label>
+        <span>Choice</span>
+        <input name="system.choiceLabel" type="text" value="{{system.choiceLabel}}">
+      </label>
+      <label>
+        <span>Definition</span>
+        <input name="system.definition" type="text" value="{{system.definition}}">
+      </label>
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Summary</span>
+        <input name="system.summary" type="text" value="{{system.summary}}">
+      </label>
+      <label>
+        <span>Trigger</span>
+        <input name="system.trigger" type="text" value="{{system.trigger}}">
+      </label>
+      <label>
+        <span>Action Cost</span>
+        <input name="system.actionCost" type="text" value="{{system.actionCost}}">
+      </label>
+      <label>
+        <span>Source Page</span>
+        <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Benefit</h2>
+      {{editor system.benefit target="system.benefit" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Effect</h2>
+      {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Bonus</h2>
+      {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Detriment</h2>
+      {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Automation Notes</h2>
+      {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "worshipper")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Level</span>
+        <input name="system.level" type="number" value="{{system.level}}" min="0">
+      </label>
+      <label>
+        <span>Cost</span>
+        <input name="system.cost" type="number" value="{{system.cost}}" min="0">
+      </label>
+      <label>
+        <span>Group</span>
+        <input name="system.group" type="text" value="{{system.group}}">
+      </label>
+      <label>
+        <span>Size</span>
+        <input name="system.size" type="text" value="{{system.size}}">
+      </label>
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Choice Source</span>
+        <input name="system.choiceSource" type="text" value="{{system.choiceSource}}">
+      </label>
+      <label>
+        <span>Choice</span>
+        <input name="system.choiceLabel" type="text" value="{{system.choiceLabel}}">
+      </label>
+      <label>
+        <span>Definition</span>
+        <input name="system.definition" type="text" value="{{system.definition}}">
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Benefit</h2>
+      {{editor system.benefit target="system.benefit" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Last Request Type</span>
+        <input name="system.requestType" type="text" value="{{system.requestType}}">
+      </label>
+      <label>
+        <span>Current Risk</span>
+        <input name="system.currentRisk" type="text" value="{{system.currentRisk}}">
+      </label>
+      <label>
+        <span>Request Log</span>
+        <textarea readonly>{{json system.requestLog}}</textarea>
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Risk Notes</h2>
+      {{editor system.riskNotes target="system.riskNotes" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Summary</span>
+        <input name="system.summary" type="text" value="{{system.summary}}">
+      </label>
+      <label>
+        <span>Trigger</span>
+        <input name="system.trigger" type="text" value="{{system.trigger}}">
+      </label>
+      <label>
+        <span>Action Cost</span>
+        <input name="system.actionCost" type="text" value="{{system.actionCost}}">
+      </label>
+      <label>
+        <span>Source Page</span>
+        <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Bonus</h2>
+      {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Detriment</h2>
+      {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Automation Notes</h2>
+      {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "vassal")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Level</span>
+        <input name="system.level" type="number" value="{{system.level}}" min="0">
+      </label>
+      <label>
+        <span>Cost</span>
+        <input name="system.cost" type="number" value="{{system.cost}}" min="0">
+      </label>
+      <label>
+        <span>Concept</span>
+        <input name="system.concept" type="text" value="{{system.concept}}">
+      </label>
+      <label>
+        <span>Loyalty</span>
+        <input name="system.loyalty" type="number" value="{{system.loyalty}}" min="0">
+      </label>
+      <label>
+        <span>Source Actor</span>
+        <input name="system.sourceActorName" type="text" value="{{system.sourceActorName}}">
+      </label>
+      <label>
+        <span>Source Category</span>
+        <input name="system.sourceActorCategory" type="text" value="{{system.sourceActorCategory}}">
+      </label>
+      <label>
+        <span>Current Task</span>
+        <input name="system.currentTask" type="text" value="{{system.currentTask}}">
+      </label>
+      <label>
+        <span>Current Risk</span>
+        <input name="system.currentRisk" type="text" value="{{system.currentRisk}}">
+      </label>
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Choice Source</span>
+        <input name="system.choiceSource" type="text" value="{{system.choiceSource}}">
+      </label>
+      <label>
+        <span>Choice</span>
+        <input name="system.choiceLabel" type="text" value="{{system.choiceLabel}}">
+      </label>
+      <label>
+        <span>Definition</span>
+        <input name="system.definition" type="text" value="{{system.definition}}">
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Benefit</h2>
+      {{editor system.benefit target="system.benefit" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Summary</span>
+        <input name="system.summary" type="text" value="{{system.summary}}">
+      </label>
+      <label>
+        <span>Trigger</span>
+        <input name="system.trigger" type="text" value="{{system.trigger}}">
+      </label>
+      <label>
+        <span>Action Cost</span>
+        <input name="system.actionCost" type="text" value="{{system.actionCost}}">
+      </label>
+      <label>
+        <span>Source Page</span>
+        <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
+      </label>
+      <label class="span-3">
+        <span>Power Hooks</span>
+        <textarea readonly>{{json system.powerHooks}}</textarea>
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Bonus</h2>
+      {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Related Detriment</h2>
+      {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Automation Notes</h2>
+      {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Risk Notes</h2>
+      {{editor system.riskNotes target="system.riskNotes" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "blessing")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Source</span>
+        <input name="system.source" type="text" value="{{system.source}}" placeholder="Occupation, Archetype, Dominion, Theology">
+      </label>
+      <label>
+        <span>Trigger</span>
+        <input name="system.trigger" type="text" value="{{system.trigger}}">
+      </label>
+      <label>
+        <span>Bonus</span>
+        <input name="system.bonus" type="text" value="{{system.bonus}}">
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Effect</h2>
+      {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "curse")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Source</span>
+        <input name="system.source" type="text" value="{{system.source}}" placeholder="Occupation, Archetype, Dominion, Theology">
+      </label>
+      <label>
+        <span>Trigger</span>
+        <input name="system.trigger" type="text" value="{{system.trigger}}">
+      </label>
+      <label>
+        <span>Pantheon Dice</span>
+        <input name="system.pantheonDice" type="number" value="{{system.pantheonDice}}" min="0">
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Effect</h2>
+      {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "condition")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Category</span>
+        <select name="system.category">
+          <option value=""></option>
+          <option value="physical" {{#if (eq system.category "physical")}}selected{{/if}}>Physical</option>
+          <option value="mental" {{#if (eq system.category "mental")}}selected{{/if}}>Mental</option>
+          <option value="crossover" {{#if (eq system.category "crossover")}}selected{{/if}}>Crossover</option>
+        </select>
+      </label>
+      <label>
+        <span>Severity</span>
+        <input name="system.severity" type="number" value="{{system.severity}}" min="0">
+      </label>
+      <label>
+        <span>Applies To</span>
+        <select name="system.appliesTo">
+          <option value=""></option>
+          <option value="health" {{#if (eq system.appliesTo "health")}}selected{{/if}}>Health</option>
+          <option value="psyche" {{#if (eq system.appliesTo "psyche")}}selected{{/if}}>Psyche</option>
+          <option value="both" {{#if (eq system.appliesTo "both")}}selected{{/if}}>Both</option>
+          <option value="fictional" {{#if (eq system.appliesTo "fictional")}}selected{{/if}}>Fictional State</option>
+        </select>
+      </label>
+      <label>
+        <span>Duration</span>
+        <input name="system.duration" type="text" value="{{system.duration}}">
+      </label>
+      <label>
+        <span>Recovery</span>
+        <input name="system.recovery" type="text" value="{{system.recovery}}">
+      </label>
+      <label>
+        <span>Usage</span>
+        <input name="system.usage.trigger" type="text" value="{{system.usage.trigger}}">
+      </label>
+      <label>
+        <span>Source Page</span>
+        <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
+      </label>
+    </section>
+    <section class="ptg-item-fields two">
+      <label>
+        <span>Removal Hint</span>
+        <input name="system.removal" type="text" value="{{system.removal}}">
+      </label>
+      <label>
+        <span>Source Section</span>
+        <input name="system.sourceSection" type="text" value="{{system.sourceSection}}">
+      </label>
+      <label class="span-2">
+        <span>Roll Modifier Metadata</span>
+        <textarea readonly>{{json system.rollModifier}}</textarea>
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Effect</h2>
+      {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "gearQuality")}}
+    <section class="ptg-item-fields three">
+      <label>
+        <span>Key</span>
+        <input name="system.key" type="text" value="{{system.key}}">
+      </label>
+      <label>
+        <span>Applies To</span>
+        <input name="system.appliesTo" type="text" value="{{system.appliesTo}}">
+      </label>
+      <label>
+        <span>Default Value</span>
+        <input name="system.defaultValue" type="number" value="{{system.defaultValue}}" min="0">
+      </label>
+      <label class="ptg-checkbox">
+        <input name="system.supported" type="checkbox" {{checked system.supported}}>
+        <span>Automation Supported</span>
+      </label>
+      <label class="span-3">
+        <span>Automation Data</span>
+        <textarea readonly>{{json system.automationData}}</textarea>
+      </label>
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Effect</h2>
+      {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "weapon")}}
+    <section class="ptg-item-fields four">
+      <label>
+        <span>Amount</span>
+        <input name="system.amount" type="number" value="{{system.amount}}" min="0">
+      </label>
+      <label>
+        <span>Damage</span>
+        <input name="system.damage" type="number" value="{{system.damage}}" min="0">
+      </label>
+      <label>
+        <span>Range</span>
+        <input name="system.range" type="text" value="{{system.range}}">
+      </label>
+      <label>
+        <span>Range Category</span>
+        <input name="system.rangeCategory" type="text" value="{{system.rangeCategory}}">
+      </label>
+      <label>
+        <span>Cost</span>
+        <input name="system.cost" type="number" value="{{system.cost}}" min="0">
+      </label>
+      <label>
+        <span>Weight</span>
+        <input name="system.weight" type="number" value="{{system.weight}}" min="0" step="0.1">
+      </label>
+      <label class="ptg-checkbox">
+        <input name="system.held" type="checkbox" {{checked system.held}}>
+        <span>Carried</span>
+      </label>
+      <label class="ptg-checkbox">
+        <input name="system.equipped" type="checkbox" {{checked system.equipped}}>
+        <span>Equipped</span>
+      </label>
+      <label class="span-4">
+        <span>Quality</span>
+        <input name="system.quality" type="text" value="{{system.quality}}">
+      </label>
+    </section>
+    {{#if system.qualities.length}}
+      <section class="ptg-editor-section">
+        <h2>Structured Qualities</h2>
+        <div class="ptg-quality-list">
+          {{#each system.qualities as |quality|}}
+            <article class="ptg-quality-entry">
+              <strong>{{quality.name}}{{#if quality.value}} {{quality.value}}{{/if}}</strong>
+              <span>{{#if quality.supported}}Automated{{else}}Rules Note{{/if}}</span>
+              <p>{{quality.effect}}</p>
+              {{#if quality.notes}}<p>{{quality.notes}}</p>{{/if}}
+            </article>
+          {{/each}}
+        </div>
+      </section>
+    {{/if}}
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if (eq item.type "armor")}}
+    <section class="ptg-item-fields four">
+      <label>
+        <span>Amount</span>
+        <input name="system.amount" type="number" value="{{system.amount}}" min="0">
+      </label>
+      <label>
+        <span>Rating</span>
+        <input name="system.rating" type="number" value="{{system.rating}}" min="0">
+      </label>
+      <label>
+        <span>Cost</span>
+        <input name="system.cost" type="number" value="{{system.cost}}" min="0">
+      </label>
+      <label>
+        <span>Weight</span>
+        <input name="system.weight" type="number" value="{{system.weight}}" min="0" step="0.1">
+      </label>
+      <label class="ptg-checkbox">
+        <input name="system.held" type="checkbox" {{checked system.held}}>
+        <span>Carried</span>
+      </label>
+      <label class="span-2">
+        <span>Quality</span>
+        <input name="system.quality" type="text" value="{{system.quality}}">
+      </label>
+      <label class="ptg-checkbox">
+        <input name="system.equipped" type="checkbox" {{checked system.equipped}}>
+        <span>Equipped</span>
+      </label>
+    </section>
+    {{#if system.qualities.length}}
+      <section class="ptg-editor-section">
+        <h2>Structured Qualities</h2>
+        <div class="ptg-quality-list">
+          {{#each system.qualities as |quality|}}
+            <article class="ptg-quality-entry">
+              <strong>{{quality.name}}{{#if quality.value}} {{quality.value}}{{/if}}</strong>
+              <span>{{#if quality.supported}}Automated{{else}}Rules Note{{/if}}</span>
+              <p>{{quality.effect}}</p>
+              {{#if quality.notes}}<p>{{quality.notes}}</p>{{/if}}
+            </article>
+          {{/each}}
+        </div>
+      </section>
+    {{/if}}
+    <section class="ptg-editor-section">
+      <h2>Description</h2>
+      {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+    </section>
+    <section class="ptg-editor-section">
+      <h2>Notes</h2>
+      {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+</form>

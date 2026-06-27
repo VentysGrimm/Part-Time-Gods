@@ -1,0 +1,152 @@
+{
+  "id": "part-time-gods",
+  "title": "Part-Time Gods 2E",
+  "description": "Part-Time Gods Second Edition for Foundry VTT v14.",
+  "version": "0.0.2",
+  "url": "https://github.com/VentysGrimm/Part-Time-Gods",
+  "manifest": "https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/main/system.json",
+  "download": "https://github.com/VentysGrimm/Part-Time-Gods/archive/refs/heads/main.zip",
+
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14.364"
+  },
+
+  "authors": [
+    {
+      "name": "VentysGrimm"
+    }
+  ],
+
+  "esmodules": [
+    "part-time-gods.js"
+  ],
+
+  "styles": [
+    "styles/part-time-gods.css"
+  ],
+
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+
+  "packs": [
+    {
+      "name": "character-creation",
+      "label": "Part-Time Gods Character Creation",
+      "path": "packs/character-creation",
+      "type": "Item",
+      "system": "part-time-gods"
+    },
+    {
+      "name": "premade-items",
+      "label": "Part-Time Gods Premade Items",
+      "path": "packs/premade-items",
+      "type": "Item",
+      "system": "part-time-gods"
+    },
+    {
+      "name": "opposition-actors",
+      "label": "Part-Time Gods Opposition Actors",
+      "path": "packs/opposition-actors",
+      "type": "Actor",
+      "system": "part-time-gods"
+    },
+    {
+      "name": "maps",
+      "label": "Part-Time Gods Maps",
+      "path": "packs/maps",
+      "type": "Scene",
+      "system": "part-time-gods"
+    },
+    {
+      "name": "roll-tables",
+      "label": "Part-Time Gods Roll Tables",
+      "path": "packs/roll-tables",
+      "type": "RollTable",
+      "system": "part-time-gods"
+    },
+    {
+      "name": "rules-reference",
+      "label": "Part-Time Gods Rules Reference",
+      "path": "packs/rules-reference",
+      "type": "JournalEntry",
+      "system": "part-time-gods"
+    }
+  ],
+
+  "documentTypes": {
+    "Actor": {
+      "character": {
+        "htmlFields": ["notes"]
+      },
+      "antagonist": {
+        "htmlFields": ["description", "powers", "notes"]
+      },
+      "pantheon": {
+        "htmlFields": ["goals", "enemies", "obligations", "storyHooks", "trouble", "notes"]
+      }
+    },
+
+    "Item": {
+      "occupation": {
+        "htmlFields": ["description", "notes"]
+      },
+      "archetype": {
+        "htmlFields": ["description", "notes"]
+      },
+      "domain": {
+        "htmlFields": ["description", "limitations", "gmNotes", "notes"]
+      },
+      "theology": {
+        "htmlFields": ["description", "notes"]
+      },
+      "power": {
+        "htmlFields": ["effect", "limitations", "notes"]
+      },
+      "attachment": {
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "description", "notes"]
+      },
+      "bond": {
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "description", "notes"]
+      },
+      "truth": {
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "effect", "description", "notes"]
+      },
+      "relic": {
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "effect", "description", "notes"]
+      },
+      "worshipper": {
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "description", "notes"]
+      },
+      "vassal": {
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "riskNotes", "benefit", "description", "notes"]
+      },
+      "blessing": {
+        "htmlFields": ["effect", "notes"]
+      },
+      "curse": {
+        "htmlFields": ["effect", "notes"]
+      },
+      "condition": {
+        "htmlFields": ["effect", "notes"]
+      },
+      "gearQuality": {
+        "htmlFields": ["effect", "description", "notes"]
+      },
+      "weapon": {
+        "htmlFields": ["description", "notes"]
+      },
+      "armor": {
+        "htmlFields": ["description", "notes"]
+      }
+    }
+  },
+
+  "primaryTokenAttribute": "resources.health",
+  "secondaryTokenAttribute": "resources.psyche"
+}
