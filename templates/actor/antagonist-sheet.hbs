@@ -5,6 +5,9 @@
       <input class="ptg-name" name="name" type="text" value="{{actor.name}}" placeholder="Antagonist Name">
       <div class="ptg-subtitle">Antagonist{{#if system.rank}} - {{system.rank}}{{/if}}</div>
     </div>
+    {{#if canUseSetupTools}}
+      <button type="button" data-antagonist-builder>Opposition Builder</button>
+    {{/if}}
   </header>
 
   <section class="ptg-item-fields three">

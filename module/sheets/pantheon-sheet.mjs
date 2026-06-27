@@ -1,4 +1,12 @@
 import { getDragEventData } from "../util/drop-data.mjs";
+import { importPremadeItems } from "../data/premade-items.mjs";
+import { importPremadeChoices } from "../data/premade-choices.mjs";
+import { openAntagonistBuilder } from "../data/premade-actors.mjs";
+import { populatePremadeCompendiums } from "../data/premade-compendiums.mjs";
+import { importRulesJournals } from "../data/premade-journals.mjs";
+import { importGodTerritoryScene, openTerritoryControls } from "../data/premade-scenes.mjs";
+import { openPTGCombatControls } from "../combat/ptg-combat.mjs";
+import { openMortalDivineBalanceTracker } from "../apps/mortal-divine-tracker.mjs";
 import { openPantheonPoolDialog } from "../workflows/pantheon-pool-workflow.mjs";
 
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -40,6 +48,8 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.actor = this.actor;
     context.system = this.actor.system;
     context.members = await this.#prepareMembers();
+    context.canUseWorldTools = game.user?.isGM || this.actor.isOwner;
+    context.canUseSetupTools = game.user?.isGM;
 
     return context;
   }
@@ -52,6 +62,10 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     this.element.querySelector("[data-pantheon-pool-workflow]")?.addEventListener("click", () => openPantheonPoolDialog({ pantheon: this.actor }));
+
+    for (const button of this.element.querySelectorAll("[data-pantheon-tool]")) {
+      button.addEventListener("click", event => this.#onPantheonTool(event.currentTarget.dataset.pantheonTool));
+    }
   }
 
   async _onDrop(event) {
@@ -153,6 +167,51 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (button.dataset.memberAction === "open") {
       const actor = await fromUuid(uuid);
       actor?.sheet?.render(true);
+    }
+  }
+
+  async #onPantheonTool(tool) {
+    if (!tool) return;
+
+    if (["populate-compendiums", "import-items", "import-choices", "import-rules-journals", "create-territory-scene", "antagonist-builder"].includes(tool) && !game.user?.isGM) {
+      ui.notifications.warn("Only a GM can use setup tools.");
+      return;
+    }
+
+    if (tool === "populate-compendiums") return populatePremadeCompendiums();
+    if (tool === "import-items") return importPremadeItems();
+    if (tool === "import-choices") return importPremadeChoices();
+    if (tool === "import-rules-journals") return importRulesJournals();
+    if (tool === "antagonist-builder") return openAntagonistBuilder();
+    if (tool === "combat") return openPTGCombatControls();
+    if (tool === "balance") return openMortalDivineBalanceTracker();
+    if (tool === "pantheon-pool") return openPantheonPoolDialog({ pantheon: this.actor });
+
+    if (tool === "create-territory-scene") {
+      const scene = await importGodTerritoryScene({ activate: false });
+      if (scene && this.actor.isOwner) await this.actor.update({ "system.territorySceneUuid": scene.uuid });
+      return scene;
+    }
+
+    if (tool === "territory-controls") {
+      const scene = await this.#territoryScene();
+      return scene ? openTerritoryControls({ scene }) : openTerritoryControls();
+    }
+
+    ui.notifications.warn(`Unsupported Pantheon tool: ${tool}`);
+    return null;
+  }
+
+  async #territoryScene() {
+    const uuid = this.actor.system.territorySceneUuid;
+    if (!uuid) return null;
+
+    try {
+      const scene = await fromUuid(uuid);
+      return scene?.documentName === "Scene" ? scene : null;
+    } catch (error) {
+      console.warn("Part-Time Gods 2E | Unable to resolve Pantheon territory scene.", uuid, error);
+      return null;
     }
   }
 }

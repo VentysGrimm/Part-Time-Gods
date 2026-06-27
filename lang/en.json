@@ -54,8 +54,7 @@
       "EmbeddedItemsMigrated": "Part-Time Gods migrated {createdItems} legacy sheet note(s) into owned Items.",
       "EmbeddedItemsMigrationFailed": "Part-Time Gods embedded Item migration failed. Check the console for details.",
       "OnlyGMFollowerScene": "Only a GM can create Worshipper and Vassal actors on a scene.",
-      "NoActiveScene": "No active scene is available for token creation.",
-      "LoadedSlash": "Part-Time Gods 2E loaded. Use /ptg-create-territory-scene, /ptg-territory, /ptg-combat, /ptg-balance, /ptg-pantheon-pool, /ptg-antagonist-builder, or /ptg-import-rules-journals for world setup."
+      "NoActiveScene": "No active scene is available for token creation."
     },
     "Folders": {
       "Vassals": "PTG Vassals",

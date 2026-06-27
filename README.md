@@ -18,7 +18,7 @@ For installation steps, see `INSTALL.md`.
 - Conditions: use **Add** in the Conditions panel, combat controls, or item automation to apply Conditions. Conditions can be increased, reduced, recovered, removed, and used as transparent roll/combat modifiers when metadata is present.
 - Rituals and Manifestations: Manifestation rolls can open ritual workflows, resistance checks, and measure assignment summaries.
 - Territory and Pantheons: GM tools seed premade scenes/maps and manage Pantheon state.
-- Mortal-Divine Balance: enable the standalone `ptg-balance-tracker` module in a Part-Time Gods world, then use `/ptg-balance` as a GM.
+- Mortal-Divine Balance: use the Pantheon sheet Table Tools section as a GM to open the tracker.
 - Premade content: on world load, GM compendium helpers populate character creation choices, premade Items, opposition actors, maps, roll tables, and rules journals from source-backed system data.
 
 ## Release Readiness Checklist
@@ -27,7 +27,7 @@ For installation steps, see `INSTALL.md`.
 - Run `node --check` against all `.js` and `.mjs` files after code changes.
 - Validate `system.json` paths for modules, styles, languages, packs, and Foundry v14 compatibility.
 - In Foundry VTT v14, create or open a world using this system and verify the character sheet, item sheets, Pantheon sheet, compendia, rules journals, roll dialogs, combat controls, Conditions, XP, rituals, and territory tools.
-- With the `ptg-balance-tracker` module enabled, verify `/ptg-balance`, character actor drops, tracker adjustments, log clearing, and optional chat output.
+- Verify the Pantheon sheet Mortal-Divine Balance button, character actor drops, tracker adjustments, log clearing, and optional chat output.
 - Test as GM, owner, observer, and non-owner where permissions matter.
 - Keep local source material and scratch folders out of release commits.
 

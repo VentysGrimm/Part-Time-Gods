@@ -202,63 +202,6 @@ Hooks.on("dropCanvasData", async (canvas, data) => {
   return false;
 });
 
-Hooks.on("chatMessage", (chatLog, message) => {
-  if (message === "/ptg-import-items") {
-    importPremadeItems();
-    return false;
-  }
-
-  if (message === "/ptg-import-choices") {
-    importPremadeChoices();
-    return false;
-  }
-
-  if (message === "/ptg-populate-compendiums") {
-    populatePremadeCompendiums();
-    return false;
-  }
-
-  if (message === "/ptg-create-territory-scene") {
-    importGodTerritoryScene();
-    return false;
-  }
-
-  if (message === "/ptg-territory") {
-    openTerritoryControls();
-    return false;
-  }
-
-  if (message === "/ptg-combat") {
-    openPTGCombatControls();
-    return false;
-  }
-
-  if (message === "/ptg-balance") {
-    openMortalDivineBalanceTracker();
-    return false;
-  }
-
-  if (message === "/ptg-pantheon-pool") {
-    openPantheonPoolDialog();
-    return false;
-  }
-
-  if (message === "/ptg-antagonist-builder") {
-    openAntagonistBuilder();
-    return false;
-  }
-
-  if (message === "/ptg-import-rules-journals") {
-    importRulesJournals();
-    return false;
-  }
-
-  if (message !== "/ptg") return true;
-
-  ui.notifications.info(localize("PTG.Notifications.LoadedSlash"));
-  return false;
-});
-
 async function getOrCreateFollowerActor(item) {
   const sourceUuid = item.uuid;
   if (sourceUuid) {

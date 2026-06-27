@@ -162,6 +162,16 @@
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.ptg-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ptg-pantheon-tools button {
+  flex: 1 1 150px;
+}
+
 .ptg-pantheon-membership-list div {
   padding: 6px;
   border: 1px solid rgba(141, 116, 184, 0.45);

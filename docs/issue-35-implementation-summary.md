@@ -5,7 +5,7 @@ This summary records the first playable Foundry VTT v14 pass for Part-Time Gods 
 ## Source Files Reviewed
 
 - `system.json`: Foundry package manifest, compatibility block, actor/item document type declarations, packs, language, styles, and esmodule entry.
-- `part-time-gods.js`: system initialization, v14 sheet registration, data model registration, Handlebars helpers, compendium population, chat commands, and worshipper/vassal scene-drop behavior.
+- `part-time-gods.js`: system initialization, v14 sheet registration, data model registration, Handlebars helpers, compendium population, public API exports, and worshipper/vassal scene-drop behavior.
 - `module/data/complete-rules.json`: source-derived rules journal payload generated from `Part-Time Gods 2e (Updated).pdf`, including page and PDF-page references.
 - `module/data/premade-choices.mjs`: source-referenced occupations, archetypes, dominions, theologies, career options, grants, blessings, curses, and attachment data.
 - `module/data/premade-items.mjs`: source-referenced truths, relics, worshippers, vassals, bonds, curses, gear, and choice-derived boons.
@@ -31,7 +31,7 @@ This summary records the first playable Foundry VTT v14 pass for Part-Time Gods 
 
 ## Resolved Workflow Decisions
 
-- Battle flow is handled through `/ptg-combat`: initiative, round/action/defense markers, Battle of Fists, Battle of Wits, direct damage/healing, armor, weapon qualities, Boost damage, and Condition application/recovery. The battle dialog accepts manual successes or rolls antagonist/vassal statblock Attack and Defense pools.
+- Battle flow is handled through the Pantheon sheet Combat Controls button: initiative, round/action/defense markers, Battle of Fists, Battle of Wits, direct damage/healing, armor, weapon qualities, Boost damage, and Condition application/recovery. The battle dialog accepts manual successes or rolls antagonist/vassal statblock Attack and Defense pools.
 - Conditions are system-owned `condition` Item documents. They are the source of truth for severity, category, duration, recovery, roll metadata, and chat workflow. Foundry Active Effects are not the primary representation because PTG Conditions are narrative/severity records whose effects depend on check context; the system applies their structured metadata through `conditionRollEffects()` instead.
 - Prayers are handled through Worshipper request cards with Strain, risk, resource changes, consequences, results, and request logs.
 - Vassals use task cards with Strain, risk, statblock pool rolls, current task/risk fields, request logs, and scene-drop actor generation.
