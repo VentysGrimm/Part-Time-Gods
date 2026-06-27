@@ -69,6 +69,13 @@
             <h2>Conditions</h2>
             <button type="button" data-condition-create>Add</button>
           </div>
+          {{#if system.derived.conditionWarnings}}
+            <ul class="ptg-sheet-note">
+              {{#each system.derived.conditionWarnings as |condition|}}
+                <li><strong>{{condition.name}}</strong> {{condition.severity}}{{#if condition.summary}} - {{condition.summary}}{{/if}}</li>
+              {{/each}}
+            </ul>
+          {{/if}}
           {{#if inventory.conditions.length}}
             <div class="ptg-condition-list">
               {{#each inventory.conditions as |item|}}

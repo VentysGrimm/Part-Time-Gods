@@ -42,7 +42,8 @@ export class PTGDiceEngine {
       criticalFailure: successes === 0 && ones > 0,
       checkMode: options.checkMode ?? "standard",
       extended: options.extended ?? null,
-      boostChoice: options.boostChoice ?? ""
+      boostChoice: options.boostChoice ?? "",
+      conditionWarnings: options.conditionWarnings ?? []
     };
 
     if (sendToChat) await this.createChatCard(outcome, flavor);
@@ -117,6 +118,16 @@ export class PTGDiceEngine {
     const criticalRows = outcome.criticalFailure
       ? "<div>Consequence: The GM may introduce a complication, Condition, Strain, lost time, or other PTG2E setback.</div>"
       : "";
+    const conditionRows = (outcome.conditionWarnings ?? []).length
+      ? `
+        <section>
+          <h4>Active Conditions</h4>
+          <ul>
+            ${outcome.conditionWarnings.map(warning => `<li>${escapeHTML(warning)}</li>`).join("")}
+          </ul>
+        </section>
+      `
+      : "";
 
     const content = `
       <div class="ptg-chat-card">
@@ -132,6 +143,7 @@ export class PTGDiceEngine {
         ${extendedRows}
         ${boostRows}
         ${criticalRows}
+        ${conditionRows}
         <strong>${resultText}</strong>
       </div>
     `;

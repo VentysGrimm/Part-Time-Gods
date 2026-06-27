@@ -32,14 +32,29 @@ export class PartTimeGodsActor extends Actor {
     system.derived.carriedWeight = this.items
       .filter(item => ["weapon", "armor"].includes(item.type) && (item.system.held !== false || item.system.equipped))
       .reduce((total, item) => total + Number(item.system.weight ?? 0) * Number(item.system.amount ?? 1), 0);
+    system.derived.conditionWarnings = activeConditionWarnings(this);
   }
 
   async rollSkillCombo(primary, secondary, options = {}) {
-    return PTGDiceEngine.rollSkillCombo(this, primary, secondary, options);
+    return PTGDiceEngine.rollSkillCombo(this, primary, secondary, this.#withConditionRollEffects(options, {
+      mode: "skill",
+      primary,
+      secondary,
+      checkMode: options.checkMode ?? "standard"
+    }));
   }
 
   async rollManifestation(manifestation, skill, options = {}) {
-    return PTGDiceEngine.rollManifestation(this, manifestation, skill, options);
+    return PTGDiceEngine.rollManifestation(this, manifestation, skill, this.#withConditionRollEffects(options, {
+      mode: "manifestation",
+      manifestation,
+      skill,
+      checkMode: options.checkMode ?? "manifestation"
+    }));
+  }
+
+  conditionRollEffects(context = {}) {
+    return conditionRollEffects(this, context);
   }
 
   async spendResource(resource, amount = 1) {
@@ -1071,6 +1086,29 @@ export class PartTimeGodsActor extends Actor {
     });
   }
 
+  #withConditionRollEffects(options = {}, context = {}) {
+    if (options.applyConditionModifiers === false) return options;
+
+    const effects = this.conditionRollEffects(context);
+    const modifierDetails = {
+      ...Object.fromEntries(effects.modifiers.map(effect => [`Condition: ${effect.name}`, effect.value])),
+      ...(options.modifierDetails ?? {})
+    };
+    const conditionWarnings = [
+      ...effects.modifiers.map(effect => `${effect.name}: ${signedNumber(effect.value)}${effect.summary ? ` (${effect.summary})` : ""}`),
+      ...effects.warnings.map(effect => `${effect.name}: ${effect.summary}`)
+    ];
+
+    return {
+      ...options,
+      modifierDetails,
+      conditionWarnings: [
+        ...conditionWarnings,
+        ...(options.conditionWarnings ?? [])
+      ]
+    };
+  }
+
   async #renderItemUseCard({ item = null, title = "", results = [] } = {}) {
     const usage = item?.system.usage ?? {};
     const rules = item?.system.rules ?? {};
@@ -1117,6 +1155,118 @@ export class PartTimeGodsActor extends Actor {
       results: results.map(result => ({ text: result }))
     });
   }
+}
+
+function conditionRollEffects(actor, context = {}) {
+  const effects = actor.items
+    .filter(item => item.type === "condition")
+    .map(item => conditionRollEffect(item, context))
+    .filter(Boolean);
+
+  return {
+    modifiers: effects.filter(effect => Number(effect.value ?? 0) !== 0 && !effect.warningOnly),
+    warnings: effects.filter(effect => effect.warningOnly || Number(effect.value ?? 0) === 0)
+  };
+}
+
+function activeConditionWarnings(actor) {
+  return actor.items
+    .filter(item => item.type === "condition")
+    .map(item => {
+      const effect = conditionRollEffect(item, { mode: "state" });
+      const severity = Number(item.system.severity ?? 1);
+      const summary = effect?.summary || stripHTML(item.system.effect || item.system.rules?.summary || "");
+      return {
+        id: item.id,
+        name: item.name,
+        category: item.system.category ?? "",
+        severity,
+        summary
+      };
+    });
+}
+
+function conditionRollEffect(item, context = {}) {
+  const metadata = conditionRollMetadata(item);
+  if (!metadata) return null;
+  if (!conditionMetadataApplies(metadata, context)) return null;
+
+  const severity = Number(item.system.severity ?? 1);
+  const rawValue = metadata.value ?? metadata.modifier ?? metadata.amount ?? 0;
+  const numericValue = Number(rawValue ?? 0);
+  const value = Number.isFinite(numericValue)
+    ? numericValue * (metadata.perSeverity || metadata.scaleWithSeverity ? severity : 1)
+    : 0;
+  const summary = metadata.summary
+    ?? metadata.warning
+    ?? metadata.notes
+    ?? stripHTML(item.system.effect || item.system.rules?.summary || "");
+
+  return {
+    name: item.name,
+    value,
+    summary,
+    warningOnly: Boolean(metadata.warningOnly || metadata.warningOnly === "true" || (!value && summary))
+  };
+}
+
+function conditionRollMetadata(item) {
+  const system = item.system ?? {};
+  const automation = system.automation ?? {};
+  const roll = system.rollModifier ?? automation.roll;
+  if (roll && typeof roll === "object") return roll;
+  if (Number.isFinite(Number(roll))) return { value: Number(roll) };
+
+  const bonus = automation.bonus;
+  if (Number.isFinite(Number(bonus))) return { value: Number(bonus), summary: "Condition bonus" };
+  if (bonus && typeof bonus === "object" && Number.isFinite(Number(bonus.value ?? bonus.amount))) {
+    return { ...bonus, value: Number(bonus.value ?? bonus.amount) };
+  }
+
+  const penalty = automation.penalty;
+  if (Number.isFinite(Number(penalty))) return { value: -Math.abs(Number(penalty)), summary: "Condition penalty" };
+  if (penalty && typeof penalty === "object" && Number.isFinite(Number(penalty.value ?? penalty.amount))) {
+    return { ...penalty, value: -Math.abs(Number(penalty.value ?? penalty.amount)) };
+  }
+
+  return null;
+}
+
+function conditionMetadataApplies(metadata, context = {}) {
+  const mode = String(context.mode ?? "");
+  const checkMode = String(context.checkMode ?? "");
+  const tokens = new Set([
+    mode,
+    checkMode,
+    context.primary,
+    context.secondary,
+    context.skill,
+    context.manifestation
+  ].filter(Boolean).map(value => String(value).toLowerCase()));
+
+  const appliesTo = metadata.appliesTo ?? metadata.mode ?? metadata.modes ?? metadata.checkMode ?? metadata.checkModes;
+  if (appliesTo && !metadataList(appliesTo).some(value => value === "all" || tokens.has(value))) return false;
+
+  const skills = metadata.skills ?? metadata.skill;
+  if (skills && !metadataList(skills).some(value => tokens.has(value))) return false;
+
+  const manifestations = metadata.manifestations ?? metadata.manifestation;
+  if (manifestations && !metadataList(manifestations).some(value => tokens.has(value))) return false;
+
+  return true;
+}
+
+function metadataList(value) {
+  if (Array.isArray(value)) return value.map(entry => String(entry).toLowerCase());
+  return String(value ?? "")
+    .split(/[,| ]+/)
+    .map(entry => entry.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function stripHTML(value) {
+  const text = String(value ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return text.length > 180 ? `${text.slice(0, 177)}...` : text;
 }
 
 async function selectOccupationCareer(item, selectionOptions = {}) {

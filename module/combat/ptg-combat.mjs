@@ -307,8 +307,10 @@ async function selectCombatAction(combat) {
 
 function actorInitiative(actor) {
   if (!actor) return 0;
-  if (actor.type === "character") return Number(actor.system.derived?.initiative ?? 0);
-  return Number(actor.system.initiative ?? actor.system.derived?.initiative ?? 0);
+  const base = actor.type === "character"
+    ? Number(actor.system.derived?.initiative ?? 0)
+    : Number(actor.system.initiative ?? actor.system.derived?.initiative ?? 0);
+  return base + conditionCombatModifier(actor, "initiative");
 }
 
 async function resetCombatRoundActions(combat) {
@@ -385,13 +387,15 @@ async function resolveBattleOutcome(attacker, defender, selection) {
   const results = [];
   const weapon = selection.weaponUuid ? await fromUuid(selection.weaponUuid) : null;
   const attackSuccesses = Math.max(0, Number(selection.attackSuccesses ?? 0));
-  const defenseSuccesses = Math.max(0, Number(selection.defenseSuccesses ?? 0));
+  const defenseModifier = conditionCombatModifier(defender, "defense");
+  const defenseSuccesses = Math.max(0, Number(selection.defenseSuccesses ?? 0) + defenseModifier);
   const margin = attackSuccesses - defenseSuccesses;
   const resource = selection.action === "battleWits" ? "psyche" : "health";
   const weaponDamage = weapon?.type === "weapon" ? weaponDamageBonus(weapon) : 0;
   const boostDamage = selection.boostDamage ? boostDamageBonus(weapon) : 0;
   const flatDamage = Math.max(0, Number(selection.damage ?? 0));
-  const rawDamage = Math.max(0, margin) + weaponDamage + boostDamage + flatDamage;
+  const conditionDamage = conditionCombatModifier(attacker, "damage");
+  const rawDamage = Math.max(0, margin) + weaponDamage + boostDamage + flatDamage + conditionDamage;
   const damageTag = selection.damageTag || weaponRangeLabel(weapon);
   const armor = resource === "health" && selection.applyArmor
     ? actorArmor(defender) + armorProofBonus(defender, damageTag)
@@ -401,6 +405,8 @@ async function resolveBattleOutcome(attacker, defender, selection) {
   const armorQualities = resource === "health" && selection.applyArmor ? equippedArmorQualities(defender) : [];
 
   results.push(`${attacker.name} rolled ${attackSuccesses} successes against ${defender.name}'s ${defenseSuccesses} defense successes.`);
+  if (defenseModifier) results.push(`${defender.name}: active Conditions changed Defense by ${signedNumber(defenseModifier)}.`);
+  if (conditionDamage) results.push(`${attacker.name}: active Conditions changed damage by ${signedNumber(conditionDamage)}.`);
   if (margin <= 0) {
     results.push("Defender wins ties and equal-or-higher Defense results; no damage was applied.");
   } else {
@@ -516,7 +522,12 @@ function actorResource(actor, resource) {
 }
 
 function actorArmor(actor) {
-  return Number(actor.system.derived?.armor ?? actor.system.armor ?? 0);
+  return Number(actor.system.derived?.armor ?? actor.system.armor ?? 0) + conditionCombatModifier(actor, "armor");
+}
+
+function conditionCombatModifier(actor, mode) {
+  const effects = actor?.conditionRollEffects?.({ mode, checkMode: mode });
+  return (effects?.modifiers ?? []).reduce((total, effect) => total + Number(effect.value ?? 0), 0);
 }
 
 function actorWeapons(actor) {
@@ -733,6 +744,11 @@ function resourceLabel(resource) {
     health: "Health",
     psyche: "Psyche"
   }[resource] ?? resource;
+}
+
+function signedNumber(value) {
+  const number = Number(value ?? 0);
+  return `${number >= 0 ? "+" : ""}${number}`;
 }
 
 function escapeHTML(value) {

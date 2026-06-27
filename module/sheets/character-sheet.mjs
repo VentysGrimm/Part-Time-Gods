@@ -1762,6 +1762,7 @@ function refreshOccupationCareerDetails(root) {
 async function selectSkillComboRollOptions({ actor, primary, secondary, difficulty, repetition }) {
   const skillEntries = Object.entries(CONFIG.PTG.skills ?? {});
   const difficulties = Object.entries(CONFIG.PTG.difficulties ?? {});
+  const conditionEffects = actor.conditionRollEffects?.({ mode: "skill", primary, secondary, checkMode: "standard" }) ?? { modifiers: [], warnings: [] };
   const repetitionPenalty = Number(repetition?.penalty ?? 0);
   const repetitionNote = repetitionPenalty > 0
     ? `Suggested repeated-combo penalty: -${repetitionPenalty} (use ${Number(repetition.count ?? 0) + 1} of ${escapeHTML(repetition.label)}).`
@@ -1849,6 +1850,11 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
         <label>Boost Choice</label>
         <input type="text" name="boostChoice" value="" placeholder="Optional planned Boost">
       </div>
+      <label class="ptg-checkbox">
+        <input type="checkbox" name="applyConditionModifiers" checked>
+        <span>Apply active Condition modifiers</span>
+      </label>
+      ${conditionSummaryHTML(conditionEffects)}
       <p class="ptg-sheet-note">${repetitionNote} Repetition penalties are ignored for Extended Checks.</p>
       <p class="ptg-sheet-note" data-pool-preview>${skillPoolPreview(actor, primary, secondary, 0, 0)}</p>
     </div>
@@ -1894,6 +1900,7 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
             current: Math.max(0, Number(form.elements.extendedCurrent?.value ?? 0))
           } : null,
           boostChoice: form.elements.boostChoice?.value?.trim() ?? "",
+          applyConditionModifiers: Boolean(form.elements.applyConditionModifiers?.checked),
           modifierDetails: {
             "Pantheon Dice": pantheonDice,
             [specialtyName ? `Specialty (${specialtyName})` : "Specialty"]: specialtyBonus,
@@ -2063,17 +2070,52 @@ function wireSkillPoolPreview(element, actor) {
         specialtyBonus: Number(form.elements.specialtyBonus?.value ?? 0),
         toolModifier: Number(form.elements.toolModifier?.value ?? 0),
         supportBonus: Number(form.elements.supportBonus?.value ?? 0),
-        repetitionPenalty: Number(form.elements.checkMode?.value === "extended" ? 0 : form.elements.repetitionPenalty?.value ?? 0)
+        repetitionPenalty: Number(form.elements.checkMode?.value === "extended" ? 0 : form.elements.repetitionPenalty?.value ?? 0),
+        conditionModifier: form.elements.applyConditionModifiers?.checked
+          ? conditionModifierTotal(actor.conditionRollEffects?.({
+            mode: "skill",
+            primary: form.elements.primary?.value,
+            secondary: form.elements.secondary?.value,
+            checkMode: form.elements.checkMode?.value ?? "standard"
+          }))
+          : 0
       }
     );
   };
 
-  for (const name of ["primary", "secondary", "bonus", "penalty", "pantheonDice", "specialtyBonus", "toolModifier", "supportBonus", "repetitionPenalty", "checkMode"]) {
+  for (const name of ["primary", "secondary", "bonus", "penalty", "pantheonDice", "specialtyBonus", "toolModifier", "supportBonus", "repetitionPenalty", "checkMode", "applyConditionModifiers"]) {
     form.elements[name]?.addEventListener("change", update);
     form.elements[name]?.addEventListener("input", update);
   }
 
   update();
+}
+
+function conditionSummaryHTML(effects = {}) {
+  const modifiers = effects.modifiers ?? [];
+  const warnings = effects.warnings ?? [];
+  if (!modifiers.length && !warnings.length) {
+    return `<p class="ptg-sheet-note">No active Conditions have structured roll modifiers for this check.</p>`;
+  }
+
+  return `
+    <div class="ptg-sheet-note">
+      <strong>Condition Effects</strong>
+      <ul>
+        ${modifiers.map(effect => `<li>${escapeHTML(effect.name)}: ${signedNumber(effect.value)}${effect.summary ? ` - ${escapeHTML(effect.summary)}` : ""}</li>`).join("")}
+        ${warnings.map(effect => `<li>${escapeHTML(effect.name)}: ${escapeHTML(effect.summary || "Warning only")}</li>`).join("")}
+      </ul>
+    </div>
+  `;
+}
+
+function conditionModifierTotal(effects = {}) {
+  return (effects.modifiers ?? []).reduce((total, effect) => total + Number(effect.value ?? 0), 0);
+}
+
+function signedNumber(value) {
+  const number = Number(value ?? 0);
+  return `${number >= 0 ? "+" : ""}${number}`;
 }
 
 function skillPoolPreview(actor, primary, secondary, bonus, penalty, extra = {}) {
@@ -2084,7 +2126,8 @@ function skillPoolPreview(actor, primary, secondary, bonus, penalty, extra = {})
     + Number(extra.specialtyBonus ?? 0)
     + Number(extra.toolModifier ?? 0)
     + Number(extra.supportBonus ?? 0)
-    - Number(extra.repetitionPenalty ?? 0);
+    - Number(extra.repetitionPenalty ?? 0)
+    + Number(extra.conditionModifier ?? 0);
   const finalPool = basePool + Number(bonus ?? 0) - Number(penalty ?? 0) + extraTotal;
   const fate = finalPool <= 0 ? " Fate Die" : "";
 
@@ -2133,6 +2176,7 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
   const manifestationEntries = Object.entries(CONFIG.PTG.manifestations ?? {});
   const skillEntries = Object.entries(CONFIG.PTG.skills ?? {});
   const difficulties = Object.entries(CONFIG.PTG.difficulties ?? {});
+  const conditionEffects = actor.conditionRollEffects?.({ mode: "manifestation", manifestation, skill, checkMode: "manifestation" }) ?? { modifiers: [], warnings: [] };
   const manifestationOption = ([key, label]) => `<option value="${escapeHTML(key)}" data-rank="${Number(actor.system.manifestations?.[key] ?? 0)}" ${key === manifestation ? "selected" : ""}>${escapeHTML(label)} (${Number(actor.system.manifestations?.[key] ?? 0)})</option>`;
   const skillOption = ([key, label]) => `<option value="${escapeHTML(key)}" data-rank="${Number(actor.system.skills?.[key] ?? 0)}" ${key === skill ? "selected" : ""}>${escapeHTML(label)} (${Number(actor.system.skills?.[key] ?? 0)})</option>`;
   const difficultyOptions = difficulties
@@ -2224,6 +2268,11 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
         <label>Ritual Cost / Requirement</label>
         <input type="text" name="ritualRequirement" value="" placeholder="Participants, time, Spark, or scene cost">
       </div>
+      <label class="ptg-checkbox">
+        <input type="checkbox" name="applyConditionModifiers" checked>
+        <span>Apply active Condition modifiers</span>
+      </label>
+      ${conditionSummaryHTML(conditionEffects)}
       <p class="ptg-sheet-note" data-pool-preview>${manifestationPoolPreview(actor, manifestation, skill, 0, 0)}</p>
     </div>
   `;
@@ -2257,6 +2306,7 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
           measure: form.elements.measure?.value ?? "detail",
           measureNotes: form.elements.measureNotes?.value?.trim() ?? "",
           boostChoice: form.elements.boostChoice?.value?.trim() ?? "",
+          applyConditionModifiers: Boolean(form.elements.applyConditionModifiers?.checked),
           modifierDetails: {
             "Pantheon Dice": pantheonDice,
             "Dominion Fit": dominionFit
@@ -2297,12 +2347,20 @@ function wireManifestationPoolPreview(element, actor) {
       Number(form.elements.penalty?.value ?? 0),
       {
         pantheonDice: Number(form.elements.pantheonDice?.value ?? 0),
-        dominionFit: Number(form.elements.dominionFit?.value ?? 0)
+        dominionFit: Number(form.elements.dominionFit?.value ?? 0),
+        conditionModifier: form.elements.applyConditionModifiers?.checked
+          ? conditionModifierTotal(actor.conditionRollEffects?.({
+            mode: "manifestation",
+            manifestation: form.elements.manifestation?.value,
+            skill: form.elements.skill?.value,
+            checkMode: "manifestation"
+          }))
+          : 0
       }
     );
   };
 
-  for (const name of ["manifestation", "skill", "bonus", "penalty", "pantheonDice", "dominionFit"]) {
+  for (const name of ["manifestation", "skill", "bonus", "penalty", "pantheonDice", "dominionFit", "applyConditionModifiers"]) {
     form.elements[name]?.addEventListener("change", update);
     form.elements[name]?.addEventListener("input", update);
   }
@@ -2313,7 +2371,7 @@ function wireManifestationPoolPreview(element, actor) {
 function manifestationPoolPreview(actor, manifestation, skill, bonus, penalty, extra = {}) {
   const manifestationRank = Number(actor.system.manifestations?.[manifestation] ?? 0);
   const skillRank = Number(actor.system.skills?.[skill] ?? 0);
-  const extraTotal = Number(extra.pantheonDice ?? 0) + Number(extra.dominionFit ?? 0);
+  const extraTotal = Number(extra.pantheonDice ?? 0) + Number(extra.dominionFit ?? 0) + Number(extra.conditionModifier ?? 0);
   const finalPool = manifestationRank + skillRank + Number(bonus ?? 0) - Number(penalty ?? 0) + extraTotal;
   const fate = finalPool <= 0 ? " Fate Die" : "";
 
