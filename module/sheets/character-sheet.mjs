@@ -1,5 +1,6 @@
 import { conditionItemFromSelection, loadPremadeConditions } from "../conditions/condition-workflow.mjs";
 import { getDragEventData, itemFromDropData } from "../util/drop-data.mjs";
+import { generateRandomGod } from "../util/random-god-generator.mjs";
 
 const SYSTEM_ID = "part-time-gods";
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -1109,6 +1110,10 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
             </button>
           `).join("")}
         </nav>
+        <div class="ptg-creator-toolbar">
+          <button type="button" data-random-god>Random God</button>
+          <span data-random-god-summary></span>
+        </div>
         <div class="ptg-creator-body">
         ${types.map((type, index) => {
           const current = identity[identityKeys[type]] || "";
@@ -1210,7 +1215,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       content,
       rejectClose: false,
       modal: true,
-      render: (event, dialog) => wireCharacterCreatorDialog(dialog.element ?? dialog),
+    render: (event, dialog) => wireCharacterCreatorDialog(dialog.element ?? dialog, { choices }),
       ok: {
         label: "Apply Choices",
         callback: (event, button) => ({
@@ -1757,13 +1762,98 @@ function wireArchetypeOptionSelector(element) {
   refresh();
 }
 
-function wireCharacterCreatorDialog(element) {
+function wireCharacterCreatorDialog(element, { choices = {} } = {}) {
   const root = element instanceof HTMLElement ? element.querySelector?.(".ptg-creator-dialog") ?? element : element?.querySelector?.(".ptg-creator-dialog");
   if (!root) return;
 
   wireOccupationCareerSelector(root);
   wireArchetypeOptionSelector(root);
+  wireRandomGodButton(root, choices);
   wireCreatorWizard(root);
+}
+
+function wireRandomGodButton(root, choices) {
+  const button = root.querySelector("[data-random-god]");
+  const summary = root.querySelector("[data-random-god-summary]");
+  if (!button) return;
+
+  button.addEventListener("click", () => {
+    const result = generateRandomGod();
+    setCreatorSelect(root, "occupation", choices.occupation, result.choices.occupation);
+    root.querySelector("[data-occupation-select]")?.dispatchEvent(new Event("change", { bubbles: true }));
+    setCareerSelect(root, result.choices.occupationCareer);
+
+    setCreatorSelect(root, "archetype", choices.archetype, result.choices.archetype);
+    root.querySelector("[data-archetype-select]")?.dispatchEvent(new Event("change", { bubbles: true }));
+    selectFirstVisible(root, "[data-archetype-option-select='attachment']");
+    selectFirstVisible(root, "[data-archetype-option-select='blessing']");
+    selectFirstVisible(root, "[data-archetype-option-select='curse']");
+
+    setCreatorSelect(root, "domain", choices.domain, result.choices.domain);
+    setCreatorSelect(root, "theology", choices.theology, result.choices.theology);
+
+    const bondNotes = root.querySelector("[name='attachments.bonds']");
+    if (bondNotes) {
+      bondNotes.value = appendLine(bondNotes.value, [
+        `Random Dominion: ${result.notes.dominion}`,
+        `Dominion Blessing: ${result.notes.dominionBlessing}`,
+        `Dominion Curse: ${result.notes.dominionCurse}`,
+        `Random Attachment: ${result.notes.attachmentKind} - ${result.notes.attachment}`
+      ].join("\n"));
+    }
+
+    if (summary) {
+      const manual = Object.values(result.choices).includes("GM Choice") || Object.values(result.notes).includes("GM Choice");
+      summary.textContent = manual ? "Randomized with GM Choice result; review before applying." : "Randomized; review before applying.";
+    }
+  });
+}
+
+function setCreatorSelect(root, name, options, resultName) {
+  const select = root.querySelector(`[name='${name}']`);
+  if (!select || !resultName || resultName === "GM Choice") return false;
+
+  const match = findCreatorChoice(options, resultName);
+  if (!match) return false;
+
+  select.value = match.uuid;
+  select.dispatchEvent(new Event("change", { bubbles: true }));
+  return true;
+}
+
+function setCareerSelect(root, resultName) {
+  const select = root.querySelector("[data-occupation-career]");
+  if (!select || !resultName || resultName === "GM Choice") return false;
+
+  const option = Array.from(select.options).find(candidate => !candidate.hidden && normalizeCreatorText(candidate.textContent).includes(normalizeCreatorText(resultName)));
+  if (!option) return false;
+
+  select.value = option.value;
+  select.dispatchEvent(new Event("change", { bubbles: true }));
+  return true;
+}
+
+function selectFirstVisible(root, selector) {
+  const select = root.querySelector(selector);
+  const option = Array.from(select?.options ?? []).find(candidate => candidate.value && !candidate.hidden);
+  if (select && option) select.value = option.value;
+}
+
+function findCreatorChoice(options = [], resultName = "") {
+  const normalized = normalizeCreatorText(resultName);
+  return options.find(option => {
+    const name = normalizeCreatorText(option.name);
+    return name === normalized || name === `the ${normalized}` || normalized === `the ${name}` || name.includes(normalized) || normalized.includes(name);
+  });
+}
+
+function normalizeCreatorText(value) {
+  return String(value ?? "")
+    .toLowerCase()
+    .replace(/^the\s+/, "")
+    .replace(/s$/, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
 function wireCreatorWizard(root) {
