@@ -33,6 +33,7 @@ import { getPremadeJournals, importRulesJournals } from "./module/data/premade-j
 import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
 import { openPTGCombatControls, registerPTGCombatHooks, rollPTGInitiative } from "./module/combat/ptg-combat.mjs";
 import { openMortalDivineBalanceTracker, registerMortalDivineTrackerSettings } from "./module/apps/mortal-divine-tracker.mjs";
+import { registerPTGMigrationSettings, runPTGMigrations } from "./module/migration/ptg-migrations.mjs";
 import { itemFromDropData } from "./module/util/drop-data.mjs";
 
 const { DocumentSheetConfig } = foundry.applications.apps;
@@ -121,6 +122,7 @@ Hooks.once("init", async () => {
     default: true
   });
   registerMortalDivineTrackerSettings();
+  registerPTGMigrationSettings();
 
   Handlebars.registerHelper("eq", (a, b) => a === b);
   Handlebars.registerHelper("gt", (a, b) => Number(a) > Number(b));
@@ -143,6 +145,9 @@ Hooks.once("ready", async () => {
   console.log("Part-Time Gods 2E | Ready");
 
   if (!game.user?.isGM) return;
+
+  await runPTGMigrations({ notify: true });
+
   if (!game.settings.get("part-time-gods", "autoPopulatePremadeCompendiums")) return;
 
   await populatePremadeCompendiums({ notify: true });
