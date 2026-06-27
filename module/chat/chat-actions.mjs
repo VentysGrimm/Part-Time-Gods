@@ -1,5 +1,6 @@
 import { openApplyConditionDialog } from "../conditions/condition-workflow.mjs";
 import { openApplyDamageDialog } from "../workflows/damage-workflow.mjs";
+import { adjustPantheonPool } from "../workflows/pantheon-pool-workflow.mjs";
 import { localize } from "../util/localization.mjs";
 
 export function registerPTGChatCardActions() {
@@ -58,6 +59,19 @@ async function handleChatAction(button, message) {
       applyArmor: button.dataset.applyArmor !== "false",
       damageTag: button.dataset.damageTag ?? "",
       reason: button.dataset.reason || card.dataset.reason || localize("PTG.Chat.ChatCardAction")
+    });
+  }
+
+  if (action === "pantheon-pool-adjust") {
+    const pantheon = await documentFromUuid(card.dataset.pantheonUuid || card.dataset.actorUuid);
+    return adjustPantheonPool(pantheon, {
+      mode: button.dataset.mode ?? "add",
+      amount: Number(button.dataset.amount ?? 1),
+      reason: button.dataset.reason || card.dataset.reason || "Pantheon Pool chat adjustment",
+      notes: "Quick chat-card adjustment.",
+      participantActor: preferredTargetActor(),
+      permissionConfirmed: button.dataset.mode !== "spend",
+      post: true
     });
   }
 

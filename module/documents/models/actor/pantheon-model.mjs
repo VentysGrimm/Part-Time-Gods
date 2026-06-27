@@ -5,7 +5,7 @@ export class PTGPantheonData extends foundry.abstract.TypeDataModel {
     return {
       pantheonPool: new fields.SchemaField({
         value: new fields.NumberField({ integer: true, min: 0, initial: 0 }),
-        max: new fields.NumberField({ integer: true, min: 0, initial: 0 })
+        max: new fields.NumberField({ integer: true, min: 0, initial: 10 })
       }),
       territory: new fields.StringField({ initial: "" }),
       territorySceneUuid: new fields.StringField({ initial: "" }),

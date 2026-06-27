@@ -1,4 +1,5 @@
 import { getDragEventData } from "../util/drop-data.mjs";
+import { openPantheonPoolDialog } from "../workflows/pantheon-pool-workflow.mjs";
 
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -49,6 +50,8 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     for (const button of this.element.querySelectorAll("[data-member-action]")) {
       button.addEventListener("click", event => this.#onMemberAction(event.currentTarget));
     }
+
+    this.element.querySelector("[data-pantheon-pool-workflow]")?.addEventListener("click", () => openPantheonPoolDialog({ pantheon: this.actor }));
   }
 
   async _onDrop(event) {

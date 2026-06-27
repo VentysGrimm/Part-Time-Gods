@@ -1,5 +1,6 @@
 import { conditionItemFromSelection, loadPremadeConditions } from "../conditions/condition-workflow.mjs";
 import { getDragEventData, itemFromDropData } from "../util/drop-data.mjs";
+import { openPantheonPoolDialog, pantheonPoolMax, pantheonPoolOptions, spendPantheonDiceForActor } from "../workflows/pantheon-pool-workflow.mjs";
 import { generateRandomGod } from "../util/random-god-generator.mjs";
 
 const SYSTEM_ID = "part-time-gods";
@@ -114,6 +115,9 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       button.addEventListener("click", event => this.#onResourceStep(event.currentTarget));
     }
     this.element.querySelector("[data-mortality-workflow]")?.addEventListener("click", () => this.#openMortalityWorkflow());
+    for (const button of this.element.querySelectorAll("[data-pantheon-pool-workflow]")) {
+      button.addEventListener("click", event => this.#openPantheonPoolWorkflow(event.currentTarget));
+    }
 
     this.element.querySelector("[data-character-creator]")?.addEventListener("click", () => this.#openCharacterCreator());
     this.#activateTab(this.#activeTab, { restoreScroll: true });
@@ -186,7 +190,12 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     if (!selection) return;
 
     if (selection.pantheonDice > 0) {
-      const spent = await this.actor.spendResource("pantheon", selection.pantheonDice);
+      const spent = await spendPantheonDiceForActor(this.actor, selection.pantheonDice, {
+        pantheonUuid: selection.pantheonUuid,
+        reason: "Skill Combo Check",
+        notes: skillComboLabel(selection.primary, selection.secondary),
+        permissionConfirmed: true
+      });
       if (!spent) return;
     }
 
@@ -215,7 +224,12 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     if (!selection) return;
 
     if (selection.pantheonDice > 0) {
-      const spent = await this.actor.spendResource("pantheon", selection.pantheonDice);
+      const spent = await spendPantheonDiceForActor(this.actor, selection.pantheonDice, {
+        pantheonUuid: selection.pantheonUuid,
+        reason: "Manifestation Check",
+        notes: `${manifestationLabel(selection.manifestation)} + ${skillLabel(selection.skill)}`,
+        permissionConfirmed: true
+      });
       if (!spent) return;
     }
 
@@ -282,7 +296,12 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
 
     if (selection.pantheonDice > 0) {
-      const spent = await this.actor.spendResource("pantheon", selection.pantheonDice);
+      const spent = await spendPantheonDiceForActor(this.actor, selection.pantheonDice, {
+        pantheonUuid: selection.pantheonUuid,
+        reason: `${label} Ritual`,
+        notes: skillComboLabel(selection.primary, selection.secondary),
+        permissionConfirmed: true
+      });
       if (!spent) return;
     }
 
@@ -1001,8 +1020,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         uuid: actor.uuid,
         name: actor.name,
         territory: actor.system.territory ?? "",
-        pool: `${Number(actor.system.pantheonPool?.value ?? 0)} / ${Number(actor.system.pantheonPool?.max ?? 0)}`
+        pool: `${Number(actor.system.pantheonPool?.value ?? 0)} / ${pantheonPoolMax(actor)}`
       }));
+  }
+
+  async #openPantheonPoolWorkflow(button) {
+    const pantheon = button.dataset.pantheonUuid ? await fromUuid(button.dataset.pantheonUuid) : null;
+    return openPantheonPoolDialog({ pantheon, actingActor: this.actor });
   }
 
   #prepareSkillColumns() {
@@ -2043,6 +2067,7 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
         <label>Pantheon Dice</label>
         <input type="number" name="pantheonDice" value="0" min="0">
       </div>
+      ${pantheonPoolFieldHTML(actor)}
       <div class="form-group">
         <label>Specialty</label>
         <input type="text" name="specialtyName" value="" placeholder="Specialty name">
@@ -2107,6 +2132,7 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
           bonus: Number(form.elements.bonus?.value ?? 0),
           penalty: Number(form.elements.penalty?.value ?? 0),
           pantheonDice,
+          pantheonUuid: form.elements.pantheonUuid?.value ?? "",
           checkMode,
           extended: checkMode === "extended" && extendedTarget > 0 ? {
             target: extendedTarget,
@@ -2170,6 +2196,7 @@ async function selectRitualRollOptions({ actor, kind, primary, secondary, diffic
         <label>Pantheon Dice</label>
         <input type="number" name="pantheonDice" value="0" min="0">
       </div>
+      ${pantheonPoolFieldHTML(actor)}
       <div class="form-group">
         <label>Boost Choice</label>
         <input type="text" name="boostChoice" value="" placeholder="Optional planned Boost">
@@ -2212,6 +2239,7 @@ async function selectRitualRollOptions({ actor, kind, primary, secondary, diffic
           bonus,
           penalty,
           pantheonDice,
+          pantheonUuid: form.elements.pantheonUuid?.value ?? "",
           boostChoice: form.elements.boostChoice?.value?.trim() ?? "",
           requirement: form.elements.requirement?.value?.trim() ?? "",
           notes: form.elements.notes?.value?.trim() ?? "",
@@ -2302,6 +2330,27 @@ function wireSkillPoolPreview(element, actor) {
   }
 
   update();
+}
+
+function pantheonPoolFieldHTML(actor) {
+  const options = pantheonPoolOptions(actor);
+  const selectedUuid = options.find(option => option.linked)?.uuid ?? options[0]?.uuid ?? "";
+  const hasLinked = options.some(option => option.linked);
+
+  if (!options.length) {
+    return `<p class="ptg-sheet-note">No shared Pantheon Pool is linked. Pantheon Dice spends will use this character's local Pantheon Dice track.</p>`;
+  }
+
+  return `
+    <div class="form-group">
+      <label>Shared Pantheon Pool</label>
+      <select name="pantheonUuid">
+        ${hasLinked ? "" : `<option value="" selected>Use character-local Pantheon Dice</option>`}
+        ${options.map(option => `<option value="${escapeHTML(option.uuid)}" ${hasLinked && option.uuid === selectedUuid ? "selected" : ""}>${escapeHTML(option.label)}${option.linked ? " - linked" : ""}</option>`).join("")}
+      </select>
+    </div>
+    <p class="ptg-sheet-note">Pantheon Dice are removed from the selected shared pool before the roll. Confirm group permission before spending shared dice.</p>
+  `;
 }
 
 function conditionSummaryHTML(effects = {}) {
@@ -2438,6 +2487,7 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
         <label>Pantheon Dice</label>
         <input type="number" name="pantheonDice" value="0" min="0">
       </div>
+      ${pantheonPoolFieldHTML(actor)}
       <div class="form-group">
         <label>Fragment Spend</label>
         <input type="number" name="fragments" value="0" min="0">
@@ -2559,6 +2609,7 @@ async function selectManifestationRollOptions({ actor, manifestation, skill, dif
           bonus: Number(form.elements.bonus?.value ?? 0),
           penalty: Number(form.elements.penalty?.value ?? 0),
           pantheonDice,
+          pantheonUuid: form.elements.pantheonUuid?.value ?? "",
           fragments,
           dominionFit,
           dominionScopePenalty,

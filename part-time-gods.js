@@ -35,6 +35,7 @@ import { getPremadeJournals, importRulesJournals } from "./module/data/premade-j
 import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
 import { openPTGCombatControls, registerPTGCombatHooks, rollPTGInitiative } from "./module/combat/ptg-combat.mjs";
 import { openMortalDivineBalanceTracker, registerMortalDivineTrackerSettings } from "./module/apps/mortal-divine-tracker.mjs";
+import { openPantheonPoolDialog } from "./module/workflows/pantheon-pool-workflow.mjs";
 import { registerPTGMigrationSettings, runPTGMigrations } from "./module/migration/ptg-migrations.mjs";
 import { migrateWorldActorsToCanonicalEmbeddedItems } from "./module/migration/canonical-embedded-items.mjs";
 import { registerPTGChatCardActions } from "./module/chat/chat-actions.mjs";
@@ -63,6 +64,7 @@ Hooks.once("init", async () => {
     openTerritoryControls,
     openPTGCombatControls,
     openMortalDivineBalanceTracker,
+    openPantheonPoolDialog,
     runPTGMigrations,
     migrateWorldActorsToCanonicalEmbeddedItems,
     rollPTGInitiative,
@@ -233,6 +235,11 @@ Hooks.on("chatMessage", (chatLog, message) => {
 
   if (message === "/ptg-balance") {
     openMortalDivineBalanceTracker();
+    return false;
+  }
+
+  if (message === "/ptg-pantheon-pool") {
+    openPantheonPoolDialog();
     return false;
   }
 

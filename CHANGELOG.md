@@ -9,4 +9,5 @@
 - Added Manifestation Measures support for Fragment spend, Dominion scope penalties, and declared damage/range/target/duration intent.
 - Added stable compendium slugs/source IDs and metadata-only rules-journal summaries.
 - Expanded generated Item rules explanations, completed the source-listed gear quality reference set, and exposed shared rules explanations on Item sheets.
+- Added a shared Pantheon Pool add/spend workflow with chat cards, sheet buttons, a slash command, and roll-dialog spending from linked Pantheon actors.
 - Added release validation, install, changelog, and attribution notes.
