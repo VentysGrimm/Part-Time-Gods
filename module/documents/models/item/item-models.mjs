@@ -21,6 +21,15 @@ class PTGBaseItemData extends foundry.abstract.TypeDataModel {
     return new fields.BooleanField({ initial });
   }
 
+  static identityFields(sourceType = "") {
+    return {
+      slug: this.textField(),
+      sourceId: this.textField(),
+      schemaVersion: new fields.NumberField({ integer: true, min: 0, initial: 1 }),
+      sourceType: new fields.StringField({ initial: sourceType })
+    };
+  }
+
   static rulesField(sourceType = "") {
     return new fields.SchemaField({
       summary: this.textField(),
@@ -68,6 +77,7 @@ class PTGBaseItemData extends foundry.abstract.TypeDataModel {
 
   static rulesAutomationFields(sourceType = "", kind = "narrative") {
     return {
+      ...this.identityFields(sourceType),
       rules: this.rulesField(sourceType),
       usage: this.usageField(kind),
       automation: this.automationField()
