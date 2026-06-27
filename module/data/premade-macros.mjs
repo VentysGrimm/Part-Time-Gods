@@ -58,10 +58,10 @@ await api.openPTGCombatControls();
 `
   }),
   toolMacro({
-    name: "PTG: Mortal-Divine Balance",
-    slug: "mortal-divine-balance",
+    name: "PTG: Mortal-Divine Tracker",
+    slug: "mortal-divine-tracker",
     img: "icons/svg/scales.svg",
-    summary: "Open the Mortal-Divine Balance tracker.",
+    summary: "Open the Mortal-Divine tracker.",
     command: `
 const api = game.partTimeGods;
 if (!api?.openMortalDivineBalanceTracker) {
