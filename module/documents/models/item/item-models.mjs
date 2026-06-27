@@ -340,6 +340,14 @@ export class PTGConditionData extends PTGBaseItemData {
       ...this.rulesAutomationFields("condition", "passive"),
       category: this.textField(),
       severity: this.numberField(1),
+      severityMode: new fields.StringField({ initial: "level" }),
+      appliesTo: this.textField(),
+      duration: this.textField(),
+      recovery: this.textField(),
+      removal: this.textField(),
+      sourcePage: new fields.NumberField({ integer: true, min: 0, nullable: true, initial: null }),
+      sourceSection: this.textField(),
+      rollModifier: new fields.ObjectField({ initial: null, nullable: true }),
       effect: this.htmlField(),
       notes: this.htmlField()
     };

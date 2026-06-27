@@ -727,8 +727,44 @@
         <input name="system.severity" type="number" value="{{system.severity}}" min="0">
       </label>
       <label>
+        <span>Applies To</span>
+        <select name="system.appliesTo">
+          <option value=""></option>
+          <option value="health" {{#if (eq system.appliesTo "health")}}selected{{/if}}>Health</option>
+          <option value="psyche" {{#if (eq system.appliesTo "psyche")}}selected{{/if}}>Psyche</option>
+          <option value="both" {{#if (eq system.appliesTo "both")}}selected{{/if}}>Both</option>
+          <option value="fictional" {{#if (eq system.appliesTo "fictional")}}selected{{/if}}>Fictional State</option>
+        </select>
+      </label>
+      <label>
+        <span>Duration</span>
+        <input name="system.duration" type="text" value="{{system.duration}}">
+      </label>
+      <label>
+        <span>Recovery</span>
+        <input name="system.recovery" type="text" value="{{system.recovery}}">
+      </label>
+      <label>
         <span>Usage</span>
         <input name="system.usage.trigger" type="text" value="{{system.usage.trigger}}">
+      </label>
+      <label>
+        <span>Source Page</span>
+        <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
+      </label>
+    </section>
+    <section class="ptg-item-fields two">
+      <label>
+        <span>Removal Hint</span>
+        <input name="system.removal" type="text" value="{{system.removal}}">
+      </label>
+      <label>
+        <span>Source Section</span>
+        <input name="system.sourceSection" type="text" value="{{system.sourceSection}}">
+      </label>
+      <label class="span-2">
+        <span>Roll Modifier Metadata</span>
+        <textarea readonly>{{json system.rollModifier}}</textarea>
       </label>
     </section>
     <section class="ptg-editor-section">

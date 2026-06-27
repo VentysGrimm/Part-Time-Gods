@@ -138,6 +138,31 @@ const QUALITY_DEFINITIONS = {
   }
 };
 
+const CONDITION_RULE_METADATA = {
+  Bleeding: conditionRule("physical", "health", "scene-or-treated", "Stop the bleeding with care, healing, or enough rest.", "Ongoing harm; use severity as the bleeding level.", { target: "health", mode: "ongoing-damage", amount: "severity" }),
+  "Burned/Frozen": conditionRule("physical", "health", "scene-or-treated", "Recover with appropriate treatment, shelter, healing, or rest.", "Temperature harm; severity indicates how serious the exposure is.", { target: "physical-rolls", mode: "situational-penalty", amount: "severity" }),
+  Deprived: conditionRule("physical", "health", "until-need-met", "Meet the missing need, rest, food, safety, care, or other fiction-specific requirement.", "Lack or deprivation; severity measures pressure from the unmet need.", { target: "physical-rolls", mode: "situational-penalty", amount: "severity" }),
+  Impaired: conditionRule("physical", "fictional", "until-impairment-fixed", "Restore the impaired sense, limb, tool, or capability through treatment or fiction.", "Tracks a compromised capability; define the specific impairment in notes.", { target: "affected-capability", mode: "situational-penalty", amount: "severity" }),
+  Injured: conditionRule("physical", "health", "until-healed", "Heal naturally, receive care, or use a suitable power or item.", "Lasting bodily injury; severity is the injury level.", { target: "physical-rolls", mode: "situational-penalty", amount: "severity" }),
+  Sickened: conditionRule("physical", "health", "until-cured", "Remove the illness, poison, or cause, then recover with care or rest.", "Illness or poison; severity measures how hard it is to act through it.", { target: "physical-rolls", mode: "situational-penalty", amount: "severity" }),
+  Unconscious: conditionRule("physical", "health", "until-revived", "Wake through recovery, aid, healing, or when the fictional cause ends.", "Unable to act while present; severity can record how hard revival is.", { target: "actions", mode: "blocks-action", amount: "all" }),
+
+  Afraid: conditionRule("mental", "psyche", "scene-or-resolved", "Face, escape, or resolve the fear; GM may reduce after safety or reassurance.", "Fear pressure; severity indicates how strongly choices are constrained.", { target: "fear-related-rolls", mode: "situational-penalty", amount: "severity" }),
+  Confused: conditionRule("mental", "psyche", "scene-or-clarified", "Remove confusion through explanation, orientation, rest, or suitable magic.", "Muddled perception or uncertainty; severity affects clear action.", { target: "clarity-rolls", mode: "situational-penalty", amount: "severity" }),
+  Convinced: conditionRule("mental", "psyche", "until-belief-breaks", "Break the persuasion with proof, contradiction, recovery, or a successful resistance.", "Tracks persuasion or belief; severity is how strongly it has taken hold.", { target: "opposed-social-rolls", mode: "situational-penalty", amount: "severity" }),
+  Dazed: conditionRule("mental", "psyche", "scene-or-recovered", "Recover after a moment, aid, rest, or the stunning source ending.", "Shock or disorientation; severity affects response and judgment.", { target: "initiative-or-reaction", mode: "situational-penalty", amount: "severity" }),
+  Embarrassed: conditionRule("mental", "psyche", "scene-or-social-repair", "Recover by leaving the pressure, receiving reassurance, or repairing the social harm.", "Shame or social pressure; severity affects confident action.", { target: "social-rolls", mode: "situational-penalty", amount: "severity" }),
+  Hopeless: conditionRule("mental", "psyche", "scene-or-renewed-hope", "Restore hope through support, victory, rest, or a meaningful change in stakes.", "Despair; severity affects sustained effort.", { target: "persistence-rolls", mode: "situational-penalty", amount: "severity" }),
+  Overwhelmed: conditionRule("mental", "psyche", "scene-or-pressure-reduced", "Reduce stimulus, receive help, rest, or remove the source of pressure.", "Too much pressure or stimulus; severity affects clean action.", { target: "focus-rolls", mode: "situational-penalty", amount: "severity" }),
+
+  Broken: conditionRule("crossover", "both", "until-repaired", "Recover through significant care, healing, story resolution, or the relevant recovery workflow.", "Severe compromise; define whether the break is physical, mental, social, or divine.", { target: "broad-actions", mode: "situational-penalty", amount: "severity" }),
+  Drunk: conditionRule("crossover", "both", "until-sober", "Recover with time, care, magic, or removing the intoxication source.", "Intoxication; severity affects control, judgment, and action.", { target: "coordination-or-judgment", mode: "situational-penalty", amount: "severity" }),
+  "Ignored Limits": conditionRule("crossover", "both", "until-consequence-paid", "Resolve the fallout from pushing past a limit; GM decides recovery from the fiction.", "Tracks overextension after ignoring safe limits.", { target: "overextended-actions", mode: "situational-penalty", amount: "severity" }),
+  "On the Altar": conditionRule("crossover", "fictional", "ritual-state", "Ends when the ritual exposure, sacrifice, or vulnerability is interrupted or resolved.", "Ritual vulnerability; severity measures exposure or danger.", { target: "ritual-defense", mode: "fictional-vulnerability", amount: "severity" }),
+  Pain: conditionRule("crossover", "both", "scene-or-treated", "Treat the pain, heal the injury, rest, or remove the source.", "Distracting pain; severity affects focus and physical control.", { target: "physical-or-focus-rolls", mode: "situational-penalty", amount: "severity" }),
+  Scarred: conditionRule("crossover", "both", "long-term", "Usually requires downtime, significant healing, or story resolution.", "Lingering mark, wound, or trauma; severity records lasting weight.", { target: "scar-related-rolls", mode: "fictional-or-situational", amount: "severity" })
+};
+
 export const PTG_PREMADE_ITEMS = [
   truth("Aquatic", 117, "is one with the sea.", "Breathe underwater and gain a bonus while acting in a body of water."),
   truth("Armored", 117, "is tougher than they appear.", "Choose a damage source. Gain scaling armor against that source."),
@@ -461,20 +486,52 @@ function vassal(name, level, page, benefit) {
 }
 
 function condition(name, category, severity, page, effect) {
+  const metadata = CONDITION_RULE_METADATA[name] ?? conditionRule(category, "fictional", "scene-or-fiction", "Recover when the GM determines the Condition's fictional cause has ended.", "Custom or uncatalogued Condition metadata.");
+  const summary = `${effect} ${metadata.persistence}`;
+
   return baseItem("condition", name, page, {
     category,
     severity,
+    severityMode: "level",
+    appliesTo: metadata.appliesTo,
+    duration: metadata.duration,
+    recovery: metadata.recovery,
+    removal: metadata.removal,
+    sourcePage: page,
+    sourceSection: metadata.sourceSection,
+    rollModifier: metadata.rollModifier,
     effect: paragraph(effect),
-    notes: source(page),
-    ...itemRules("condition", name, page, effect, {
+    notes: `${source(page)}<p><strong>Recovery:</strong> ${escapeHTML(metadata.recovery)}</p><p><strong>Automation:</strong> ${escapeHTML(metadata.removal)}</p>`,
+    ...itemRules("condition", name, page, summary, {
       kind: "passive",
       trigger: "applied",
       target: "self",
       action: "track-condition",
       enabled: true,
-      condition: { name, category, severity }
+      condition: {
+        name,
+        category,
+        severity,
+        appliesTo: metadata.appliesTo,
+        duration: metadata.duration,
+        recovery: metadata.recovery,
+        rollModifier: metadata.rollModifier
+      }
     })
   });
+}
+
+function conditionRule(category, appliesTo, duration, recovery, removal, rollModifier = null) {
+  return {
+    category,
+    appliesTo,
+    duration,
+    recovery,
+    removal,
+    persistence: `It applies to ${appliesTo} and persists as ${duration}.`,
+    sourceSection: "Conditions",
+    rollModifier
+  };
 }
 
 function armor(name, rating, cost, quality, page) {
