@@ -2,7 +2,7 @@
   "id": "part-time-gods",
   "title": "Part-Time Gods 2E",
   "description": "Part-Time Gods Second Edition for Foundry VTT v14.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "url": "https://github.com/VentysGrimm/Part-Time-Gods",
   "manifest": "https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/main/system.json",
   "download": "https://github.com/VentysGrimm/Part-Time-Gods/archive/refs/heads/main.zip",
