@@ -1256,6 +1256,75 @@
   text-align: center;
 }
 
+.ptg-resource-track {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ptg-resource-track header {
+  display: grid;
+  grid-template-columns: minmax(76px, 1fr) auto auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.ptg-resource-track header span,
+.ptg-resource-track header strong {
+  font-weight: 800;
+}
+
+.ptg-resource-track header em {
+  color: #4e3971;
+  font-size: 11px;
+  font-style: normal;
+  text-align: right;
+}
+
+.ptg-resource-pips {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 28px;
+  gap: 6px;
+  align-items: center;
+}
+
+.ptg-resource-pips > button {
+  min-height: 26px;
+  padding: 0;
+}
+
+.ptg-resource-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ptg-resource-box {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+  border: 2px solid #4e3971;
+  background: #f8f4fb;
+}
+
+.ptg-resource-box.filled {
+  box-shadow: inset 0 0 0 3px #f8f4fb;
+}
+
+.ptg-resource-track.health .ptg-resource-box.filled {
+  background: #9d3f45;
+}
+
+.ptg-resource-track.psyche .ptg-resource-box.filled {
+  background: #4e6f9d;
+}
+
+.ptg-resource-track.fragments .ptg-resource-box.filled {
+  background: #7b5aa6;
+}
+
 .ptg-track button,
 .ptg-resource-work {
   min-height: 28px;

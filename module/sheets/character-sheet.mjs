@@ -49,6 +49,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.inventorySections = this.#prepareInventorySections(context.inventory);
     context.creationSteps = this.#prepareCreationSteps(context.inventory);
     context.choiceDetails = this.actor.getFlag("part-time-gods", "choiceDetails") ?? {};
+    context.resourceTracks = this.#prepareResourceTracks();
     context.gearSummary = this.#prepareGearSummary(context.inventory.gear);
     context.pantheonMembership = this.#preparePantheonMembership();
     context.xpPurchases = xpPurchaseHistoryWithLegacy(context.system.resources);
@@ -91,6 +92,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     this.element.querySelector("[data-spark-advancement]")?.addEventListener("click", () => this.#openSparkAdvancement());
     for (const button of this.element.querySelectorAll("[data-resource-workflow]")) {
       button.addEventListener("click", event => this.#openResourceWorkflow(event.currentTarget.dataset.resourceWorkflow));
+    }
+    for (const button of this.element.querySelectorAll("[data-resource-box]")) {
+      button.addEventListener("click", event => this.#onResourceBox(event));
+      button.addEventListener("contextmenu", event => this.#onResourceBox(event));
+    }
+    for (const button of this.element.querySelectorAll("[data-resource-step]")) {
+      button.addEventListener("click", event => this.#onResourceStep(event.currentTarget));
     }
     this.element.querySelector("[data-mortality-workflow]")?.addEventListener("click", () => this.#openMortalityWorkflow());
 
@@ -827,6 +835,43 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     ];
   }
 
+  #prepareResourceTracks() {
+    const resources = this.actor.system.resources ?? {};
+    return [
+      resourceTrack("health", "Health", resources.health, "5 + Fortitude + Spark"),
+      resourceTrack("psyche", "Psyche", resources.psyche, "5 + Discipline + Spark"),
+      resourceTrack("fragments", "Fragments", resources.fragments, "Spark x3")
+    ];
+  }
+
+  async #onResourceBox(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const key = button.dataset.resourceBox;
+    const value = Number(button.dataset.resourceValue ?? 0);
+    const current = Number(foundry.utils.getProperty(this.actor, `system.resources.${key}.value`) ?? 0);
+    const next = event.type === "contextmenu" || event.shiftKey || event.ctrlKey || event.metaKey
+      ? Math.max(0, value - 1)
+      : value;
+
+    if (next === current) return;
+    await this.#updateResourceTrack(key, next);
+  }
+
+  async #onResourceStep(button) {
+    const key = button.dataset.resourceStep;
+    const delta = Number(button.dataset.resourceDelta ?? 0);
+    const current = Number(foundry.utils.getProperty(this.actor, `system.resources.${key}.value`) ?? 0);
+    await this.#updateResourceTrack(key, current + delta);
+  }
+
+  async #updateResourceTrack(key, value) {
+    const resource = foundry.utils.getProperty(this.actor, `system.resources.${key}`) ?? {};
+    const max = Math.max(0, Number(resource.max ?? 0));
+    const next = Math.max(0, Math.min(max, Number(value) || 0));
+    await this.actor.update({ [`system.resources.${key}.value`]: next });
+  }
+
   #prepareCreationSteps(inventory) {
     const identity = this.actor.system.identity ?? {};
     const resources = this.actor.system.resources ?? {};
@@ -1268,6 +1313,27 @@ function itemDetail(label, value) {
   return {
     label,
     html: text.includes("<") ? text : `<p>${escapeHTML(text)}</p>`
+  };
+}
+
+function resourceTrack(key, label, resource, formula) {
+  const max = Math.max(0, Number(resource?.max ?? 0));
+  const value = Math.max(0, Math.min(max, Number(resource?.value ?? 0)));
+
+  return {
+    key,
+    label,
+    value,
+    max,
+    formula,
+    boxes: Array.from({ length: max }, (_, index) => {
+      const count = index + 1;
+      return {
+        value: count,
+        filled: count <= value,
+        label: `${label} ${count} of ${max}`
+      };
+    })
   };
 }
 

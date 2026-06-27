@@ -107,18 +107,31 @@
       </section>
 
       <section class="ptg-paper-panel ptg-resource-panel">
-        <label class="ptg-track">
-          <span>Health</span>
-          <input name="system.resources.health.value" type="number" value="{{system.resources.health.value}}" min="0">
-          <strong>Max {{system.resources.health.max}}</strong>
-          <em>5 + Fortitude</em>
-        </label>
-        <label class="ptg-track">
-          <span>Psyche</span>
-          <input name="system.resources.psyche.value" type="number" value="{{system.resources.psyche.value}}" min="0">
-          <strong>Max {{system.resources.psyche.max}}</strong>
-          <em>5 + Discipline</em>
-        </label>
+        {{#each resourceTracks as |track|}}
+          <div class="ptg-resource-track {{track.key}}">
+            <header>
+              <span>{{track.label}}</span>
+              <strong>{{track.value}} / {{track.max}}</strong>
+              <em>{{track.formula}}</em>
+            </header>
+            <div class="ptg-resource-pips" role="group" aria-label="{{track.label}} {{track.value}} of {{track.max}}">
+              <button type="button" data-resource-step="{{track.key}}" data-resource-delta="-1" aria-label="Decrease {{track.label}}">-</button>
+              <div class="ptg-resource-boxes">
+                {{#each track.boxes as |box|}}
+                  <button
+                    type="button"
+                    class="ptg-resource-box{{#if box.filled}} filled{{/if}}"
+                    data-resource-box="{{../track.key}}"
+                    data-resource-value="{{box.value}}"
+                    aria-label="{{box.label}}"
+                    title="{{box.label}}"
+                  ></button>
+                {{/each}}
+              </div>
+              <button type="button" data-resource-step="{{track.key}}" data-resource-delta="1" aria-label="Increase {{track.label}}">+</button>
+            </div>
+          </div>
+        {{/each}}
         <label class="ptg-track">
           <span>Free Time</span>
           <input name="system.resources.freeTime" type="number" value="{{system.resources.freeTime}}" min="0">
@@ -132,12 +145,6 @@
           <button type="button" data-resource-workflow="wealth">Manage</button>
         </label>
         <button class="ptg-resource-work" type="button" data-resource-workflow="work">Go to Work</button>
-        <label class="ptg-track">
-          <span>Fragments</span>
-          <input name="system.resources.fragments.value" type="number" value="{{system.resources.fragments.value}}" min="0">
-          <strong>Max {{system.resources.fragments.max}}</strong>
-          <em>Spark x3</em>
-        </label>
         <label>
           <span>Legendary Acts</span>
           <textarea name="system.resources.legendaryActs">{{system.resources.legendaryActs}}</textarea>
