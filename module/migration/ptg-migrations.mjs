@@ -59,7 +59,7 @@ export async function runPTGMigrations({ notify = false } = {}) {
   await game.settings.set(SYSTEM_ID, "schemaVersion", PTG_SYSTEM_SCHEMA_VERSION);
 
   if (notify) {
-    ui.notifications.info(`Part-Time Gods migrations complete: schema ${summary.from} → ${summary.to}.`);
+    ui.notifications.info(`Part-Time Gods migrations complete: schema ${summary.from} -> ${summary.to}.`);
     await postMigrationSummary(summary);
   }
 }
@@ -114,7 +114,7 @@ async function postMigrationSummary(summary) {
     content: `
       <div class="ptg-chat-card">
         <h3>Part-Time Gods Migration</h3>
-        <div><strong>Schema:</strong> ${summary.from} → ${summary.to}</div>
+        <div><strong>Schema:</strong> ${summary.from} -> ${summary.to}</div>
         <div><strong>Characters scanned:</strong> ${summary.actorsScanned}</div>
         <div><strong>Characters updated:</strong> ${summary.actorsUpdated}</div>
         <div><strong>Legacy attachment fields preserved:</strong> ${summary.legacyAttachmentFieldsPreserved}</div>
