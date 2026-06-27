@@ -86,6 +86,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     for (const button of this.element.querySelectorAll("[data-item-action]")) {
       button.addEventListener("click", event => this.#onItemAction(event.currentTarget));
     }
+    for (const button of this.element.querySelectorAll("[data-item-create]")) {
+      button.addEventListener("click", event => this.#createOwnedItem(event.currentTarget.dataset.itemCreate));
+    }
+    for (const row of this.element.querySelectorAll("[data-item-id]")) {
+      row.setAttribute("draggable", "true");
+      row.addEventListener("dragstart", event => this.#onItemDragStart(event));
+    }
 
     for (const button of this.element.querySelectorAll("[data-ritual-action]")) {
       button.addEventListener("click", event => this.#openRitualDialog(event.currentTarget.dataset.ritualAction));
@@ -114,8 +121,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   async _onDrop(event) {
     const data = getDragEventData(event);
     const item = await itemFromDropData(data);
+    const sectionType = event.target.closest("[data-item-drop-type]")?.dataset.itemDropType ?? "";
 
     if (!item) return false;
+    if (sectionType && item.type !== sectionType) {
+      ui.notifications.warn(`Drop a ${itemTypeLabel(sectionType)} item in this section.`);
+      return false;
+    }
 
     if (item.parent?.uuid === this.actor.uuid) return false;
 
@@ -130,6 +142,14 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
 
     return false;
+  }
+
+  #onItemDragStart(event) {
+    const item = this.actor.items.get(event.currentTarget.dataset.itemId);
+    if (!item) return;
+
+    event.dataTransfer.setData("text/plain", JSON.stringify(item.toDragData()));
+    event.dataTransfer.effectAllowed = "copyMove";
   }
 
   #activateTab(tabName, { restoreScroll = true } = {}) {
@@ -1045,6 +1065,22 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       const delta = action === "strain-plus" ? 1 : -1;
       await this.actor.adjustAttachmentStrain(item, delta, "Attachment Strain Changed");
     }
+  }
+
+  async #createOwnedItem(type) {
+    if (!type || (!game.user?.isGM && !this.actor.isOwner)) {
+      ui.notifications.warn("You do not have permission to create embedded Items on this actor.");
+      return null;
+    }
+
+    const [item] = await this.actor.createEmbeddedDocuments("Item", [{
+      name: `New ${itemTypeLabel(type)}`,
+      type,
+      img: defaultItemImage(type)
+    }]);
+
+    item.sheet.render({ force: true });
+    return item;
   }
 
   async #openCharacterCreator() {
@@ -2128,6 +2164,18 @@ function conditionModifierTotal(effects = {}) {
 function signedNumber(value) {
   const number = Number(value ?? 0);
   return `${number >= 0 ? "+" : ""}${number}`;
+}
+
+function itemTypeLabel(type) {
+  return game.i18n.localize(`TYPES.Item.${type}`) || labelCase(type);
+}
+
+function defaultItemImage(type) {
+  return {
+    relic: "icons/commodities/treasure/token-gold-gem-purple.webp",
+    truth: "icons/sundries/documents/document-symbol-circle-gold.webp",
+    bond: "icons/svg/linked.svg"
+  }[type] ?? "icons/svg/item-bag.svg";
 }
 
 function skillPoolPreview(actor, primary, secondary, bonus, penalty, extra = {}) {

@@ -344,8 +344,11 @@
       </div>
     </section>
 
-    <section class="ptg-paper-panel">
-      <h2>Bonds</h2>
+    <section class="ptg-paper-panel" data-item-drop-type="bond">
+      <div class="ptg-panel-heading">
+        <h2>Bonds</h2>
+        {{#if editable}}<button type="button" data-item-create="bond">Add</button>{{/if}}
+      </div>
       <textarea name="system.attachments.bonds">{{system.attachments.bonds}}</textarea>
       <table class="ptg-paper-table">
         <thead>
@@ -359,7 +362,14 @@
               <td>{{item.system.location}}</td>
               <td>{{item.system.level}}</td>
               <td>{{item.system.strain.value}} / {{item.system.strain.max}}</td>
-              <td><button type="button" data-item-action="edit">Edit</button></td>
+              <td>
+                {{#if @root.editable}}
+                  <button type="button" data-item-action="favor">Favor</button>
+                  <button type="button" data-item-action="devote">Devote</button>
+                  <button type="button" data-item-action="edit">Edit</button>
+                  <button type="button" data-item-action="delete">Delete</button>
+                {{/if}}
+              </td>
             </tr>
             {{#if item.sheetDetails}}
               <tr class="ptg-item-detail-row">
@@ -442,16 +452,22 @@
     </section>
 
     <section class="ptg-back-bottom">
-      <div class="ptg-paper-panel">
-        <h2>Relics</h2>
+      <div class="ptg-paper-panel" data-item-drop-type="relic">
+        <div class="ptg-panel-heading">
+          <h2>Relics</h2>
+          {{#if editable}}<button type="button" data-item-create="relic">Add</button>{{/if}}
+        </div>
         <textarea name="system.attachments.relics">{{system.attachments.relics}}</textarea>
         <div class="ptg-mini-item-list">
           {{#each inventory.relics as |item|}}
             <div class="ptg-mini-item" data-item-id="{{item.id}}">
               <span>{{item.name}}</span>
               <span>Level {{item.system.level}}</span>
-              <button type="button" data-item-action="use">Use</button>
-              <button type="button" data-item-action="edit">Edit</button>
+              {{#if @root.editable}}
+                <button type="button" data-item-action="use">Use</button>
+                <button type="button" data-item-action="edit">Edit</button>
+                <button type="button" data-item-action="delete">Delete</button>
+              {{/if}}
               {{#if item.sheetDetails}}
                 <div class="ptg-item-details">
                   {{#each item.sheetDetails as |detail|}}
@@ -464,16 +480,22 @@
         </div>
       </div>
 
-      <div class="ptg-paper-panel">
-        <h2>Truths</h2>
+      <div class="ptg-paper-panel" data-item-drop-type="truth">
+        <div class="ptg-panel-heading">
+          <h2>Truths</h2>
+          {{#if editable}}<button type="button" data-item-create="truth">Add</button>{{/if}}
+        </div>
         <textarea name="system.attachments.truths">{{system.attachments.truths}}</textarea>
         <div class="ptg-mini-item-list">
           {{#each inventory.truths as |item|}}
             <div class="ptg-mini-item" data-item-id="{{item.id}}">
               <span>{{item.name}}</span>
               <span>Rank {{item.system.rank}}</span>
-              <button type="button" data-item-action="use">Use</button>
-              <button type="button" data-item-action="edit">Edit</button>
+              {{#if @root.editable}}
+                <button type="button" data-item-action="use">Use</button>
+                <button type="button" data-item-action="edit">Edit</button>
+                <button type="button" data-item-action="delete">Delete</button>
+              {{/if}}
               {{#if item.sheetDetails}}
                 <div class="ptg-item-details">
                   {{#each item.sheetDetails as |detail|}}
