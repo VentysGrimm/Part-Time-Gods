@@ -1,3 +1,4 @@
+import { applyConditionToActor, customConditionItem } from "../../conditions/condition-workflow.mjs";
 import { PTGDiceEngine } from "../../dice/ptg-dice-engine.mjs";
 
 const { DialogV2 } = foundry.applications.api;
@@ -845,22 +846,25 @@ export class PartTimeGodsActor extends Actor {
 
     if (!condition.name) return "";
 
-    await actor.createEmbeddedDocuments("Item", [{
+    return applyConditionToActor(actor, customConditionItem({
       name: condition.name,
-      type: "condition",
-      img: "icons/svg/daze.svg",
-      system: {
-        category: condition.category ?? "",
-        severity: Math.max(1, amount || 1),
-        effect: condition.effect ? paragraph(condition.effect) : "",
-        notes: item.system.notes ?? "",
-        rules: sourceRules(condition.effect ?? `${condition.name} applied by ${item.name}.`, item, "condition"),
-        usage: narrativeUsage("passive"),
-        automation: defaultAutomation()
-      }
-    }]);
-
-    return `${actor.name}: ${condition.name} condition applied.`;
+      category: condition.category ?? "",
+      severity: Math.max(1, amount || 1),
+      effect: condition.effect ?? `${condition.name} applied by ${item.name}.`,
+      duration: condition.duration ?? "scene-or-fiction",
+      recovery: condition.recovery ?? "",
+      sourcePage: item.system.rules?.source?.page ?? item.system.sourcePage ?? null,
+      sourceSection: item.name,
+      rollModifier: condition.rollModifier ?? null
+    }), {
+      sourceActor: this,
+      sourceItem: item,
+      reason: item.type === "power"
+        ? "Manifestation or power effect"
+        : item.type === "truth"
+          ? "Truth or Relic use"
+          : "Antagonist special ability"
+    });
   }
 
   async #reduceOwnedConditions(actor, amount, category = "", name = "") {

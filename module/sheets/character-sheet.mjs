@@ -1,3 +1,4 @@
+import { conditionItemFromSelection, loadPremadeConditions } from "../conditions/condition-workflow.mjs";
 import { getDragEventData, itemFromDropData } from "../util/drop-data.mjs";
 
 const SYSTEM_ID = "part-time-gods";
@@ -1262,7 +1263,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   }
 
   async #openConditionCreateDialog() {
-    const premade = await this.#loadPremadeConditions();
+    const premade = await loadPremadeConditions();
     const content = `
       <div class="ptg-condition-create-dialog">
         <div class="form-group">
@@ -1341,14 +1342,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (!result) return;
 
-    const premadeItem = result.premade ? await fromUuid(result.premade) : null;
-    const source = premadeItem ? premadeItem.toObject() : customConditionItem(result);
-    delete source._id;
-
-    source.system = {
-      ...(source.system ?? {}),
-      severity: Math.max(1, Math.min(10, Number(result.severity ?? source.system?.severity ?? 1)))
-    };
+    const source = await conditionItemFromSelection(result);
 
     if (!source.name) {
       ui.notifications.warn("Enter a Condition name or choose a premade Condition.");
@@ -1356,17 +1350,6 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
 
     await this.actor.createEmbeddedDocuments("Item", [source]);
-  }
-
-  async #loadPremadeConditions() {
-    const pack = game.packs.get("part-time-gods.premade-items");
-    let documents = [];
-    if (pack) documents = await pack.getDocuments();
-    if (!documents.length) documents = game.items.filter(item => item.getFlag("part-time-gods", "premade") && item.type === "condition");
-
-    return documents
-      .filter(item => item.type === "condition")
-      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async #loadCreationChoices() {
@@ -2734,83 +2717,6 @@ function startingTruthItem(name) {
         healing: null,
         damage: null,
         condition: null,
-        resourceChange: null,
-        chatCard: true
-      }
-    }
-  };
-}
-
-function customConditionItem(condition) {
-  const name = condition.name || "Custom Condition";
-  const effect = condition.effect || `${name} affects the character until the GM resolves its fictional cause.`;
-  const recovery = condition.recovery || "Recover when the Condition's fictional cause ends, through care, rest, or a suitable power.";
-  const sourcePage = Number(condition.sourcePage ?? 0) || null;
-  const severity = Math.max(1, Math.min(10, Number(condition.severity ?? 1)));
-  const category = condition.category || "physical";
-  const appliesTo = condition.appliesTo || "fictional";
-  const duration = condition.duration || "scene-or-fiction";
-
-  return {
-    name,
-    type: "condition",
-    img: "icons/svg/aura.svg",
-    system: {
-      category,
-      severity,
-      severityMode: "level",
-      appliesTo,
-      duration,
-      recovery,
-      removal: recovery,
-      sourcePage,
-      sourceSection: "Custom Condition",
-      rollModifier: null,
-      effect: `<p>${escapeHTML(effect)}</p>`,
-      notes: sourcePage
-        ? `<p>Source: Part-Time Gods Second Edition, p. ${sourcePage}.</p><p><strong>Recovery:</strong> ${escapeHTML(recovery)}</p>`
-        : `<p><strong>Recovery:</strong> ${escapeHTML(recovery)}</p>`,
-      rules: {
-        summary: effect,
-        fullText: `<p>${escapeHTML(effect)}</p>`,
-        source: {
-          book: "Part-Time Gods Second Edition",
-          page: sourcePage,
-          section: "Custom Condition",
-          type: "condition"
-        }
-      },
-      usage: {
-        kind: "passive",
-        trigger: "applied",
-        target: "self",
-        cost: {
-          freeTime: 0,
-          wealth: 0,
-          pantheonDice: 0,
-          fragments: 0,
-          health: 0,
-          psyche: 0,
-          strain: 0
-        }
-      },
-      automation: {
-        enabled: true,
-        action: "track-condition",
-        bonus: null,
-        penalty: null,
-        roll: null,
-        healing: null,
-        damage: null,
-        condition: {
-          name,
-          category,
-          severity,
-          appliesTo,
-          duration,
-          recovery,
-          rollModifier: null
-        },
         resourceChange: null,
         chatCard: true
       }

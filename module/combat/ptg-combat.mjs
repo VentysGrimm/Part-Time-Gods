@@ -1,3 +1,5 @@
+import { applyConditionToActor, customConditionItem, openApplyConditionDialog } from "../conditions/condition-workflow.mjs";
+
 const SYSTEM_ID = "part-time-gods";
 const { DialogV2 } = foundry.applications.api;
 
@@ -78,7 +80,21 @@ export async function openPTGCombatControls({ combat = game.combat } = {}) {
     return combatant;
   }
 
-  if (["physicalDamage", "mentalDamage", "condition", "healing"].includes(selection.action)) {
+  if (selection.action === "condition") {
+    const target = combat.combatants.get(selection.targetCombatantId);
+    await openApplyConditionDialog({
+      sourceActor: combatant.actor,
+      targetActor: target?.actor ?? combatant.actor,
+      name: selection.conditionName,
+      category: selection.conditionCategory,
+      severity: selection.conditionSeverity,
+      effect: selection.notes,
+      reason: "GM manual ruling"
+    });
+    return combatant;
+  }
+
+  if (["physicalDamage", "mentalDamage", "healing"].includes(selection.action)) {
     const results = await applyCombatOutcome(combatant.actor, selection);
     await postCombatCard({
       combat,
@@ -348,11 +364,15 @@ async function applyCombatOutcome(actor, selection) {
   }
 
   if (selection.conditionName) {
-    const result = await createOrUpdateCondition(actor, {
+    const result = await applyConditionToActor(actor, customConditionItem({
       name: selection.conditionName,
       category: selection.conditionCategory,
       severity: selection.conditionSeverity,
-      notes: selection.notes
+      effect: selection.notes,
+      sourceSection: "Battle Outcome"
+    }), {
+      sourceActor: actor,
+      reason: "Damage result"
     });
     if (result) results.push(result);
   }
@@ -400,11 +420,16 @@ async function resolveBattleOutcome(attacker, defender, selection) {
   }
 
   if (selection.conditionName && margin > 0) {
-    const conditionResult = await createOrUpdateCondition(defender, {
+    const conditionResult = await applyConditionToActor(defender, customConditionItem({
       name: selection.conditionName,
       category: selection.conditionCategory || (resource === "psyche" ? "mental" : "physical"),
       severity: selection.conditionSeverity,
-      notes: selection.notes
+      effect: selection.notes,
+      sourceSection: "Battle Outcome"
+    }), {
+      sourceActor: attacker,
+      sourceItem: weapon,
+      reason: selection.boostDamage ? "Boost" : "Damage result"
     });
     if (conditionResult) results.push(conditionResult);
   }
@@ -467,74 +492,6 @@ async function applyHealing(actor, selection) {
 
   if (!results.length) results.push(`${actor.name}: No healing or Condition recovery was applied.`);
   return results;
-}
-
-async function createOrUpdateCondition(actor, { name, category, severity, notes }) {
-  const conditionName = String(name ?? "").trim();
-  if (!conditionName) return "";
-
-  const amount = Math.max(1, Number(severity ?? 1));
-  const existing = actor.items.find(item => item.type === "condition" && item.name === conditionName);
-
-  if (existing) {
-    const next = Math.max(Number(existing.system.severity ?? 1), amount);
-    await existing.update({
-      "system.category": category || existing.system.category || "",
-      "system.severity": next,
-      "system.notes": notes ? paragraph(notes) : existing.system.notes
-    });
-    return `${actor.name}: ${conditionName} updated to severity ${next}.`;
-  }
-
-  await actor.createEmbeddedDocuments("Item", [{
-    name: conditionName,
-    type: "condition",
-    img: "icons/svg/daze.svg",
-    system: {
-      category: category ?? "",
-      severity: amount,
-      effect: notes ? paragraph(notes) : "",
-      notes: notes ? paragraph(notes) : "",
-      rules: {
-        summary: notes || `${conditionName} from combat outcome.`,
-        fullText: notes ? paragraph(notes) : "",
-        source: {
-          book: "Part-Time Gods Second Edition",
-          page: null,
-          section: "Battle Outcome",
-          type: "condition"
-        }
-      },
-      usage: {
-        kind: "passive",
-        trigger: "battle",
-        target: "self",
-        cost: {
-          freeTime: 0,
-          wealth: 0,
-          pantheonDice: 0,
-          fragments: 0,
-          health: 0,
-          psyche: 0,
-          strain: 0
-        }
-      },
-      automation: {
-        enabled: false,
-        action: "",
-        bonus: null,
-        penalty: null,
-        roll: null,
-        healing: null,
-        damage: null,
-        condition: null,
-        resourceChange: null,
-        chatCard: true
-      }
-    }
-  }]);
-
-  return `${actor.name}: ${conditionName} condition created at severity ${amount}.`;
 }
 
 function actorResource(actor, resource) {
@@ -776,10 +733,6 @@ function resourceLabel(resource) {
     health: "Health",
     psyche: "Psyche"
   }[resource] ?? resource;
-}
-
-function paragraph(value) {
-  return `<p>${escapeHTML(value)}</p>`;
 }
 
 function escapeHTML(value) {
