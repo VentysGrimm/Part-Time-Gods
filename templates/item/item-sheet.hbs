@@ -886,7 +886,7 @@
       </label>
       <label>
         <span>Default Value</span>
-        <input name="system.defaultValue" type="number" value="{{system.defaultValue}}" min="0">
+        <input name="system.defaultValue" type="number" value="{{system.defaultValue}}" min="-10">
       </label>
       <label class="ptg-checkbox">
         <input name="system.supported" type="checkbox" {{checked system.supported}}>
@@ -1028,6 +1028,31 @@
     <section class="ptg-editor-section">
       <h2>Notes</h2>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
+    </section>
+  {{/if}}
+
+  {{#if system.rules}}
+    <section class="ptg-editor-section ptg-rules-explanation">
+      <h2>Rules Explanation</h2>
+      <section class="ptg-item-fields three">
+        <label class="span-2">
+          <span>Summary</span>
+          <input name="system.rules.summary" type="text" value="{{system.rules.summary}}">
+        </label>
+        <label>
+          <span>Book Page</span>
+          <input name="system.rules.source.page" type="number" value="{{system.rules.source.page}}" min="0">
+        </label>
+        <label>
+          <span>Source Type</span>
+          <input name="system.rules.source.type" type="text" value="{{system.rules.source.type}}">
+        </label>
+        <label class="span-2">
+          <span>Source Section</span>
+          <input name="system.rules.source.section" type="text" value="{{system.rules.source.section}}">
+        </label>
+      </section>
+      {{editor system.rules.fullText target="system.rules.fullText" button=true editable=editable engine="prosemirror"}}
     </section>
   {{/if}}
 </form>

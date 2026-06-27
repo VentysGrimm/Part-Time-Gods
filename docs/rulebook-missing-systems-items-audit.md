@@ -46,18 +46,18 @@ These are rulebook systems that have journal coverage but do not yet appear as f
 | Done | Vassal entitlement catalog | 121, 234-258 | The catalog now includes `Custom Vassal` plus 30 source-backed Outsider Vassal Items derived from the Opposition actor coverage. | Each source-backed Vassal stores source actor metadata, power hooks, and an embedded actor template so scene drops can create actor-style Vassals. |
 | Done | Battle, Condition, prayer, ritual, travel, and Vassal task workflow decisions | 121-124, 166-173, 197-208, 234-258 | Combat controls now resolve battle outcomes, structured Conditions are Item documents rather than ActiveEffect source records, Worshippers post prayer/request cards, Vassals post task cards with statblock rolls, and `power` Items execute ritual/Otherworld roll metadata. | Battle supports manual successes or statblock Attack/Defense rolls. Conditions feed `conditionRollEffects()`. Rituals and Ways stages spend listed costs and roll from their source-backed metadata. Vassal actor templates preserve threshold, health, psyche, armor, fragments, attack, defense, initiative, damage, skills, powers, condition handling, and power hooks. |
 | Medium | Other-god template helpers | 231-233 | Other gods are seeded as antagonist template Actors, with customization left to the GM. | Add helper Items or actor-creation presets for Dominion, Truth, Relic, Vassal, Worshipper, and Manifestation selections on other-god templates. |
-| Done | Gear quality reference | 209-212 | Gear Qualities now exist as 32 `gearQuality` Items generated from the system's weapon/armor quality metadata. | Seeded under `Gear Qualities` with source page metadata, supported status, default values, and automation data. |
+| Done | Gear quality reference | 209-212 | Gear Qualities now exist as 42 `gearQuality` Items generated from the system's weapon/armor quality metadata. | Seeded under `Gear Qualities` with source page metadata, supported status, default values, automation data, and full source-backed explanations. |
 | Medium | Backers' pre-generated characters | 288-307 | The PDF includes pregen character sheets after the core random tables. They are not currently imported as Actor documents. | Add optional premade character Actors if the system should ship with source pregens. |
 | Low | Post-random-table reference matter | 308+ | PDF tail contains an Index plus GM/player quick-reference material. No additional core Item family was found there. | Add Journal reference pages only if in-Foundry index/cheat-sheet lookup is desired. |
 
 ## Item Families Checked
 
-The current generated `premade-items` inventory defines 637 Item records:
+The current generated `premade-items` inventory defines 647 Item records:
 
 | Type | Count | Notes |
 | --- | ---: | --- |
 | `power` | 24 | Manifestations, rituals, and Otherworld travel stages. |
-| `gearQuality` | 32 | Source-backed weapon/armor quality reference Items. |
+| `gearQuality` | 42 | Source-backed weapon/armor quality reference Items. |
 | `occupation` | 33 | Generated standalone Occupation Career Items. |
 | `domain` | 133 | Generated standalone specific Dominion Items from random Dominion table rows. |
 | `truth` | 22 | Source-backed natural gifts / Truths. |
@@ -72,7 +72,7 @@ The current generated `premade-items` inventory defines 637 Item records:
 | `armor` | 14 | Source-backed gear list. |
 | `weapon` | 9 | Source-backed gear list. |
 
-Generated career, Dominion, Blessing, Curse, and attachment-family Items are created from Occupation, Archetype, Dominion, and Theology choice data plus the random Dominion tables. The inventory now validates that every embedded career, choice ability, choice attachment grant, and random specific Dominion row has its own Item entity. The one duplicate Blessing name from the source, `This is My Town`, is preserved as separate Items for Privileged and The Wanderer.
+Generated career, Dominion, Blessing, Curse, and attachment-family Items are created from Occupation, Archetype, Dominion, and Theology choice data plus the random Dominion tables. The inventory now validates that every embedded career, choice ability, choice attachment grant, random specific Dominion row, and source-listed gear quality has its own Item entity. The one duplicate Blessing name from the source, `This is My Town`, is preserved as separate Items for Privileged and The Wanderer.
 
 ## Pack Organization Notes
 

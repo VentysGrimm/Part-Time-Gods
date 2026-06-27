@@ -21,7 +21,7 @@ One blocking issue was found and fixed during this pass: the `opposition-actors`
 - Actor and Item data models registered in `part-time-gods.js` match the `system.json` document types.
 - Premade source data imports with a Foundry/fetch stub:
   - 40 character-creation Choice Items
-  - 637 premade Items
+  - 647 premade Items
   - 53 premade Actors
   - 86 RollTables
   - 1 Scene

@@ -9,15 +9,16 @@ const QUALITY_DEFINITIONS = {
   },
   autofire: {
     supported: true,
-    effect: "Can spend ammunition to pressure multiple targets or improve area fire; combat cards list it as a GM-applied multi-target option.",
-    automation: { mode: "multi-target-note" }
+    effect: "Requires the Reload drawback and adds +1 damage on a Boost.",
+    notes: "Use for automatic firearms or similar rapid-fire weapons.",
+    automation: { boostDamage: 1, requiresQuality: "reload" }
   },
   bargain: {
     effect: "Cheap and easy to obtain; no combat modifier."
   },
   brutal: {
     supported: true,
-    effect: "Raises weapon damage to at least this quality value.",
+    effect: "Adds this quality value to weapon damage.",
     automation: { damageMinimum: true }
   },
   bulky: {
@@ -36,25 +37,35 @@ const QUALITY_DEFINITIONS = {
   concealable: {
     effect: "Easy to hide; no direct combat modifier."
   },
+  blunt: {
+    supported: true,
+    effect: "May inflict Pain 1 on a Boost.",
+    automation: { conditionPrompt: "Pain 1" }
+  },
   crushing: {
     supported: true,
-    effect: "Can justify blunt-force Conditions on a Boost; combat cards list it as a supported Condition prompt.",
-    automation: { conditionPrompt: "Pain or Dazed" }
+    effect: "May inflict Pain 1 on a Boost; preserved for the Police Baton example, where the source uses Crushing instead of Blunt.",
+    automation: { conditionPrompt: "Pain 1" }
   },
   cumbersome: {
     effect: "Heavy and restrictive; apply situational movement or stealth penalties when relevant."
   },
   defending: {
     supported: true,
-    effect: "Adds a defense reminder for parries or guard actions.",
+    effect: "Grants +1 free Defense check before applying penalties.",
     automation: { defenseBonus: 1 }
+  },
+  disarming: {
+    supported: true,
+    effect: "May disarm an opponent's weapon on a Boost.",
+    automation: { boostEffect: "disarm" }
   },
   expensive: {
     effect: "Costs more or attracts attention; no combat modifier."
   },
   explosive: {
     supported: true,
-    effect: "Boost damage is +2 instead of +1.",
+    effect: "On a Boost, deals +2 additional damage; on a Critical Failure, the wielder suffers 2 damage.",
     automation: { boostDamage: 2 }
   },
   "fireproof": {
@@ -63,10 +74,14 @@ const QUALITY_DEFINITIONS = {
     automation: { armorTag: "fire" }
   },
   fragile: {
-    effect: "May break under pressure or on an appropriate complication; not applied automatically."
+    supported: true,
+    effect: "For armor, a Boost against the wearer can break it. For weapons, damage is reduced by 1.",
+    automation: { fragile: true }
   },
   heavy: {
-    effect: "Restrictive weight; apply situational movement, stealth, or fatigue penalties when relevant."
+    supported: true,
+    effect: "For armor, increases Armor by +2 and raises armor penalties by 1. For weapons, targets take -1 to Block or Parry.",
+    automation: { armorIncrease: 2, armorPenalty: 1, blockPenalty: 1 }
   },
   light: {
     supported: true,
@@ -74,15 +89,23 @@ const QUALITY_DEFINITIONS = {
     automation: { mobilityNote: true }
   },
   loud: {
-    effect: "Makes obvious noise; no damage modifier."
+    effect: "After use, applies a -2 Stealth penalty because the attack is obvious or noisy."
+  },
+  "master-crafted": {
+    supported: true,
+    effect: "Adds +1 to checks made with the weapon.",
+    automation: { weaponCheckBonus: 1 }
+  },
+  messy: {
+    effect: "After use, it is obvious this weapon was used."
   },
   magical: {
     effect: "Supernatural or mythic gear; may affect fictional permissions but has no automatic numeric modifier."
   },
   piercing: {
     supported: true,
-    effect: "Can justify armor-bypass rulings against soft or narrow defenses; combat cards list it as a GM-applied armor note.",
-    automation: { armorBypassNote: true }
+    effect: "Ignores this quality value in Armor.",
+    automation: { armorPiercing: true }
   },
   practical: {
     effect: "Well-suited to use; no direct combat modifier."
@@ -99,16 +122,19 @@ const QUALITY_DEFINITIONS = {
   },
   ranged: {
     supported: true,
-    effect: "Uses the weapon range category in combat cards.",
-    automation: { range: true }
+    effect: "Can attack at Far or Distant range, but suffers -1 at Close range.",
+    automation: { range: true, closePenalty: 1 }
   },
   reach: {
     supported: true,
-    effect: "Can attack at Near range or keep distance in close combat; combat cards list the reach reminder.",
+    effect: "Can attack targets at Near range.",
     automation: { rangeStep: 1 }
   },
+  recoil: {
+    effect: "Applies -1 to Defense rolls after attacking."
+  },
   reload: {
-    effect: "Requires reloading after use or pressure; not applied automatically."
+    effect: "On a Critical Failure, the wielder runs out of ammunition and must use a Quick Action or Defense to reload."
   },
   resistant: {
     supported: true,
@@ -117,21 +143,42 @@ const QUALITY_DEFINITIONS = {
   },
   restraining: {
     supported: true,
-    effect: "Can justify restraining, grabbing, or Impaired movement Conditions on a Boost.",
-    automation: { conditionPrompt: "Restrained or Impaired Movement" }
+    effect: "On a Boost, the attacker may initiate a Grab automatically.",
+    automation: { conditionPrompt: "Grab" }
   },
   sharp: {
     supported: true,
-    effect: "Can justify Bleeding or Injured Conditions on a Boost.",
-    automation: { conditionPrompt: "Bleeding or Injured" }
+    effect: "May inflict Bleeding 1 on a Boost.",
+    automation: { conditionPrompt: "Bleeding 1" }
   },
   shield: {
     supported: true,
-    effect: "Can add a defense reminder and may support blocking rulings while equipped.",
-    automation: { defenseBonus: 1 }
+    effect: "Adds +2 to Block or Parry attempts and raises armor penalties by 1.",
+    automation: { defenseBonus: 2, armorPenalty: 1 }
+  },
+  skilled: {
+    supported: true,
+    effect: "Adds this quality value to one listed Skill while wielded.",
+    automation: { selectedSkillBonus: true }
+  },
+  slow: {
+    effect: "Applies -2 Initiative while wielded."
   },
   subtle: {
     effect: "Does not look like armor or a weapon; no combat modifier."
+  },
+  unbreakable: {
+    supported: true,
+    effect: "Cannot be broken or disarmed.",
+    automation: { unbreakable: true }
+  },
+  unpredictable: {
+    supported: true,
+    effect: "Targets suffer -1 to Dodge against this weapon.",
+    automation: { dodgePenalty: 1 }
+  },
+  unwieldy: {
+    effect: "Attacks with this weapon suffer a -1 penalty."
   },
   weak: {
     supported: true,
@@ -718,9 +765,9 @@ function gearQuality(key, definition) {
 function gearQualityAppliesTo(key, definition) {
   const automation = definition.automation ?? {};
   if (automation.armorTag || automation.armorReliability || automation.armorWarning) return "armor";
-  if (automation.range || automation.rangeStep || automation.damageMinimum || automation.boostDamage || automation.conditionPrompt || automation.armorBypassNote || automation.multiTargetNote) return "weapon";
+  if (automation.range || automation.rangeStep || automation.damageMinimum || automation.boostDamage || automation.conditionPrompt || automation.armorBypassNote || automation.multiTargetNote || automation.weaponCheckBonus || automation.armorPiercing || automation.selectedSkillBonus || automation.dodgePenalty || automation.boostEffect || automation.blockPenalty) return "weapon";
   if (["bulky", "cumbersome", "fireproof", "cold-proof", "radiation-proof", "shield", "subtle", "weak", "resistant", "heavy", "light"].includes(key)) return "armor";
-  if (["autofire", "brutal", "concealable", "crushing", "defending", "explosive", "loud", "piercing", "quick", "ranged", "reach", "reload", "restraining", "sharp"].includes(key)) return "weapon";
+  if (["autofire", "blunt", "brutal", "concealable", "crushing", "defending", "disarming", "explosive", "loud", "master-crafted", "messy", "piercing", "quick", "ranged", "reach", "recoil", "reload", "restraining", "sharp", "skilled", "slow", "unbreakable", "unpredictable", "unwieldy"].includes(key)) return "weapon";
   return "gear";
 }
 
@@ -887,7 +934,9 @@ function otherworldStagePower(definition) {
 
 function armor(name, rating, cost, quality, page) {
   const qualities = parseGearQualities(quality, "armor");
-  const summary = `${name} provides Armor ${rating}. Qualities: ${quality}.`;
+  const details = armorExampleDetails(name, rating);
+  const summary = `${name} provides Armor ${rating}. Cost ${cost}. Qualities: ${quality}. ${details.effectiveArmor ? `${details.effectiveArmor}. ` : ""}Armor penalty ${details.penalty}.`;
+  const fullText = armorRulesExplanation(name, rating, cost, quality, qualities, details);
 
   return baseItem("armor", name, page, {
     amount: 1,
@@ -898,21 +947,28 @@ function armor(name, rating, cost, quality, page) {
     cost,
     quality,
     qualities,
-    description: paragraph(summary),
-    notes: source(page),
+    description: fullText,
+    notes: paragraphs(
+      `Source: Part-Time Gods Second Edition, p. ${page}.`,
+      "Armor examples marked as magical in the source should be awarded through story, favors, or supernatural access rather than ordinary shopping."
+    ),
     ...itemRules("armor", name, page, summary, {
       kind: "passive",
       trigger: "equipped",
       target: "self",
+      fullText,
       action: "apply-armor",
-      bonus: { armor: rating }
+      bonus: { armor: rating },
+      penalty: { physicalActions: details.penalty }
     })
   });
 }
 
 function weapon(name, damage, range, cost, quality, page) {
   const qualities = parseGearQualities(quality, "weapon");
-  const summary = `${name} deals +${damage} damage at ${range} range. Qualities: ${quality}.`;
+  const firearm = isFirearm(qualities);
+  const summary = `${name} deals +${damage} damage at ${range} range. Cost ${cost}. Qualities: ${quality}.${firearm ? " Firearm." : ""}`;
+  const fullText = weaponRulesExplanation(name, damage, range, cost, quality, qualities, firearm);
 
   return baseItem("weapon", name, page, {
     amount: 1,
@@ -925,12 +981,18 @@ function weapon(name, damage, range, cost, quality, page) {
     cost,
     quality,
     qualities,
-    description: paragraph(summary),
-    notes: source(page),
+    description: fullText,
+    notes: paragraphs(
+      `Source: Part-Time Gods Second Edition, p. ${page}.`,
+      firearm
+        ? "Firearms carry the Ranged and Loud assumptions; use the listed qualities for the exact weapon."
+        : "Weapon size and appearance remain fictional cues for concealment, legality, and social consequences."
+    ),
     ...itemRules("weapon", name, page, summary, {
       kind: "active",
       trigger: "use",
       target: "targeted",
+      fullText,
       action: "weapon-attack",
       enabled: true,
       roll: { primary: "fighting", secondary: "might", difficulty: 1 },
@@ -938,6 +1000,77 @@ function weapon(name, damage, range, cost, quality, page) {
       bonus: gearAutomationBonus(qualities)
     })
   });
+}
+
+function armorExampleDetails(name, rating) {
+  const details = {
+    "Armored Jumpsuit": { penalty: 0 },
+    "Asbestos Suit": { penalty: -2, effectiveArmor: "Armor 4 against fire" },
+    Breastplate: { penalty: -1 },
+    Buckler: { penalty: -1 },
+    "Bulletproof Vest": { penalty: 0, effectiveArmor: "Armor 3 against bullets" },
+    "Coral Shield": { penalty: -1, magical: true },
+    "Enchanted Leather Jacket": { penalty: 0, magical: true },
+    "Full Plate": { penalty: -3 },
+    "Golden Plate": { penalty: -3, magical: true },
+    "Hazmat Suit": { penalty: 0, effectiveArmor: "Armor 4 against radiation" },
+    "Hockey Pads": { penalty: -3 },
+    "Riot Shield": { penalty: -3 },
+    "Scuba Gear": { penalty: 0, effectiveArmor: "Armor 5 against cold" },
+    "Tactical Gear": { penalty: -1, effectiveArmor: "Armor 5 against bullets" }
+  }[name] ?? { penalty: armorPenaltyFromRating(rating) };
+
+  return {
+    penalty: Number(details.penalty ?? armorPenaltyFromRating(rating)),
+    effectiveArmor: details.effectiveArmor ?? "",
+    magical: details.magical === true
+  };
+}
+
+function armorRulesExplanation(name, rating, cost, quality, qualities, details) {
+  return paragraphs(
+    `${name} is armor with Armor ${rating}, Cost ${cost}, and the listed qualities: ${quality}.`,
+    "When equipped, armor reduces incoming Health damage by its Armor rating after the attack's successes determine damage. A character normally wears only one suit of armor at a time, though divine Truths or other powers can add separate Armor values.",
+    `This example's physical-action armor penalty is ${details.penalty}. Armor takes about one minute to put on or remove unless a quality such as Practical changes that timing.`,
+    details.effectiveArmor ? `${details.effectiveArmor}; use that higher value only against the listed damage source.` : "",
+    details.magical ? "This example is magical or supernatural; treat availability as a story reward, favor, Relic-like object, or Dominion-shaped creation rather than ordinary shopping." : "",
+    "Armor Cost starts from a base and is adjusted by positive and negative qualities. Positive qualities add cost by level; negative qualities discount the armor by their level.",
+    "Quality details: " + qualityDetailsText(qualities)
+  );
+}
+
+function weaponRulesExplanation(name, damage, range, cost, quality, qualities, firearm) {
+  return paragraphs(
+    `${name} is a weapon with +${damage} damage, ${range} range, Cost ${cost}, and the listed qualities: ${quality}.`,
+    "In a Battle of Fists, weapons add their damage to a successful attack and their qualities decide the special cases: Boost riders, armor interaction, reach, reload pressure, concealment, and noise.",
+    range === "Close"
+      ? "Close weapons are used within hand-to-hand reach."
+      : range === "Near"
+        ? "Near weapons can threaten targets beyond immediate hand-to-hand reach."
+        : "Far weapons can attack at distance; Ranged weapons also carry a close-range penalty when used too near a target.",
+    firearm ? "This weapon is a firearm, so its source assumptions include Ranged and Loud in addition to the listed custom qualities." : "",
+    "Weapon Cost follows the same quality-based pattern as armor, with firearms adding extra cost. Custom weapons usually trade positive qualities against negative qualities or extra Wealth.",
+    "Quality details: " + qualityDetailsText(qualities)
+  );
+}
+
+function qualityDetailsText(qualities) {
+  const details = qualities.map(quality => {
+    const value = Number(quality.value ?? 0);
+    const valueText = value ? ` ${value}` : "";
+    return `${quality.name}${valueText}: ${quality.effect}`;
+  });
+
+  return details.length ? details.join(" ") : "No qualities are listed.";
+}
+
+function armorPenaltyFromRating(rating) {
+  return rating > 1 ? -(rating - 1) : 0;
+}
+
+function isFirearm(qualities) {
+  const keys = new Set(qualities.map(quality => quality.key));
+  return keys.has("ranged") && keys.has("loud");
 }
 
 function rangeCategory(range) {
@@ -978,9 +1111,10 @@ function structuredQuality(entry, itemType) {
 }
 
 function qualityDefaultValue(key, itemType) {
-  if (key === "brutal") return 2;
+  if (key === "brutal") return 1;
   if (key.endsWith("proof")) return 2;
   if (key === "defending" || key === "shield") return 1;
+  if (["master-crafted", "skilled", "piercing"].includes(key)) return 1;
   if (key === "weak") return -1;
   if (key === "resistant") return 1;
   if (itemType === "weapon" && key === "explosive") return 2;
@@ -1610,7 +1744,7 @@ function itemRules(type, name, page, summary, options = {}) {
   return {
     rules: {
       summary,
-      fullText: options.fullText ?? paragraph(summary),
+      fullText: rulesFullText(type, name, page, summary, options, cost),
       source: {
         book: "Part-Time Gods Second Edition",
         page,
@@ -1637,6 +1771,81 @@ function itemRules(type, name, page, summary, options = {}) {
       chatCard: true
     }
   };
+}
+
+function rulesFullText(type, name, page, summary, options, cost) {
+  const baseText = options.fullText ?? paragraph(summary);
+  const additions = [
+    itemRoleText(type, name),
+    usageText(options, cost),
+    automationText(options),
+    `Source reference: Part-Time Gods Second Edition, book p. ${page}, ${name}.`
+  ];
+
+  return `${baseText}${paragraphs(...additions)}`;
+}
+
+function itemRoleText(type, name) {
+  return {
+    armor: `${name} should be read as both protection and a bundle of qualities. Use the Armor value for damage reduction and the qualities for special-case penalties, benefits, and fictional positioning.`,
+    attachment: `${name} represents a character-facing attachment grant. Define the relationship or object in the fiction before relying on it mechanically.`,
+    blessing: `${name} is a positive choice trait. It applies when the fictional trigger is true, and it should be visible in the narration before the bonus is used.`,
+    bond: `${name} is a mortal anchor. Use it for favors, Strain, scenes of obligation, and reminders that the god still has human ties.`,
+    condition: `${name} is a tracked state. Use its severity, category, recovery text, and roll modifier metadata to make the Condition visible and reversible at the table.`,
+    curse: `${name} is a trouble hook. It should create a real complication before awarding Pantheon Dice or applying its drawback.`,
+    domain: `${name} is a specific Dominion example. Use it as a ready portfolio, but keep the god's exact wording, scope, and Landmark Bond clear during play.`,
+    gearQuality: `${name} is a gear quality reference. Apply it through a weapon or armor item, then use this entry to interpret the quality's mechanical and fictional effects.`,
+    occupation: `${name} is an occupation career package. It exists to make the career grant inspectable as an Item, including resources, attachments, Blessing, Curse, and source page.`,
+    power: `${name} is a usable divine or ritual procedure. Check the activation, roll, cost, target, and limitations before resolving it.`,
+    relic: `${name} is a divine object. Its level, attunement, bonus, and Fragment use matter as much as the physical object described in the fiction.`,
+    truth: `${name} is a divine truth about the god. Treat it as permission for what is always true, plus any active Fragment-powered extension listed in the effect.`,
+    vassal: `${name} is a supernatural ally or servant. Use it for favors, tasking, risk, loyalty, Strain, and scene consequences.`,
+    weapon: `${name} should be read as damage plus qualities. Use damage for successful attacks and qualities for Boost riders, range, armor interaction, noise, concealment, and reload pressure.`,
+    worshipper: `${name} is a mortal support entitlement. It can provide help, but repeated demands and exposed risks should create Strain and story fallout.`
+  }[type] ?? `${name} is a source-backed Item. Use its summary, usage, automation metadata, and source page together rather than treating the name alone as the rule.`;
+}
+
+function usageText(options, cost) {
+  const kind = options.kind ?? "narrative";
+  const trigger = options.trigger ? ` Trigger: ${options.trigger}.` : "";
+  const target = options.target ? ` Target: ${options.target}.` : "";
+  const costText = costSummary(cost);
+
+  return `Usage: ${kind}.${trigger}${target}${costText ? ` Cost: ${costText}.` : ""}`;
+}
+
+function automationText(options) {
+  if (options.enabled) {
+    const action = options.action ? ` Action: ${options.action}.` : "";
+    const roll = options.roll ? " Roll metadata is encoded for system dialogs." : "";
+    const damage = options.damage ? " Damage metadata is encoded for chat actions." : "";
+    const condition = options.condition ? " Condition metadata is encoded for follow-up actions." : "";
+    const bonus = options.bonus ? " Bonus metadata is encoded for automation or reminders." : "";
+    return `Automation: supported.${action}${roll}${damage}${condition}${bonus}`;
+  }
+
+  return "Automation: table-facing reference. The system preserves the rule text and metadata, but the GM or player confirms the exact application in context.";
+}
+
+function costSummary(cost) {
+  return Object.entries(cost)
+    .filter(([, value]) => Number(value) !== 0)
+    .map(([key, value]) => `${value} ${costLabel(key, value)}`)
+    .join(", ");
+}
+
+function costLabel(key, value) {
+  const labels = {
+    freeTime: "Free Time",
+    wealth: "Wealth",
+    pantheonDice: Number(value) === 1 ? "Pantheon Die" : "Pantheon Dice",
+    fragments: Number(value) === 1 ? "Fragment" : "Fragments",
+    health: "Health",
+    psyche: "Psyche",
+    strain: "Strain"
+  };
+
+  return labels[key] ?? labelize(key);
 }
 
 function paragraphs(...texts) {

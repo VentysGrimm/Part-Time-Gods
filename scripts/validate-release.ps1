@@ -99,8 +99,33 @@ function missingStableKeys(documents) {
     .map((document) => `${document.type ?? "document"}:${document.name}`);
 }
 
+function plainTextLength(...values) {
+  return values
+    .filter(Boolean)
+    .join(" ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .length;
+}
+
+function weakItemExplanations(documents) {
+  return documents
+    .map((document) => {
+      const system = document.system ?? {};
+      return {
+        type: document.type,
+        name: document.name,
+        length: plainTextLength(system.description, system.effect, system.benefit, system.notes, system.rules?.summary, system.rules?.fullText)
+      };
+    })
+    .filter((entry) => entry.length < 420)
+    .map((entry) => `${entry.type}:${entry.name}:${entry.length}`);
+}
+
 const journalDocuments = await journals.getPremadeJournals();
 const sceneDocuments = scenes.getPremadeScenes();
+const weakItems = weakItemExplanations(items.PTG_PREMADE_ITEMS);
 const result = {
   actors: actors.PTG_PREMADE_ACTORS.length,
   items: items.PTG_PREMADE_ITEMS.length,
@@ -113,7 +138,8 @@ const result = {
   badChoices: missingStableKeys(choices.PTG_PREMADE_CHOICES),
   badJournals: missingStableKeys(journalDocuments),
   badRollTables: missingStableKeys(rollTables.PTG_PREMADE_ROLL_TABLES),
-  badScenes: missingStableKeys(sceneDocuments)
+  badScenes: missingStableKeys(sceneDocuments),
+  weakItems
 };
 const emptyFamilies = Object.entries({
   actors: result.actors,
@@ -133,7 +159,8 @@ if (
   result.badChoices.length ||
   result.badJournals.length ||
   result.badRollTables.length ||
-  result.badScenes.length
+  result.badScenes.length ||
+  result.weakItems.length
 ) {
   console.error(JSON.stringify({ ...result, emptyFamilies }, null, 2));
   process.exit(1);

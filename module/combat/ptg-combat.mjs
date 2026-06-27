@@ -703,7 +703,7 @@ function qualityCombatNotes(prefix, qualities, context = {}) {
     else if (quality.key === "quick") notes.push(`${prefix} quality Quick supports fast-draw or initiative rulings.`);
     else if (quality.key === "reach") notes.push(`${prefix} quality Reach supports Near engagement or keeping distance.`);
     else if (quality.key === "ranged") notes.push(`${prefix} quality Ranged uses the weapon's range category.`);
-    else if (quality.key === "sharp" || quality.key === "crushing" || quality.key === "restraining") notes.push(`${prefix} quality ${quality.name} can justify an appropriate Condition on a Boost.`);
+    else if (quality.key === "sharp" || quality.key === "blunt" || quality.key === "crushing" || quality.key === "restraining") notes.push(`${prefix} quality ${quality.name} can justify an appropriate Condition on a Boost.`);
     else if (quality.supported) notes.push(`${prefix} quality ${quality.name}: ${quality.effect || "supported reminder applied."}`);
     else notes.push(`${prefix} quality ${quality.name} is not applied automatically; use the readable quality text for the GM ruling.`);
   }

@@ -8,4 +8,5 @@
 - Added Health/Psyche damage workflow support for armor, severity, recovery, and condition chat actions.
 - Added Manifestation Measures support for Fragment spend, Dominion scope penalties, and declared damage/range/target/duration intent.
 - Added stable compendium slugs/source IDs and metadata-only rules-journal summaries.
+- Expanded generated Item rules explanations, completed the source-listed gear quality reference set, and exposed shared rules explanations on Item sheets.
 - Added release validation, install, changelog, and attribution notes.

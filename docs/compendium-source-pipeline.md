@@ -12,6 +12,10 @@ The pack updater matches by stable source ID first, then import ID, then slug, t
 
 Rules journals loaded from `module/data/complete-rules.json` include metadata-only `safeSummary` flags on the JournalEntry and pages. These summaries describe the topic and source page range without expanding the source text.
 
+## Item Explanations
+
+Generated premade Items include shared `system.rules.fullText` explanations with table-use guidance, usage/cost context, automation notes, and source page references. Gear Items also include source-backed quality explanations, armor penalties, proof-armor notes, range behavior, and firearm reminders.
+
 ## Release Boundary
 
 Release artifacts should include the normalized system data needed at runtime and exclude local source PDFs, extraction caches, and scratch directories.
