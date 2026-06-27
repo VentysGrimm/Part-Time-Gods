@@ -373,54 +373,6 @@ export const PTG_PREMADE_ITEMS = [
   weapon("Whip", 1, "Near", 4, "Restraining, Reach, Sharp, Fragile", 212)
 ];
 
-export async function importPremadeItems({ notify = true } = {}) {
-  const existing = new Set(
-    game.items
-      .filter(item => item.getFlag("part-time-gods", "premade"))
-      .map(item => `${item.type}:${item.name}`)
-  );
-
-  const items = PTG_PREMADE_ITEMS.filter(item => !existing.has(`${item.type}:${item.name}`));
-
-  if (!items.length) {
-    if (notify) ui.notifications.info("Part-Time Gods premade items are already imported.");
-    return [];
-  }
-
-  const folders = await createPremadeFolders(items);
-  const created = await Item.createDocuments(items.map(item => ({
-    ...item,
-    folder: folders[item.type]?.id
-  })));
-
-  if (notify) ui.notifications.info(`Imported ${created.length} Part-Time Gods premade items.`);
-
-  return created;
-}
-
-async function createPremadeFolders(items) {
-  const folders = {};
-  const types = Array.from(new Set(items.map(item => item.type)));
-
-  for (const type of types) {
-    const label = typeLabels[type] ?? `${type[0].toUpperCase()}${type.slice(1)}s`;
-    const name = `PTG Premade ${label}`;
-    let folder = game.folders.find(existing => existing.type === "Item" && existing.name === name);
-
-    if (!folder) {
-      folder = await Folder.create({
-        name,
-        type: "Item",
-        sorting: "a"
-      });
-    }
-
-    folders[type] = folder;
-  }
-
-  return folders;
-}
-
 function truth(name, page, statement, effect) {
   const fragmentCost = effect.includes("Spend a Fragment") ? 1 : 0;
   const activation = effect.includes("Spend") ? "action" : "passive";
@@ -1961,23 +1913,6 @@ function defaultIcon(type) {
 
   return icons[type] ?? "icons/svg/item-bag.svg";
 }
-
-const typeLabels = {
-  attachment: "Attachments",
-  armor: "Armor",
-  blessing: "Blessings",
-  bond: "Bonds",
-  condition: "Conditions",
-  curse: "Curses and Failings",
-  domain: "Specific Dominions",
-  gearQuality: "Gear Qualities",
-  occupation: "Occupation Careers",
-  relic: "Relics",
-  truth: "Truths",
-  vassal: "Vassals",
-  weapon: "Weapons",
-  worshipper: "Worshippers"
-};
 
 function typeName(type) {
   return {

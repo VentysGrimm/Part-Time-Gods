@@ -442,30 +442,6 @@ export const PTG_PREMADE_CHOICES = [
   })
 ];
 
-export async function importPremadeChoices({ notify = true } = {}) {
-  const existing = new Set(
-    game.items
-      .filter(item => item.getFlag("part-time-gods", "premadeChoice"))
-      .map(item => `${item.type}:${item.name}`)
-  );
-  const items = PTG_PREMADE_CHOICES.filter(item => !existing.has(`${item.type}:${item.name}`));
-
-  if (!items.length) {
-    if (notify) ui.notifications.info("Part-Time Gods character creation choices are already imported.");
-    return [];
-  }
-
-  const folders = await createChoiceFolders(items);
-  const created = await Item.createDocuments(items.map(item => ({
-    ...item,
-    folder: folders[item.type]?.id
-  })));
-
-  if (notify) ui.notifications.info(`Imported ${created.length} Part-Time Gods character creation choices.`);
-
-  return created;
-}
-
 function occupation(name, page, grants) {
   return choice("occupation", name, page, {
     category: name,
@@ -638,27 +614,6 @@ function normalizeOccupationCareers(occupationName, page) {
       curse: career.curse ? withAbilitySource(career.curse, sourcePage, "curse") : null
     };
   });
-}
-
-async function createChoiceFolders(items) {
-  const folders = {};
-  const labels = {
-    archetype: "Archetypes",
-    domain: "Dominions",
-    occupation: "Occupations",
-    theology: "Theologies"
-  };
-
-  for (const type of Array.from(new Set(items.map(item => item.type)))) {
-    const name = `PTG Character Creation ${labels[type]}`;
-    let folder = game.folders.find(existing => existing.type === "Item" && existing.name === name);
-
-    if (!folder) folder = await Folder.create({ name, type: "Item", sorting: "a" });
-
-    folders[type] = folder;
-  }
-
-  return folders;
 }
 
 function paragraph(text) {

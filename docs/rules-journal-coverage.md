@@ -135,9 +135,9 @@ No JournalEntry pages are mechanically empty or below 1,200 HTML characters. The
 6. Split Other Gods templates into one page or Actor/Item helper per god archetype.
 7. Add visual PDF QA for pages flagged with extraction-noise headings, especially archetypes, skill list, battle actions, opposition, and story tables.
 
-## Import Validation Notes
+## Compendium Build Validation Notes
 
-Rules journals are imported through `module/data/premade-journals.mjs` and compendium population in `module/data/premade-compendiums.mjs`.
+Rules journals are generated through `module/data/premade-journals.mjs` and written to the `rules-reference` compendium pack.
 
 Current safety checks:
 
@@ -145,6 +145,5 @@ Current safety checks:
 - `normalizeRulesJournal()` ignores journals without a name or usable page list.
 - `normalizeRulesPage()` ignores pages without a name or HTML content.
 - `normalizeRulesPage()` also normalizes journal HTML into Foundry-friendly text-page markup and adds source-page metadata flags.
-- World import tracks existing rules-reference journals by name and creates only missing entries.
-- Compendium population keys JournalEntries by document type and name, creates missing entries, refreshes existing premade rules journals, and removes stale premade rules journals.
-- Re-running the import/compendium population should not create duplicate rules-reference JournalEntries.
+- Pack building keys JournalEntries by stable source metadata and writes the current source-backed rules journals into the declared system pack.
+- Re-running the pack build should not create duplicate rules-reference JournalEntries.

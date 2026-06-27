@@ -144,6 +144,9 @@ const result = {
   badMacros: missingStableKeys(macros.PTG_PREMADE_MACROS),
   weakItems
 };
+const importFacingMacros = macros.PTG_PREMADE_MACROS
+  .filter((macro) => /\bimport\b|populate compendiums/i.test(`${macro.name} ${macro.command} ${macro.flags?.[sys]?.summary ?? ""}`))
+  .map((macro) => macro.name);
 const emptyFamilies = Object.entries({
   actors: result.actors,
   items: result.items,
@@ -165,9 +168,10 @@ if (
   result.badRollTables.length ||
   result.badScenes.length ||
   result.badMacros.length ||
+  importFacingMacros.length ||
   result.weakItems.length
 ) {
-  console.error(JSON.stringify({ ...result, emptyFamilies }, null, 2));
+  console.error(JSON.stringify({ ...result, emptyFamilies, importFacingMacros }, null, 2));
   process.exit(1);
 }
 

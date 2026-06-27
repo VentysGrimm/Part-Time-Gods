@@ -11,5 +11,5 @@
 - Expanded generated Item rules explanations, completed the source-listed gear quality reference set, and exposed shared rules explanations on Item sheets.
 - Added a shared Pantheon Pool add/spend workflow with chat cards, sheet buttons, and roll-dialog spending from linked Pantheon actors.
 - Moved setup and play workflow entry points from legacy chat commands onto Pantheon and antagonist sheet buttons.
-- Added a system Macro compendium with workflow macros for the former command entry points.
+- Added a system Macro compendium with workflow macros for GM table tools.
 - Added release validation, install, changelog, and attribution notes.

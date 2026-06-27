@@ -27,12 +27,12 @@ import { PTGAntagonistSheet } from "./module/sheets/antagonist-sheet.mjs";
 import { PTGPantheonSheet } from "./module/sheets/pantheon-sheet.mjs";
 import { PTGItemSheet } from "./module/sheets/item-sheet.mjs";
 import { PTGDiceEngine } from "./module/dice/ptg-dice-engine.mjs";
-import { PTG_PREMADE_ITEMS, importPremadeItems } from "./module/data/premade-items.mjs";
-import { PTG_PREMADE_CHOICES, importPremadeChoices } from "./module/data/premade-choices.mjs";
+import { PTG_PREMADE_ITEMS } from "./module/data/premade-items.mjs";
+import { PTG_PREMADE_CHOICES } from "./module/data/premade-choices.mjs";
 import { openAntagonistBuilder } from "./module/data/premade-actors.mjs";
 import { populatePremadeCompendiums } from "./module/data/premade-compendiums.mjs";
 import { PTG_PREMADE_MACROS } from "./module/data/premade-macros.mjs";
-import { getPremadeJournals, importRulesJournals } from "./module/data/premade-journals.mjs";
+import { getPremadeJournals } from "./module/data/premade-journals.mjs";
 import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
 import { openPTGCombatControls, registerPTGCombatHooks, rollPTGInitiative } from "./module/combat/ptg-combat.mjs";
 import { openMortalDivineBalanceTracker, registerMortalDivineTrackerSettings } from "./module/apps/mortal-divine-tracker.mjs";
@@ -57,10 +57,7 @@ Hooks.once("init", async () => {
     premadeItems: PTG_PREMADE_ITEMS,
     premadeChoices: PTG_PREMADE_CHOICES,
     premadeMacros: PTG_PREMADE_MACROS,
-    importPremadeItems,
-    importPremadeChoices,
     getPremadeJournals,
-    importRulesJournals,
     getGodTerritorySceneData,
     importGodTerritoryScene,
     openTerritoryControls,

@@ -1,9 +1,5 @@
 import { getDragEventData } from "../util/drop-data.mjs";
-import { importPremadeItems } from "../data/premade-items.mjs";
-import { importPremadeChoices } from "../data/premade-choices.mjs";
 import { openAntagonistBuilder } from "../data/premade-actors.mjs";
-import { populatePremadeCompendiums } from "../data/premade-compendiums.mjs";
-import { importRulesJournals } from "../data/premade-journals.mjs";
 import { importGodTerritoryScene, openTerritoryControls } from "../data/premade-scenes.mjs";
 import { openPTGCombatControls } from "../combat/ptg-combat.mjs";
 import { openMortalDivineBalanceTracker } from "../apps/mortal-divine-tracker.mjs";
@@ -173,15 +169,11 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   async #onPantheonTool(tool) {
     if (!tool) return;
 
-    if (["populate-compendiums", "import-items", "import-choices", "import-rules-journals", "create-territory-scene", "antagonist-builder"].includes(tool) && !game.user?.isGM) {
+    if (["create-territory-scene", "antagonist-builder"].includes(tool) && !game.user?.isGM) {
       ui.notifications.warn("Only a GM can use setup tools.");
       return;
     }
 
-    if (tool === "populate-compendiums") return populatePremadeCompendiums();
-    if (tool === "import-items") return importPremadeItems();
-    if (tool === "import-choices") return importPremadeChoices();
-    if (tool === "import-rules-journals") return importRulesJournals();
     if (tool === "antagonist-builder") return openAntagonistBuilder();
     if (tool === "combat") return openPTGCombatControls();
     if (tool === "balance") return openMortalDivineBalanceTracker();

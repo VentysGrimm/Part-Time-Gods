@@ -1,48 +1,10 @@
 const SYSTEM_ID = "part-time-gods";
 const RULES_KIND = "rules-reference";
-const RULES_FOLDER = "PTG Rules Reference";
 const RULES_DATA_PATH = "systems/part-time-gods/module/data/complete-rules.json";
 
 export async function getPremadeJournals() {
   const journals = await loadRulesJournals();
   return journals.map(normalizeRulesJournal).filter(Boolean);
-}
-
-export async function importRulesJournals({ notify = true } = {}) {
-  if (!game.user?.isGM) {
-    if (notify) ui.notifications.warn("Only a GM can import the Part-Time Gods rules journals.");
-    return [];
-  }
-
-  const journals = await getPremadeJournals();
-
-  if (!journals.length) {
-    if (notify) ui.notifications.warn("No source-backed Part-Time Gods rules journals are available.");
-    return [];
-  }
-
-  const existing = new Set(
-    game.journal
-      .filter(entry => entry.getFlag(SYSTEM_ID, "kind") === RULES_KIND)
-      .map(entry => entry.name)
-  );
-
-  const missing = journals.filter(entry => !existing.has(entry.name));
-
-  if (!missing.length) {
-    if (notify) ui.notifications.info("Part-Time Gods rules journals are already imported.");
-    return [];
-  }
-
-  const folder = await ensureWorldRulesFolder();
-  const created = await JournalEntry.createDocuments(missing.map(entry => ({
-    ...entry,
-    folder: folder.id
-  })));
-
-  if (notify) ui.notifications.info(`Imported ${created.length} Part-Time Gods rules journals.`);
-
-  return created;
 }
 
 async function loadRulesJournals() {
@@ -149,22 +111,6 @@ function safeRulesSummary(entry, sourcePageStart, sourcePageEnd) {
   const topics = pageNames ? ` Topics include ${pageNames}.` : "";
 
   return `${entry.name} rules reference from ${pageLabel}.${topics}`;
-}
-
-async function ensureWorldRulesFolder() {
-  let folder = game.folders.find(existing =>
-    existing.type === "JournalEntry" && existing.name === RULES_FOLDER
-  );
-
-  if (!folder) {
-    folder = await Folder.create({
-      name: RULES_FOLDER,
-      type: "JournalEntry",
-      sorting: "a"
-    });
-  }
-
-  return folder;
 }
 
 function htmlFormat() {

@@ -16,48 +16,6 @@ pantheon.sheet?.render(true);
 `
   }),
   toolMacro({
-    name: "PTG: Import Premade Items",
-    slug: "import-premade-items",
-    img: "icons/svg/item-bag.svg",
-    summary: "Import source-backed Part-Time Gods Items into the world.",
-    command: `
-const api = game.partTimeGods;
-if (!api?.importPremadeItems) {
-  ui.notifications.error("Part-Time Gods item import API is not available.");
-  return;
-}
-await api.importPremadeItems();
-`
-  }),
-  toolMacro({
-    name: "PTG: Import Character Choices",
-    slug: "import-character-choices",
-    img: "icons/svg/book.svg",
-    summary: "Import source-backed Occupation, Archetype, Dominion, and Theology choices into the world.",
-    command: `
-const api = game.partTimeGods;
-if (!api?.importPremadeChoices) {
-  ui.notifications.error("Part-Time Gods character choice import API is not available.");
-  return;
-}
-await api.importPremadeChoices();
-`
-  }),
-  toolMacro({
-    name: "PTG: Populate Compendiums",
-    slug: "populate-compendiums",
-    img: "icons/svg/archive.svg",
-    summary: "Populate or refresh Part-Time Gods system compendiums.",
-    command: `
-const api = game.partTimeGods;
-if (!api?.populatePremadeCompendiums) {
-  ui.notifications.error("Part-Time Gods compendium population API is not available.");
-  return;
-}
-await api.populatePremadeCompendiums();
-`
-  }),
-  toolMacro({
     name: "PTG: Create Territory Scene",
     slug: "create-territory-scene",
     img: "icons/svg/direction.svg",
@@ -143,20 +101,6 @@ if (!api?.openAntagonistBuilder) {
 await api.openAntagonistBuilder();
 `
   }),
-  toolMacro({
-    name: "PTG: Import Rules Journals",
-    slug: "import-rules-journals",
-    img: "icons/svg/book.svg",
-    summary: "Import curated Part-Time Gods rules-reference journals into the world.",
-    command: `
-const api = game.partTimeGods;
-if (!api?.importRulesJournals) {
-  ui.notifications.error("Part-Time Gods rules journal import API is not available.");
-  return;
-}
-await api.importRulesJournals();
-`
-  })
 ];
 
 function toolMacro({ name, slug, img, summary, command }) {
