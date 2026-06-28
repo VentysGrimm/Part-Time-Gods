@@ -1690,6 +1690,218 @@
   margin: 0;
 }
 
+.ptg-balance-tracker-window .window-content,
+.ptg-balance-tracker-window [data-application-part="form"] {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ptg-balance-tracker {
+  --ptg-balance-purple: #6f5aa0;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px;
+  color: #000000;
+}
+
+.ptg-balance-tracker *,
+.ptg-balance-tracker *::before,
+.ptg-balance-tracker *::after {
+  box-sizing: border-box;
+}
+
+.ptg-balance-header {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #b49bd8;
+  background: #f4effa;
+}
+
+.ptg-balance-selector {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+}
+
+.ptg-balance-selector span {
+  color: #000000;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ptg-balance-selector select,
+.ptg-balance-custom select,
+.ptg-balance-custom input,
+.ptg-balance-custom textarea {
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid #8d74b8;
+  background: #ffffff;
+  color: #000000;
+}
+
+.ptg-balance-body {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 12px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+}
+
+.ptg-balance-tracker h2,
+.ptg-balance-tracker h3,
+.ptg-balance-scale strong,
+.ptg-balance-log strong {
+  color: var(--ptg-balance-purple);
+}
+
+.ptg-balance-actor {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #b49bd8;
+  background: #faf7ff;
+}
+
+.ptg-balance-actor img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 1px solid #8d74b8;
+}
+
+.ptg-balance-actor h2,
+.ptg-balance-actor p,
+.ptg-balance-actions h3,
+.ptg-balance-custom h3,
+.ptg-balance-log h3,
+.ptg-balance-empty h2,
+.ptg-balance-empty p {
+  margin: 0;
+}
+
+.ptg-balance-meter,
+.ptg-balance-actions,
+.ptg-balance-custom,
+.ptg-balance-log,
+.ptg-balance-empty {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #b49bd8;
+  background: #f4effa;
+}
+
+.ptg-balance-scale,
+.ptg-balance-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  align-items: center;
+  text-align: center;
+}
+
+.ptg-balance-scale span,
+.ptg-balance-values span,
+.ptg-balance-log small {
+  color: #000000;
+  font-weight: 700;
+}
+
+.ptg-balance-bar {
+  position: relative;
+  height: 16px;
+  border: 1px solid #8d74b8;
+  background: linear-gradient(90deg, #f8f4fb 0%, #ffffff 50%, #f8f4fb 100%);
+}
+
+.ptg-balance-bar i {
+  position: absolute;
+  top: -5px;
+  width: 10px;
+  height: 24px;
+  border: 2px solid #000000;
+  background: var(--ptg-balance-purple);
+  transform: translateX(-50%);
+}
+
+.ptg-balance-actions {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+.ptg-balance-actions > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ptg-balance-actions button,
+.ptg-balance-custom button,
+.ptg-balance-log button {
+  min-height: 2.5rem;
+  height: auto;
+  max-width: 100%;
+  border: 1px solid #8d74b8;
+  background: #e8def6;
+  color: #000000;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  padding: 0.35rem 0.5rem;
+  text-align: center;
+  white-space: normal;
+}
+
+.ptg-balance-custom .ptg-item-fields {
+  align-items: end;
+}
+
+.ptg-balance-log header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.ptg-balance-log ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.ptg-balance-log li {
+  padding: 6px;
+  border: 1px solid rgba(141, 116, 184, 0.45);
+  background: #faf7ff;
+}
+
+.ptg-balance-log li span,
+.ptg-balance-log li small,
+.ptg-balance-log li p {
+  display: block;
+}
+
 @media (max-width: 820px) {
   .part-time-gods.sheet.character {
     min-width: 520px;
@@ -1815,5 +2027,10 @@
   .ptg-paper-table {
     display: block;
     overflow-x: auto;
+  }
+
+  .ptg-balance-actions,
+  .ptg-balance-log header {
+    grid-template-columns: 1fr;
   }
 }

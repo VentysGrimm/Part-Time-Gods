@@ -162,6 +162,8 @@
     },
     "Balance": {
       "Title": "Mortal-Divine Balance",
+      "Character": "Character",
+      "ChooseCharacter": "Choose a character",
       "MeterAria": "Mortal-Divine Balance meter",
       "Mortal": "Mortal",
       "Balanced": "Balanced",

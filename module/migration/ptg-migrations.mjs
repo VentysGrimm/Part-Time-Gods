@@ -1,4 +1,15 @@
 const SYSTEM_ID = "part-time-gods";
+const COMPENDIUM_FOLDER_NAME = "Part Time Gods";
+
+const SYSTEM_COMPENDIUM_PACKS = [
+  "part-time-gods.character-creation",
+  "part-time-gods.premade-items",
+  "part-time-gods.opposition-actors",
+  "part-time-gods.maps",
+  "part-time-gods.roll-tables",
+  "part-time-gods.macros",
+  "part-time-gods.rules-reference"
+];
 
 export const PTG_SYSTEM_SCHEMA_VERSION = 1;
 
@@ -62,6 +73,56 @@ export async function runPTGMigrations({ notify = false } = {}) {
     ui.notifications.info(`Part-Time Gods migrations complete: schema ${summary.from} -> ${summary.to}.`);
     await postMigrationSummary(summary);
   }
+}
+
+export async function organizePTGCompendiumFolders({ notify = false } = {}) {
+  if (!game.user?.isGM) return { changed: 0, folderName: COMPENDIUM_FOLDER_NAME, packs: [] };
+
+  const folder = await ensureSystemCompendiumFolder();
+  const config = foundry.utils.deepClone(game.settings.get("core", "compendiumConfiguration") ?? {});
+  const moved = [];
+
+  for (const collection of SYSTEM_COMPENDIUM_PACKS) {
+    if (!game.packs.get(collection)) continue;
+
+    const current = config[collection] && typeof config[collection] === "object" ? config[collection] : {};
+    if (current.folder === folder.id) continue;
+
+    config[collection] = {
+      ...current,
+      folder: folder.id
+    };
+    moved.push(collection);
+  }
+
+  if (moved.length) {
+    await game.settings.set("core", "compendiumConfiguration", config);
+    if (notify) ui.notifications.info(`Part Time Gods compendiums grouped under ${COMPENDIUM_FOLDER_NAME}.`);
+  }
+
+  return {
+    changed: moved.length,
+    folderId: folder.id,
+    folderName: COMPENDIUM_FOLDER_NAME,
+    packs: moved
+  };
+}
+
+async function ensureSystemCompendiumFolder() {
+  const existing = game.folders.find(folder =>
+    folder.type === "Compendium"
+    && folder.name === COMPENDIUM_FOLDER_NAME
+    && !folder.folder
+  );
+  if (existing) return existing;
+
+  return Folder.create({
+    name: COMPENDIUM_FOLDER_NAME,
+    type: "Compendium",
+    folder: null,
+    sorting: "a",
+    sort: 0
+  }, { render: false });
 }
 
 async function migrateLegacyAttachmentTextToFlags() {

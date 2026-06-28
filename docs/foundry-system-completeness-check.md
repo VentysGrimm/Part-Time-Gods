@@ -13,6 +13,7 @@ One blocking issue was found and fixed during this pass: the `opposition-actors`
 - `system.json` parses and declares the system id, title, version, Foundry v14 compatibility, ES module, stylesheet, language file, packs, actor document types, item document types, and token attributes.
 - All manifest-declared module, style, language, and pack paths exist.
 - All declared pack paths include a LevelDB `CURRENT` file.
+- On GM ready, the system groups all declared PTG compendium packs under a top-level Compendium folder named `Part Time Gods` for sidebar management.
 - `lang/en.json` parses and includes labels for every declared Actor and Item type.
 - `module/data/complete-rules.json` parses.
 - All 35 `.js`/`.mjs` files pass `node --check`.

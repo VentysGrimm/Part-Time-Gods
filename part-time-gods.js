@@ -37,7 +37,7 @@ import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControl
 import { openPTGCombatControls, registerPTGCombatHooks, rollPTGInitiative } from "./module/combat/ptg-combat.mjs";
 import { openMortalDivineBalanceTracker, registerMortalDivineTrackerSettings } from "./module/apps/mortal-divine-tracker.mjs";
 import { openPantheonPoolDialog } from "./module/workflows/pantheon-pool-workflow.mjs";
-import { registerPTGMigrationSettings, runPTGMigrations } from "./module/migration/ptg-migrations.mjs";
+import { organizePTGCompendiumFolders, registerPTGMigrationSettings, runPTGMigrations } from "./module/migration/ptg-migrations.mjs";
 import { migrateWorldActorsToCanonicalEmbeddedItems } from "./module/migration/canonical-embedded-items.mjs";
 import { registerPTGChatCardActions } from "./module/chat/chat-actions.mjs";
 import { itemFromDropData } from "./module/util/drop-data.mjs";
@@ -64,6 +64,7 @@ Hooks.once("init", async () => {
     openPTGCombatControls,
     openMortalDivineBalanceTracker,
     openPantheonPoolDialog,
+    organizePTGCompendiumFolders,
     runPTGMigrations,
     migrateWorldActorsToCanonicalEmbeddedItems,
     rollPTGInitiative,
@@ -167,6 +168,11 @@ Hooks.once("ready", async () => {
   if (!game.user?.isGM) return;
 
   await runPTGMigrations({ notify: true });
+  try {
+    await organizePTGCompendiumFolders({ notify: false });
+  } catch (error) {
+    console.warn("Part-Time Gods 2E | Compendium folder organization failed.", error);
+  }
 
   try {
     const migration = await migrateWorldActorsToCanonicalEmbeddedItems({ notify: false });

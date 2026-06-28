@@ -80,13 +80,15 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const actor = await this.#trackedActor();
+    const actor = await this.#selectedOrDefaultActor();
+    const actorOptions = characterActorOptions(actor);
     const state = actor ? balanceState(actor) : defaultBalanceState();
     const value = clampBalance(state.value);
 
     return {
       ...context,
       isGM: Boolean(game.user?.isGM),
+      actorOptions: actorOptions.map(option => actorOptionContext(option, actor)),
       actor: actor ? {
         uuid: actor.uuid,
         name: actor.name,
@@ -114,6 +116,8 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     root.addEventListener("dragover", event => event.preventDefault());
     root.addEventListener("drop", event => this.#onDrop(event));
 
+    root.querySelector("[data-balance-actor-select]")?.addEventListener("change", event => this.#onActorSelect(event.currentTarget));
+
     for (const button of root.querySelectorAll("[data-balance-action]")) {
       button.addEventListener("click", event => this.#onPreset(event.currentTarget));
     }
@@ -129,6 +133,11 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     }
 
     this.#actorUuid = actor.uuid;
+  }
+
+  #onActorSelect(select) {
+    this.#actorUuid = select.value ?? "";
+    this.render({ force: true });
   }
 
   async #onDrop(event) {
@@ -205,25 +214,89 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     return actor;
   }
 
+  async #selectedOrDefaultActor() {
+    const tracked = await this.#trackedActor();
+    if (tracked) return tracked;
+
+    const fallback = defaultSelectedCharacterActor();
+    if (fallback) {
+      this.#actorUuid = fallback.uuid;
+      return fallback;
+    }
+
+    this.#actorUuid = "";
+    return null;
+  }
+
   async #trackedActor() {
     if (!this.#actorUuid) return null;
-    return fromUuid(this.#actorUuid);
+    try {
+      const actor = actorDocumentFromResolved(await fromUuid(this.#actorUuid));
+      return actor?.type === "character" ? actor : null;
+    } catch (error) {
+      console.warn("Part-Time Gods 2E | Unable to resolve Mortal-Divine Balance actor.", this.#actorUuid, error);
+      return null;
+    }
   }
 }
 
 async function actorFromDropData(data) {
   try {
-    const actor = data?.uuid
+    const document = data?.uuid
       ? await fromUuid(data.uuid)
       : data?.type === "Actor" && data.id
         ? game.actors.get(data.id)
         : null;
-    return actor?.documentName === "Actor" || actor?.constructor?.documentName === "Actor" ? actor : null;
+    return actorDocumentFromResolved(document);
   } catch (error) {
     console.warn("Part-Time Gods 2E | Unable to resolve Mortal-Divine Balance drop data.", data, error);
   }
 
   return null;
+}
+
+function actorDocumentFromResolved(document) {
+  if (document?.documentName === "Actor" || document?.constructor?.documentName === "Actor") return document;
+  if (document?.actor?.documentName === "Actor" || document?.actor?.constructor?.documentName === "Actor") return document.actor;
+  return null;
+}
+
+function defaultSelectedCharacterActor() {
+  for (const token of Array.from(canvas?.tokens?.controlled ?? [])) {
+    if (token.actor?.type === "character") return token.actor;
+  }
+
+  return game.user?.character?.type === "character" ? game.user.character : null;
+}
+
+function characterActorOptions(selectedActor = null) {
+  const actors = new Map();
+  addCharacterActor(actors, selectedActor);
+
+  for (const token of Array.from(canvas?.tokens?.controlled ?? [])) {
+    addCharacterActor(actors, token.actor);
+  }
+
+  addCharacterActor(actors, game.user?.character);
+
+  for (const actor of game.actors ?? []) {
+    addCharacterActor(actors, actor);
+  }
+
+  return Array.from(actors.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function addCharacterActor(actors, actor) {
+  if (actor?.type === "character") actors.set(actor.uuid, actor);
+}
+
+function actorOptionContext(actor, selectedActor) {
+  const value = clampBalance(balanceState(actor).value);
+  return {
+    uuid: actor.uuid,
+    label: `${actor.name} - ${balanceLabel(value)} (${value})`,
+    selected: actor.uuid === selectedActor?.uuid
+  };
 }
 
 async function adjustBalance(actor, { direction, amount, reason, note }) {

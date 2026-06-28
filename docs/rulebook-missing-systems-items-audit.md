@@ -87,6 +87,8 @@ Generated career, Dominion, Blessing, Curse, and attachment-family Items are cre
 - `macros`
 - `rules-reference`
 
+On GM ready, `organizePTGCompendiumFolders()` groups these active system packs under a top-level Compendium folder named `Part Time Gods` for easier sidebar management.
+
 There are also physical pack directories named `domains`, `relics`, `powers`, and `conditions` in `packs/`, but they are not declared in `system.json` and are not used by `populatePremadeCompendiums()`. Current runtime organization is therefore folder-based inside `character-creation` and `premade-items`, not one pack per item family.
 
 Before adding new pack declarations, decide whether the project should keep the current compact pack layout or split item families into separate system packs. The compact layout is consistent with the current seeding code.
