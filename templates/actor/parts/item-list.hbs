@@ -1,85 +1,129 @@
 {{#if items.length}}
-  <ol class="ptg-item-list">
-    {{#each items as |item|}}
-      <li class="ptg-item-row" data-item-id="{{item.id}}">
-        <img src="{{item.img}}" alt="">
-        <div class="ptg-item-main">
-          <strong>{{item.name}}</strong>
+  {{#if (eq mode "gear")}}
+    <div class="ptg-gear-table">
+      <div class="ptg-gear-header">
+        <span>Name</span>
+        <span>Type</span>
+        <span>Armor</span>
+        <span>Amount</span>
+        <span>Cost</span>
+        <span>Wt</span>
+        <span>Status</span>
+        <span>Actions</span>
+      </div>
+
+      {{#each items as |item|}}
+        <article class="ptg-gear-row" data-item-id="{{item.id}}">
+          <div class="ptg-gear-name">
+            {{#if item.hasDetails}}
+              <button type="button" class="ptg-detail-toggle" data-item-action="toggle-details" aria-expanded="{{item.expanded}}">{{#if item.expanded}}Hide{{else}}Show{{/if}}</button>
+            {{else}}
+              <span class="ptg-detail-toggle-placeholder" aria-hidden="true"></span>
+            {{/if}}
+            <strong>{{item.name}}</strong>
+          </div>
           <span>{{ptgItemTypeLabel item.type}}</span>
-          {{#if item.system.rules.summary}}
-            <span class="ptg-item-summary">{{item.system.rules.summary}}</span>
-          {{/if}}
-        </div>
-
-        <div class="ptg-item-meta">
-          {{#if (eq item.type "bond")}}
-            <span>Level {{item.system.level}}</span>
-            <span>Strain {{item.system.strain.value}}/{{item.system.strain.max}}</span>
-          {{/if}}
-          {{#if (eq item.type "worshipper")}}
-            <span>Level {{item.system.level}}</span>
-            <span>Strain {{item.system.strain.value}}/{{item.system.strain.max}}</span>
-          {{/if}}
-          {{#if (eq item.type "vassal")}}
-            <span>Level {{item.system.level}}</span>
-            <span>Strain {{item.system.strain.value}}/{{item.system.strain.max}}</span>
-          {{/if}}
-          {{#if (eq item.type "relic")}}<span>Level {{item.system.level}}</span>{{/if}}
-          {{#if (eq item.type "truth")}}<span>{{item.system.activation}}</span>{{/if}}
-          {{#if (eq item.type "blessing")}}<span>{{item.system.usage.kind}}</span>{{/if}}
-          {{#if (eq item.type "curse")}}<span>{{item.system.usage.kind}}</span>{{/if}}
-          {{#if (eq item.type "power")}}<span>Cost {{item.system.cost}}</span>{{/if}}
-          {{#if (eq item.type "weapon")}}
-            <span>Amount {{item.system.amount}}</span>
-            <span>Cost {{item.system.cost}}</span>
-            <span>Wt {{item.system.weight}}</span>
-            <span>Damage +{{item.system.damage}}</span>
-            <span>{{#if (eq item.system.held false)}}Stowed{{else}}Carried{{/if}}</span>
-            {{#if item.system.equipped}}<span>Equipped</span>{{/if}}
-          {{/if}}
-          {{#if (eq item.type "armor")}}
-            <span>Amount {{item.system.amount}}</span>
-            <span>Cost {{item.system.cost}}</span>
-            <span>Wt {{item.system.weight}}</span>
-            <span>Armor {{item.system.rating}}</span>
-            <span>{{#if (eq item.system.held false)}}Stowed{{else}}Carried{{/if}}</span>
-            {{#if item.system.equipped}}<span>Equipped</span>{{/if}}
-          {{/if}}
-        </div>
-
-        <div class="ptg-item-actions">
-          {{#if (eq ../mode "choice")}}
-            <button type="button" data-item-action="apply">Apply</button>
-          {{/if}}
-
-          {{#if (eq ../mode "usable")}}
-            <button type="button" data-item-action="use">Use</button>
-          {{/if}}
-
-          {{#if (eq ../mode "attachment")}}
-            <button type="button" data-item-action="favor">Favor</button>
-            <button type="button" data-item-action="lead">Lead</button>
-            <button type="button" data-item-action="follow-up">Follow-up</button>
-            <button type="button" data-item-action="devote">Devote</button>
-            <button type="button" data-item-action="split-attention">Split</button>
-            <button type="button" data-item-action="delay">Delay</button>
-            <button type="button" data-item-action="strain-minus">-</button>
-            <button type="button" data-item-action="strain-plus">+</button>
-            <button type="button" data-item-action="lose">Lose</button>
-          {{/if}}
-
-          {{#if (eq ../mode "gear")}}
+          <span>{{#if (eq item.type "armor")}}{{item.system.rating}}{{else}}-{{/if}}</span>
+          <span>{{item.system.amount}}</span>
+          <span>{{item.system.cost}}</span>
+          <span>{{item.system.weight}}</span>
+          <span>{{#if item.system.equipped}}Equipped{{else}}{{#if (eq item.system.held false)}}Stowed{{else}}Carried{{/if}}{{/if}}</span>
+          <div class="ptg-gear-actions">
             <button type="button" data-item-action="hold">{{#if (eq item.system.held false)}}Carry{{else}}Stow{{/if}}</button>
             <button type="button" data-item-action="equip">{{#if item.system.equipped}}Unequip{{else}}Equip{{/if}}</button>
             <button type="button" data-item-action="use">Use</button>
+            <button type="button" data-item-action="edit">Edit</button>
+            <button type="button" data-item-action="delete">Delete</button>
+          </div>
+          {{#if item.hasDetails}}
+            {{#if item.expanded}}
+              <div class="ptg-item-details ptg-gear-details">
+                {{#each item.sheetDetails as |detail|}}
+                  <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                {{/each}}
+              </div>
+            {{/if}}
           {{/if}}
+        </article>
+      {{/each}}
+    </div>
+  {{else}}
+    <ol class="ptg-item-list">
+      {{#each items as |item|}}
+        <li class="ptg-item-row" data-item-id="{{item.id}}">
+          <img src="{{item.img}}" alt="">
+          <div class="ptg-item-main">
+            <strong>{{item.name}}</strong>
+            <span>{{ptgItemTypeLabel item.type}}</span>
+            {{#if item.system.rules.summary}}
+              <span class="ptg-item-summary">{{item.system.rules.summary}}</span>
+            {{/if}}
+          </div>
 
-          <button type="button" data-item-action="edit">Edit</button>
-          <button type="button" data-item-action="delete">Delete</button>
-        </div>
-      </li>
-    {{/each}}
-  </ol>
+          <div class="ptg-item-meta">
+            {{#if (eq item.type "bond")}}
+              <span>Level {{item.system.level}}</span>
+              <span>Strain {{item.system.strain.value}}/{{item.system.strain.max}}</span>
+            {{/if}}
+            {{#if (eq item.type "worshipper")}}
+              <span>Level {{item.system.level}}</span>
+              <span>Strain {{item.system.strain.value}}/{{item.system.strain.max}}</span>
+            {{/if}}
+            {{#if (eq item.type "vassal")}}
+              <span>Level {{item.system.level}}</span>
+              <span>Strain {{item.system.strain.value}}/{{item.system.strain.max}}</span>
+            {{/if}}
+            {{#if (eq item.type "relic")}}<span>Level {{item.system.level}}</span>{{/if}}
+            {{#if (eq item.type "truth")}}<span>{{item.system.activation}}</span>{{/if}}
+            {{#if (eq item.type "blessing")}}<span>{{item.system.usage.kind}}</span>{{/if}}
+            {{#if (eq item.type "curse")}}<span>{{item.system.usage.kind}}</span>{{/if}}
+            {{#if (eq item.type "power")}}<span>Cost {{item.system.cost}}</span>{{/if}}
+            {{#if (eq item.type "weapon")}}
+              <span>Amount {{item.system.amount}}</span>
+              <span>Cost {{item.system.cost}}</span>
+              <span>Wt {{item.system.weight}}</span>
+              <span>Damage +{{item.system.damage}}</span>
+              <span>{{#if (eq item.system.held false)}}Stowed{{else}}Carried{{/if}}</span>
+              {{#if item.system.equipped}}<span>Equipped</span>{{/if}}
+            {{/if}}
+            {{#if (eq item.type "armor")}}
+              <span>Amount {{item.system.amount}}</span>
+              <span>Cost {{item.system.cost}}</span>
+              <span>Wt {{item.system.weight}}</span>
+              <span>Armor {{item.system.rating}}</span>
+              <span>{{#if (eq item.system.held false)}}Stowed{{else}}Carried{{/if}}</span>
+              {{#if item.system.equipped}}<span>Equipped</span>{{/if}}
+            {{/if}}
+          </div>
+
+          <div class="ptg-item-actions">
+            {{#if (eq ../mode "choice")}}
+              <button type="button" data-item-action="apply">Apply</button>
+            {{/if}}
+
+            {{#if (eq ../mode "usable")}}
+              <button type="button" data-item-action="use">Use</button>
+            {{/if}}
+
+            {{#if (eq ../mode "attachment")}}
+              <button type="button" data-item-action="favor">Favor</button>
+              <button type="button" data-item-action="lead">Lead</button>
+              <button type="button" data-item-action="follow-up">Follow-up</button>
+              <button type="button" data-item-action="devote">Devote</button>
+              <button type="button" data-item-action="split-attention">Split</button>
+              <button type="button" data-item-action="delay">Delay</button>
+              <button type="button" data-item-action="strain-minus">-</button>
+              <button type="button" data-item-action="strain-plus">+</button>
+              <button type="button" data-item-action="lose">Lose</button>
+            {{/if}}
+
+            <button type="button" data-item-action="edit">Edit</button>
+            <button type="button" data-item-action="delete">Delete</button>
+          </div>
+        </li>
+      {{/each}}
+    </ol>
+  {{/if}}
 {{else}}
   <p class="ptg-empty">Drop items here from a compendium or the Items sidebar.</p>
 {{/if}}

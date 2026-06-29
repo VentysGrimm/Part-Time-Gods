@@ -25,6 +25,7 @@ temp/
 packs/**/LOCK
 packs/**/LOG
 packs/**/LOG.old
+packs/**/lost/
 
 # Local legacy pack folders not declared by system.json
 packs/conditions/

@@ -13,7 +13,7 @@ const HEIGHT = ROWS * GRID_SIZE;
 const TERRITORY_DATA_VERSION = 1;
 
 const SHEET_BACKGROUND = "#f4f0e8";
-const SHEET_INK = "#1f1a17";
+const SHEET_INK = "#000000";
 
 export function getPremadeScenes() {
   return [getGodTerritorySceneData()];

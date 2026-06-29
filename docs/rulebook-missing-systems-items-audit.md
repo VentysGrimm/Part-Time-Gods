@@ -23,9 +23,9 @@ The PDF pass covered 318 PDF pages, with 310 non-empty text pages. The PDF outli
 | Failings and Curses | 10 Failing Curse Items plus 80 generated choice Curse Items | Covered |
 | Conditions | 20 Conditions from book pp. 205-207 | Covered |
 | Gear | 14 Armor Items and 9 Weapon Items from book pp. 210-212 | Covered |
-| Opposition | 53 premade antagonist Actors covering animals, mortals, the Touched, other-god templates, Outsiders, and custom threat bands | Covered |
+| Opposition and pregens | 62 premade Actors: 53 antagonist Actors covering animals, mortals, the Touched, other-god templates, Outsiders, and custom threat bands, plus 9 optional Backers' Pregens character Actors | Covered |
 | Roll tables | 86 RollTables covering random character creation, PDF p. 285 / book p. 283 archetype option rolls, random territory coordinates, and territory crawl helpers | Covered |
-| Workflow macros | 7 Macro documents covering territory, combat, balance, Pantheon Pool, opposition building, and the table tools hub | Covered |
+| Workflow macros | 8 Macro documents covering territory, combat, balance, Pantheon Pool, opposition building, story workflow, and the table tools hub | Covered |
 | Territory grid | Premade Scene plus territory controls for movement, costs, influence, notes, and position flags | Partly automated |
 | Character sheet workflows | Sheet tabs, item controls, structured conditions, XP, Spark, resources, ritual/power item rolls, Worshipper prayer requests, Vassal tasks, and roll workflows | Automated for core play loops |
 
@@ -42,13 +42,13 @@ These are rulebook systems that have journal coverage but do not yet appear as f
 | Done | Standalone choice Blessing and Curse Items | 37-101, 175-177 | Occupation career abilities, Archetype options, Dominion options, and Theology grants now generate separate `blessing`/`curse` Items instead of existing only inside Choice data. | 179 generated choice ability Items are validated against 179 embedded source grants. Theology Curses are flagged as non-Pantheon-Dice by default per p. 177. |
 | Done | Standalone choice attachment Items | 37-66 | Occupation, Archetype, and Dominion attachment grants now generate standalone Bond/Relic/Vassal/Worshipper/Attachment-family Items. | 102 generated attachment Items are validated against 102 embedded source grants. |
 | Done | Random Archetype option tables | 283 | The random archetype section requires rolling Attachment, Blessing, and Curse after selecting the archetype. | Added 36 RollTables, one Attachment/Blessing/Curse option table for each Archetype. |
-| High | Attachment tricks and downtime procedures | 272-277 | Journals cover the rules. The system has resource adjustment and territory tools, but no compact workflow cards for attachment tricks, downtime actions, or player-sourcing prompts. | Add Journal quick-reference pages or reusable macro-like workflow dialogs for attachment tricks, downtime, and sourcing prompts. |
+| Done | Attachment tricks and downtime procedures | 272-277 | The `PTG: Story Workflow` macro and Pantheon sheet Table Tools now open source-backed workflow cards for attachment demands, downtime/job fallout, territory hooks, and player-sourcing prompts. | Cards can target a character or attachment, adjust Free Time/Wealth, adjust Attachment Strain, optionally apply a Condition, roll Territory coordinates, and post the prompt/result to chat. |
 | Done | Pantheon Pool as a first-class shared resource | 187-189 | Pantheon Actor pool values now have a shared add/spend workflow, chat cards, linked-character access, and roll-dialog spending from the selected shared pool. | Use the Pantheon sheet Pool Workflow button, the Pantheon sheet Table Tools section, or a linked character sheet's Pool button. Skill, Manifestation, and ritual rolls spend selected shared Pantheon Dice before rolling, with character-local fallback when no linked or selected shared pool is available. |
 | Done | Vassal entitlement catalog | 121, 234-258 | The catalog now includes `Custom Vassal` plus 30 source-backed Outsider Vassal Items derived from the Opposition actor coverage. | Each source-backed Vassal stores source actor metadata, power hooks, and an embedded actor template so scene drops can create actor-style Vassals. |
 | Done | Battle, Condition, prayer, ritual, travel, and Vassal task workflow decisions | 121-124, 166-173, 197-208, 234-258 | Combat controls now resolve battle outcomes, structured Conditions are Item documents rather than ActiveEffect source records, Worshippers post prayer/request cards, Vassals post task cards with statblock rolls, and `power` Items execute ritual/Otherworld roll metadata. | Battle supports manual successes or statblock Attack/Defense rolls. Conditions feed `conditionRollEffects()`. Rituals and Ways stages spend listed costs and roll from their source-backed metadata. Vassal actor templates preserve threshold, health, psyche, armor, fragments, attack, defense, initiative, damage, skills, powers, condition handling, and power hooks. |
 | Medium | Other-god template helpers | 231-233 | Other gods are seeded as antagonist template Actors, with customization left to the GM. | Add helper Items or actor-creation presets for Dominion, Truth, Relic, Vassal, Worshipper, and Manifestation selections on other-god templates. |
 | Done | Gear quality reference | 209-212 | Gear Qualities now exist as 42 `gearQuality` Items generated from the system's weapon/armor quality metadata. | Seeded under `Gear Qualities` with source page metadata, supported status, default values, automation data, and full source-backed explanations. |
-| Medium | Backers' pre-generated characters | 288-307 | The PDF includes pregen character sheets after the core random tables. They are not currently imported as Actor documents. | Add optional premade character Actors if the system should ship with source pregens. |
+| Done | Backers' pre-generated characters | 288-307 | Nine pregen character sheets after the core random tables now seed as optional `character` Actor documents in the `opposition-actors` compendium under `Backers' Pregens`. | Each Actor includes source-backed identity, resources, skills, manifestations, specialties, notes, and embedded Truth, Relic, Bond, Worshipper, Vassal, Blessing, and Curse Items where present. |
 | Low | Post-random-table reference matter | 308+ | PDF tail contains an Index plus GM/player quick-reference material. No additional core Item family was found there. | Add Journal reference pages only if in-Foundry index/cheat-sheet lookup is desired. |
 
 ## Item Families Checked
@@ -95,7 +95,5 @@ Before adding new pack declarations, decide whether the project should keep the 
 
 ## Recommended Next Implementation Order
 
-1. Decide whether to seed the Backers' Pregens as optional premade character Actors.
-2. Add quick workflow cards or dialogs for attachment tricks, downtime, and sourcing-player prompts.
-3. Decide whether the PDF tail index and quick-reference sheets should become Journal pages.
-4. Add other-god template helper presets for Dominion, Truth, Relic, Vassal, Worshipper, and Manifestation selections.
+1. Decide whether the PDF tail index and quick-reference sheets should become Journal pages.
+2. Add other-god template helper presets for Dominion, Truth, Relic, Vassal, Worshipper, and Manifestation selections.

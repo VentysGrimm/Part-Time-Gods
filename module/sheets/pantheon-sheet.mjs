@@ -4,6 +4,7 @@ import { importGodTerritoryScene, openTerritoryControls } from "../data/premade-
 import { openPTGCombatControls } from "../combat/ptg-combat.mjs";
 import { openMortalDivineBalanceTracker } from "../apps/mortal-divine-tracker.mjs";
 import { openPantheonPoolDialog } from "../workflows/pantheon-pool-workflow.mjs";
+import { openPTGStoryWorkflow } from "../workflows/story-workflow.mjs";
 
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -178,6 +179,7 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (tool === "combat") return openPTGCombatControls();
     if (tool === "balance") return openMortalDivineBalanceTracker();
     if (tool === "pantheon-pool") return openPantheonPoolDialog({ pantheon: this.actor });
+    if (tool === "story-workflow") return openPTGStoryWorkflow({ pantheon: this.actor });
 
     if (tool === "create-territory-scene") {
       const scene = await importGodTerritoryScene({ activate: false });

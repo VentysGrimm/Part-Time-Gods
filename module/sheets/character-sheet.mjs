@@ -9,6 +9,7 @@ const { DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   #activeTab = "front";
+  #expandedItemDetails = new Set();
   #tabScrollPositions = new Map();
 
   static DEFAULT_OPTIONS = {
@@ -876,6 +877,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       type: item.type,
       img: item.img,
       system,
+      hasDetails: details.length > 0,
+      expanded: this.#expandedItemDetails.has(item.id),
       sheetDetails: details,
       sheetSummary: details[0]?.html ?? ""
     };
@@ -1050,6 +1053,11 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (!item) return;
 
+    if (action === "toggle-details") {
+      this.#toggleItemDetails(item.id);
+      return;
+    }
+
     if (action === "edit") return item.sheet.render({ force: true });
 
     if (action === "delete") {
@@ -1097,6 +1105,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       const delta = action === "strain-plus" ? 1 : -1;
       await this.actor.adjustAttachmentStrain(item, delta, "Attachment Strain Changed");
     }
+  }
+
+  #toggleItemDetails(itemId) {
+    if (!itemId) return;
+    if (this.#expandedItemDetails.has(itemId)) this.#expandedItemDetails.delete(itemId);
+    else this.#expandedItemDetails.add(itemId);
+    this.render(false);
   }
 
   async #createOwnedItem(type) {
@@ -1250,14 +1265,11 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         resizable: true
       },
       classes: ["part-time-gods", "ptg-character-creator-window"],
-      position: {
-        width: 760,
-        height: 720
-      },
+      position: fitDialogPosition(760, 720, { minWidth: 360, minHeight: 360 }),
       content,
       rejectClose: false,
       modal: true,
-    render: (event, dialog) => wireCharacterCreatorDialog(dialog.element ?? dialog, { choices }),
+      render: (event, dialog) => wireCharacterCreatorDialog(dialog.element ?? dialog, { choices }),
       ok: {
         label: "Apply Choices",
         callback: (event, button) => ({
@@ -1537,6 +1549,20 @@ function readPointInputs(form, prefix, keys) {
     key,
     Math.max(0, Number(form.elements[`${prefix}.${key}`]?.value ?? 0))
   ]));
+}
+
+function fitDialogPosition(width, height, { minWidth = 360, minHeight = 320, marginX = 64, marginY = 120 } = {}) {
+  const viewportWidth = Number(globalThis.window?.innerWidth ?? width);
+  const viewportHeight = Number(globalThis.window?.innerHeight ?? height);
+  const minFitWidth = Math.min(minWidth, Math.max(240, viewportWidth - 16));
+  const minFitHeight = Math.min(minHeight, Math.max(240, viewportHeight - 16));
+  const availableWidth = Math.max(minFitWidth, viewportWidth - marginX);
+  const availableHeight = Math.max(minFitHeight, viewportHeight - marginY);
+
+  return {
+    width: Math.min(width, availableWidth),
+    height: Math.min(height, availableHeight)
+  };
 }
 
 function validateCharacterCreationBudget(selections, actor) {

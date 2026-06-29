@@ -76,6 +76,7 @@ const packBuilds = [
     collection: "actors",
     documents: actors.PTG_PREMADE_ACTORS,
     folderLabels: {
+      "Backers' Pregens": "Backers' Pregens",
       Animals: "Animals",
       Mortals: "Mortals",
       "The Touched": "The Touched",
@@ -198,6 +199,16 @@ function extractEmbeddedDocuments(build, document, batch) {
       batch.push({ type: "put", key: `!scenes.drawings!${document._id}.${drawingDocument._id}`, value: JSON.stringify(drawingDocument) });
       count += 1;
       return drawingDocument._id;
+    });
+  }
+
+  if (build.documentName === "Actor") {
+    const items = Array.isArray(document.items) ? document.items : [];
+    document.items = items.map((item, index) => {
+      const itemDocument = embeddedDocument(item, `${document._id}:item:${item.name ?? index}:${item.type ?? "item"}`, index);
+      batch.push({ type: "put", key: `!actors.items!${document._id}.${itemDocument._id}`, value: JSON.stringify(itemDocument) });
+      count += 1;
+      return itemDocument._id;
     });
   }
 

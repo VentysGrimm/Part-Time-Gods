@@ -110,7 +110,7 @@ These book-page gaps are not represented as rules-reference pages in `complete-r
 | 14-22 | Missing / low priority | Introductory setting prose between core glossary and divine concept rules. Add later only if a lore-reference journal is desired. |
 | 26, 34, 70-71, 74-75, 78-79, 82-83, 86-87, 90-91, 94-95, 98-99, 102-103, 132, 136, 174, 196, 213-216, 226, 246, 260-262 | Likely dividers, art, fiction, or blank/transition pages | These gaps align with section breaks and chapter transitions in the extracted source. They are not current rules-reference priorities. |
 | 278-281 | PDF spot-checked, represented elsewhere | Character sheet and Territory Grid handout material. The system represents these through the actor sheet and premade territory scene instead of rules-reference Journal pages. |
-| 285-307 | PDF spot-checked, not imported as rules journals | Backers List and Backers' Pregens. Pregens are better represented as optional Actor documents than rules-reference pages. |
+| 285-307 | PDF spot-checked, not imported as rules journals | Backers List and Backers' Pregens. The 9 pregens now ship as optional character Actor documents with embedded owned Items; the Backers List remains intentionally outside rules-reference journals. |
 | 308+ | PDF spot-checked, intentionally uncovered | Index plus GM/player quick-reference material. No additional core rules Item family was found here. Add Journal reference pages only if table lookup inside Foundry is desired. |
 
 ## Thin But Present Sections
@@ -127,13 +127,12 @@ No JournalEntry pages are mechanically empty or below 1,200 HTML characters. The
 
 ## Highest-Priority Follow-Ups
 
-1. Decide whether Backers' Pregens should be converted into optional premade character Actors.
-2. Decide whether the PDF tail index and quick-reference sheets should become Journal pages.
-3. Convert compact random tables into table-formatted JournalEntry pages where layout matters at the table.
-4. Split dense Manifestation skill pages into one JournalEntry page per Manifestation if users need faster in-play lookup.
-5. Split dense Theology pages into one page per Theology for character creation ergonomics.
-6. Split Other Gods templates into one page or Actor/Item helper per god archetype.
-7. Add visual PDF QA for pages flagged with extraction-noise headings, especially archetypes, skill list, battle actions, opposition, and story tables.
+1. Decide whether the PDF tail index and quick-reference sheets should become Journal pages.
+2. Convert compact random tables into table-formatted JournalEntry pages where layout matters at the table.
+3. Split dense Manifestation skill pages into one JournalEntry page per Manifestation if users need faster in-play lookup.
+4. Split dense Theology pages into one page per Theology for character creation ergonomics.
+5. Split Other Gods templates into one page or Actor/Item helper per god archetype.
+6. Add visual PDF QA for pages flagged with extraction-noise headings, especially archetypes, skill list, battle actions, opposition, and story tables.
 
 ## Compendium Build Validation Notes
 

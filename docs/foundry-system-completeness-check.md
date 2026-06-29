@@ -1,6 +1,6 @@
 # Foundry System Completeness Check
 
-Check date: 2026-06-27.
+Check date: 2026-06-29.
 
 ## Result
 
@@ -16,14 +16,14 @@ One blocking issue was found and fixed during this pass: the `opposition-actors`
 - On GM ready, the system groups all declared PTG compendium packs under a top-level Compendium folder named `Part Time Gods` for sidebar management.
 - `lang/en.json` parses and includes labels for every declared Actor and Item type.
 - `module/data/complete-rules.json` parses.
-- All 35 `.js`/`.mjs` files pass `node --check`.
+- All 45 `.js`/`.mjs` files pass `node --check`.
 - Relative ES module import targets exist.
 - Referenced ApplicationV2/sheet templates exist.
 - Actor and Item data models registered in `part-time-gods.js` match the `system.json` document types.
 - Premade source data imports with a Foundry/fetch stub:
   - 40 character-creation Choice Items
   - 647 premade Items
-  - 53 premade Actors
+  - 62 premade Actors, including 9 optional Backers' Pregens character Actors
   - 86 RollTables
   - 1 Scene
   - 9 rules-reference Journals with 48 pages

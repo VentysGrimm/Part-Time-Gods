@@ -9,6 +9,7 @@ This summary records the first playable Foundry VTT v14 pass for Part-Time Gods 
 - `module/data/complete-rules.json`: source-derived rules journal payload generated from `Part-Time Gods 2e (Updated).pdf`, including page and PDF-page references.
 - `module/data/premade-choices.mjs`: source-referenced occupations, archetypes, dominions, theologies, career options, grants, blessings, curses, and attachment data.
 - `module/data/premade-items.mjs`: source-referenced truths, relics, worshippers, vassals, bonds, curses, gear, and choice-derived boons.
+- `module/data/premade-character-actors.mjs`: optional Backers' Pregens character Actors with source-backed stats and embedded owned Items.
 - `module/data/premade-journals.mjs`: rules-reference journal structure and complete-rules import path.
 - `module/data/premade-scenes.mjs`: source-referenced territory grid scene seed.
 - `module/documents/models/actor/*.mjs`: character, antagonist, and pantheon data models.
@@ -37,6 +38,7 @@ This summary records the first playable Foundry VTT v14 pass for Part-Time Gods 
 - Vassals use task cards with Strain, risk, statblock pool rolls, current task/risk fields, request logs, and scene-drop actor generation.
 - Ritual and Otherworld Travel `power` Items execute their `automation.roll` metadata on use. Rituals roll Skill + Manifestation from the source-backed Item definition; Ways travel stages roll Skill + Skill, spend listed costs, and post workflow results.
 - Opposition statblocks are converted into the `opposition-actors` compendium. Source-backed Outsider Vassal Items embed antagonist actor templates with threshold, health, psyche, armor, fragments, attack, defense, initiative, damage, skills, powers, condition handling, source page, and power hooks.
+- Backers' Pregens are converted into optional `character` Actors in the `opposition-actors` compendium, grouped under `Backers' Pregens`, with embedded Truth, Relic, Bond, Worshipper, Vassal, Blessing, and Curse Items where present.
 - Public compendium content remains curated summaries, metadata, and workflow text rather than a raw one-page-per-source-page dump.
 
 ## Recommended Build Order
@@ -44,8 +46,8 @@ This summary records the first playable Foundry VTT v14 pass for Part-Time Gods 
 1. Keep the existing playable foundation stable: manifest, data models, actor/item sheets, dice engine, and compendium seeds.
 2. Keep Conditions as Item documents and expand only rule-specific roll metadata when a source entry clearly maps to numeric automation.
 3. Expand item-use automation one safe item family at a time, starting with Blessings, Curses, Truths, and Relics whose effects can be mapped without table-specific judgment.
-4. Add downtime, attachment trick, sourcing-player, and Pantheon Pool helpers as the next workflow layer.
-5. Treat Backers' pregens and PDF tail references as optional content, not core load blockers.
+4. Use the shipped Pantheon Pool and Story Workflow helpers for shared dice, attachment tricks, downtime/job fallout, territory hooks, and player-sourcing prompts.
+5. Treat PDF tail references as optional content, not core load blockers; Backers' Pregens now ship as optional character Actors.
 
 ## Foundry VTT v14 Compatibility Notes
 

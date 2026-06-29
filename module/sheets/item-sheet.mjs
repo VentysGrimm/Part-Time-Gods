@@ -4,10 +4,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 export class PTGItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static DEFAULT_OPTIONS = {
     classes: ["part-time-gods", "sheet", "item"],
-    position: {
-      width: 720,
-      height: 760
-    },
+    position: fitSheetPosition(720, 760, { minWidth: 360, minHeight: 360 }),
     window: {
       title: "PTG.Sheet.ItemSheet",
       resizable: true
@@ -30,4 +27,18 @@ export class PTGItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
     return context;
   }
+}
+
+function fitSheetPosition(width, height, { minWidth = 360, minHeight = 320, marginX = 64, marginY = 120 } = {}) {
+  const viewportWidth = Number(globalThis.window?.innerWidth ?? width);
+  const viewportHeight = Number(globalThis.window?.innerHeight ?? height);
+  const minFitWidth = Math.min(minWidth, Math.max(240, viewportWidth - 16));
+  const minFitHeight = Math.min(minHeight, Math.max(240, viewportHeight - 16));
+  const availableWidth = Math.max(minFitWidth, viewportWidth - marginX);
+  const availableHeight = Math.max(minFitHeight, viewportHeight - marginY);
+
+  return {
+    width: Math.min(width, availableWidth),
+    height: Math.min(height, availableHeight)
+  };
 }

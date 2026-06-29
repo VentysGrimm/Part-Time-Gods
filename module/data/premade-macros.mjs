@@ -88,6 +88,24 @@ await api.openPantheonPoolDialog({ pantheon, actingActor: actor?.type === "chara
 `
   }),
   toolMacro({
+    name: "PTG: Story Workflow",
+    slug: "story-workflow",
+    img: "icons/svg/book.svg",
+    summary: "Open the source-backed attachment, downtime, territory, and player-sourcing workflow.",
+    command: `
+const api = game.partTimeGods;
+if (!api?.openPTGStoryWorkflow) {
+  ui.notifications.error("Part-Time Gods story workflow API is not available.");
+  return;
+}
+const actor = canvas?.tokens?.controlled?.[0]?.actor ?? game.user?.character ?? null;
+const pantheon = actor?.type === "pantheon"
+  ? actor
+  : game.actors?.find(candidate => candidate.type === "pantheon" && (game.user?.isGM || candidate.isOwner || candidate.visible !== false)) ?? null;
+await api.openPTGStoryWorkflow({ pantheon, actingActor: actor?.type === "character" ? actor : null });
+`
+  }),
+  toolMacro({
     name: "PTG: Opposition Builder",
     slug: "opposition-builder",
     img: "icons/svg/mystery-man.svg",

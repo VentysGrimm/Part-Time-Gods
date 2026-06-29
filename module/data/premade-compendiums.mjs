@@ -294,6 +294,7 @@ const itemFolderLabels = {
 };
 
 const actorFolderLabels = {
+  "Backers' Pregens": "Backers' Pregens",
   Animals: "Animals",
   Mortals: "Mortals",
   "The Touched": "The Touched",

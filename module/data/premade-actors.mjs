@@ -1,3 +1,5 @@
+import { PTG_PREMADE_CHARACTER_ACTORS } from "./premade-character-actors.mjs";
+
 const SYSTEM_ID = "part-time-gods";
 
 function antagonist(name, category, sourcePage, system) {
@@ -263,6 +265,7 @@ const CUSTOM_ANTAGONIST_BANDS = {
 };
 
 export const PTG_PREMADE_ACTORS = [
+  ...PTG_PREMADE_CHARACTER_ACTORS,
   antagonist("Animal Swarm", "Animals", 219, {
     rank: "Legion",
     threat: 3,
