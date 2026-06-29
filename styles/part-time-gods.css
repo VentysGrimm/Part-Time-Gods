@@ -618,9 +618,113 @@
   width: min(680px, 100%);
 }
 
+.ptg-sheet-dialog .window-content,
+.ptg-sheet-dialog .dialog-content,
+.ptg-sheet-dialog [data-application-part="form"] {
+  min-height: 0;
+  overflow: hidden;
+  background: #f4f0e8;
+  color: #1f1a24;
+}
+
+.ptg-sheet-dialog .window-content > form,
+.ptg-sheet-dialog [data-application-part="form"] {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ptg-dialog-body {
+  display: grid;
+  gap: 10px;
+  width: min(680px, 100%);
+  max-width: 100%;
+  max-height: min(70vh, 640px);
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+  box-sizing: border-box;
+  background: #f4f0e8;
+  color: #1f1a24;
+}
+
+.ptg-dialog-row,
+.ptg-dialog-card,
+.ptg-dialog-body .form-group,
+.ptg-dialog-body .ptg-xp-summary,
+.ptg-dialog-body .ptg-xp-purchase-row {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid rgba(91, 44, 131, 0.35);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.ptg-dialog-row {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+.ptg-dialog-label,
+.ptg-dialog-body label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: #1f1a24;
+  font-weight: 700;
+}
+
+.ptg-dialog-help,
+.ptg-dialog-body .hint,
+.ptg-dialog-body .ptg-sheet-note {
+  margin: 0;
+  color: #1f1a24;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.ptg-sheet-dialog :where(input:not([type="checkbox"]), select, textarea) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid rgba(91, 44, 131, 0.45);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #111111;
+}
+
+.ptg-sheet-dialog input[type="checkbox"] {
+  accent-color: #5b2c83;
+}
+
+.ptg-sheet-dialog .dialog-buttons button,
+.ptg-sheet-dialog .dialog-button,
+.ptg-dialog-body button {
+  min-height: 2.25rem;
+  height: auto;
+  max-width: 100%;
+  border: 1px solid #3d1f5d;
+  border-radius: 4px;
+  background: #5b2c83;
+  color: #ffffff;
+  font-weight: 800;
+  line-height: 1.15;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 :is(.application, .app, .window-app):has(.ptg-territory-dialog) .window-content,
 :is(.application, .app, .window-app):has(.ptg-combat-dialog) .window-content,
 :is(.application, .app, .window-app):has(.ptg-roll-dialog) .window-content,
+:is(.application, .app, .window-app):has(.ptg-dialog-body) .window-content,
 :is(.application, .app, .window-app):has(.ptg-advancement-dialog) .window-content,
 :is(.application, .app, .window-app):has(.ptg-condition-apply-dialog) .window-content,
 :is(.application, .app, .window-app):has(.ptg-damage-apply-dialog) .window-content,
@@ -633,6 +737,7 @@
 :is(.application, .app, .window-app):has(.ptg-territory-dialog) .window-content > form,
 :is(.application, .app, .window-app):has(.ptg-combat-dialog) .window-content > form,
 :is(.application, .app, .window-app):has(.ptg-roll-dialog) .window-content > form,
+:is(.application, .app, .window-app):has(.ptg-dialog-body) .window-content > form,
 :is(.application, .app, .window-app):has(.ptg-advancement-dialog) .window-content > form,
 :is(.application, .app, .window-app):has(.ptg-condition-apply-dialog) .window-content > form,
 :is(.application, .app, .window-app):has(.ptg-damage-apply-dialog) .window-content > form,
@@ -1514,6 +1619,7 @@
 .ptg-territory-dialog :where(input, select, textarea, option, button, label, legend, span, strong, small, em, p, li, th, td, h1, h2, h3),
 .ptg-combat-dialog :where(input, select, textarea, option, button, label, legend, span, strong, small, em, p, li, th, td, h1, h2, h3),
 .ptg-roll-dialog :where(input, select, textarea, option, button, label, legend, span, strong, small, em, p, li, th, td, h1, h2, h3),
+.ptg-dialog-body :where(input, select, textarea, option, button, label, legend, span, strong, small, em, p, li, th, td, h1, h2, h3),
 .ptg-advancement-dialog :where(input, select, textarea, option, button, label, legend, span, strong, small, em, p, li, th, td, h1, h2, h3),
 .ptg-condition-apply-dialog :where(input, select, textarea, option, button, label, legend, span, strong, small, em, p, li, th, td, h1, h2, h3),
 .ptg-damage-apply-dialog :where(input, select, textarea, option, button, label, legend, span, strong, small, em, p, li, th, td, h1, h2, h3),

@@ -4,6 +4,7 @@ import { openPantheonPoolDialog, pantheonPoolMax, pantheonPoolOptions, spendPant
 import { generateRandomGod } from "../util/random-god-generator.mjs";
 
 const SYSTEM_ID = "part-time-gods";
+const PTG_DIALOG_CLASSES = ["part-time-gods", "ptg-sheet-dialog"];
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -338,7 +339,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     const xpAvailable = Math.max(0, xpGained - xpSpent);
 
     const content = `
-      <div class="ptg-advancement-dialog ptg-xp-dialog">
+      <div class="ptg-dialog-body ptg-advancement-dialog ptg-xp-dialog ptg-spend-xp-body">
         <div class="ptg-xp-summary">
           <span>Total XP: ${xpGained}</span>
           <span>Spent XP: ${xpSpent}</span>
@@ -355,6 +356,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     const purchase = await DialogV2.prompt({
       window: { title: `${this.actor.name}: Spend XP`, resizable: true },
+      classes: ptgDialogClasses("ptg-spend-xp-dialog"),
       content,
       rejectClose: false,
       modal: true,
@@ -421,7 +423,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     const resources = this.actor.system.resources ?? {};
     const xpGained = Number(resources.xpGained ?? 0);
     const content = `
-      <div class="ptg-advancement-dialog">
+      <div class="ptg-dialog-body ptg-advancement-dialog ptg-award-xp-body">
         <p class="ptg-sheet-note">After a Session usually awards about 3-5 XP. After a Story usually adds 1-5 XP.</p>
         <div class="form-group">
           <label>Award Type</label>
@@ -444,6 +446,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     const award = await DialogV2.prompt({
       window: { title: `${this.actor.name}: Award XP` },
+      classes: ptgDialogClasses("ptg-award-xp-dialog"),
       content,
       rejectClose: false,
       modal: true,
@@ -492,7 +495,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       ? Number(resources.occupationWealth ?? 0)
       : defaultMode === "wealth" ? 1 : 0;
     const content = `
-      <div class="ptg-advancement-dialog">
+      <div class="ptg-dialog-body ptg-advancement-dialog ptg-resource-workflow-body">
         <div class="form-group">
           <label>Action</label>
           <select name="action">
@@ -595,7 +598,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       .map(actor => `<option value="${escapeHTML(actor.uuid)}">${escapeHTML(actor.name)}</option>`)
       .join("");
     const content = `
-      <div class="ptg-advancement-dialog">
+      <div class="ptg-dialog-body ptg-advancement-dialog ptg-spark-advancement-body">
         <div class="form-group">
           <label>Workflow</label>
           <select name="action">
@@ -777,6 +780,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     const advancement = await DialogV2.prompt({
       window: { title: `${this.actor.name}: Spark Advancement` },
+      classes: ptgDialogClasses("ptg-spark-advancement-dialog"),
       content,
       rejectClose: false,
       modal: true,
@@ -1120,17 +1124,35 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       return null;
     }
 
-    const [item] = await this.actor.createEmbeddedDocuments("Item", [{
-      name: `New ${itemTypeLabel(type)}`,
-      type,
-      img: defaultItemImage(type),
-      flags: canonicalSheetItemFlags("manual-create", type, {
-        canonicalId: `manual-create:${slugify(type)}:${Date.now().toString(36)}`
-      })
-    }]);
+    const itemData = ["bond", "relic", "worshipper", "vassal"].includes(type)
+      ? await this.#promptOwnedItemCreation(type)
+      : manualOwnedItemData(type);
+
+    if (!itemData) return null;
+
+    const [item] = await this.actor.createEmbeddedDocuments("Item", [itemData]);
 
     item.sheet.render({ force: true });
     return item;
+  }
+
+  async #promptOwnedItemCreation(type) {
+    const label = itemTypeLabel(type);
+    const content = ownedItemCreationContent(type, label);
+
+    const creation = await DialogV2.prompt({
+      window: { title: `${this.actor.name}: Add ${label}`, resizable: true },
+      classes: ptgDialogClasses("ptg-item-create-dialog", `ptg-${type}-create-dialog`),
+      content,
+      rejectClose: false,
+      modal: true,
+      ok: {
+        label: `Create ${label}`,
+        callback: (event, button) => collectOwnedItemCreation(button.form, type, label)
+      }
+    });
+
+    return creation ? manualOwnedItemData(type, creation) : null;
   }
 
   async #openCharacterCreator() {
@@ -2414,8 +2436,163 @@ function defaultItemImage(type) {
   return {
     relic: "icons/commodities/treasure/token-gold-gem-purple.webp",
     truth: "icons/sundries/documents/document-symbol-circle-gold.webp",
-    bond: "icons/svg/linked.svg"
+    bond: "icons/svg/linked.svg",
+    worshipper: "icons/svg/temple.svg",
+    vassal: "icons/svg/mystery-man.svg"
   }[type] ?? "icons/svg/item-bag.svg";
+}
+
+function ptgDialogClasses(...classes) {
+  return [...PTG_DIALOG_CLASSES, ...classes];
+}
+
+function manualOwnedItemData(type, { name = "", system = {} } = {}) {
+  const itemName = name || `New ${itemTypeLabel(type)}`;
+  return {
+    name: itemName,
+    type,
+    img: defaultItemImage(type),
+    system,
+    flags: canonicalSheetItemFlags("manual-create", type, {
+      canonicalId: `manual-create:${slugify(type)}:${slugify(itemName)}:${Date.now().toString(36)}`
+    })
+  };
+}
+
+function ownedItemCreationContent(type, label) {
+  const typeFields = {
+    bond: `
+      <div class="ptg-dialog-row">
+        <label>
+          <span>Bond Type</span>
+          <select name="kind">
+            <option value="individual">Individual</option>
+            <option value="group">Group</option>
+            <option value="landmark">Landmark</option>
+          </select>
+        </label>
+        <label>
+          <span>Level</span>
+          <input type="number" name="level" value="1" min="1" max="5">
+        </label>
+      </div>
+      <div class="ptg-dialog-row">
+        <label>
+          <span>Location</span>
+          <input type="text" name="location" placeholder="Home, work, neighborhood, or landmark">
+        </label>
+      </div>
+      <label class="ptg-dialog-label">
+        <span>Definition</span>
+        <textarea name="description" rows="4" placeholder="Who or what this Bond is, and why it matters."></textarea>
+      </label>
+    `,
+    relic: `
+      <div class="ptg-dialog-row">
+        <label>
+          <span>Level</span>
+          <input type="number" name="level" value="1" min="1" max="5">
+        </label>
+        <label>
+          <span>Bonus</span>
+          <input type="text" name="bonus" placeholder="+1 to a narrow action, or narrative benefit">
+        </label>
+      </div>
+      <label class="ptg-dialog-label">
+        <span>Description</span>
+        <textarea name="description" rows="4" placeholder="What the Relic is and how it is used."></textarea>
+      </label>
+    `,
+    worshipper: `
+      <div class="ptg-dialog-row">
+        <label>
+          <span>Level</span>
+          <input type="number" name="level" value="1" min="1" max="5">
+        </label>
+        <label>
+          <span>Size</span>
+          <input type="text" name="size" placeholder="Small group, cult, congregation">
+        </label>
+      </div>
+      <label class="ptg-dialog-label">
+        <span>Group</span>
+        <input type="text" name="group" placeholder="Who worships this god?">
+      </label>
+      <label class="ptg-dialog-label">
+        <span>Notes</span>
+        <textarea name="description" rows="4" placeholder="Requests, needs, current risk, or temple details."></textarea>
+      </label>
+    `,
+    vassal: `
+      <div class="ptg-dialog-row">
+        <label>
+          <span>Level</span>
+          <input type="number" name="level" value="1" min="1" max="5">
+        </label>
+        <label>
+          <span>Loyalty</span>
+          <input type="number" name="loyalty" value="1" min="0" max="10">
+        </label>
+      </div>
+      <label class="ptg-dialog-label">
+        <span>Concept</span>
+        <input type="text" name="concept" placeholder="What kind of servant or ally is this?">
+      </label>
+      <label class="ptg-dialog-label">
+        <span>Notes</span>
+        <textarea name="description" rows="4" placeholder="Origin, powers, current task, or risk."></textarea>
+      </label>
+    `
+  }[type] ?? "";
+
+  return `
+    <div class="ptg-dialog-body ptg-item-create-body">
+      <p class="ptg-dialog-help">Create a starting ${escapeHTML(label)} Item. You can edit the full Item sheet after creation.</p>
+      <label class="ptg-dialog-label">
+        <span>Name</span>
+        <input type="text" name="name" value="New ${escapeHTML(label)}" required>
+      </label>
+      ${typeFields}
+    </div>
+  `;
+}
+
+function collectOwnedItemCreation(form, type, label) {
+  const name = form.elements.name?.value?.trim() || `New ${label}`;
+  const level = clampInt(form.elements.level?.value, 1, 1, 10);
+  const descriptionText = form.elements.description?.value?.trim() ?? "";
+  const description = descriptionText ? `<p>${escapeHTML(descriptionText)}</p>` : "";
+  const system = {
+    level,
+    description,
+    notes: description
+  };
+
+  if (type === "bond") {
+    system.kind = form.elements.kind?.value ?? "individual";
+    system.location = form.elements.location?.value?.trim() ?? "";
+    system.definition = descriptionText;
+    system.strain = { value: 0, max: level };
+  } else if (type === "relic") {
+    system.bonus = form.elements.bonus?.value?.trim() ?? "";
+    system.effect = description;
+  } else if (type === "worshipper") {
+    system.group = form.elements.group?.value?.trim() || name;
+    system.size = form.elements.size?.value?.trim() ?? "";
+    system.strain = { value: 0, max: level };
+  } else if (type === "vassal") {
+    system.concept = form.elements.concept?.value?.trim() || name;
+    system.loyalty = clampInt(form.elements.loyalty?.value, 1, 0, 10);
+    system.strain = { value: 0, max: level };
+  }
+
+  return { name, system };
+}
+
+function clampInt(value, fallback, min, max) {
+  const number = Number.parseInt(value, 10);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.max(min, Math.min(max, number));
 }
 
 function skillPoolPreview(actor, primary, secondary, bonus, penalty, extra = {}) {
