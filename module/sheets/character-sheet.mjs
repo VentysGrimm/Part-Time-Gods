@@ -131,6 +131,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     const sectionType = event.target.closest("[data-item-drop-type]")?.dataset.itemDropType ?? "";
 
     if (!item) return false;
+    if (item.type === "attachment") return this.#createAttachmentOfChoiceFromDrop(item);
+
     if (sectionType && item.type !== sectionType) {
       ui.notifications.warn(`Drop a ${itemTypeLabel(sectionType)} item in this section.`);
       return false;
@@ -148,6 +150,21 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       if (!applied) await created.delete();
     }
 
+    return false;
+  }
+
+  async #createAttachmentOfChoiceFromDrop(sourceItem) {
+    if (this.actor.type !== "character") {
+      ui.notifications.warn("Drop Attachment of Choice Items onto a character Actor sheet.");
+      return false;
+    }
+
+    const selection = await promptAttachmentOfChoice(sourceItem);
+    if (!selection) return false;
+
+    const itemData = attachmentOfChoiceItemData(sourceItem, selection);
+    await this.actor.createEmbeddedDocuments("Item", [itemData]);
+    this.render(false);
     return false;
   }
 
@@ -2587,6 +2604,178 @@ function collectOwnedItemCreation(form, type, label) {
   }
 
   return { name, system };
+}
+
+async function promptAttachmentOfChoice(sourceItem) {
+  const level = attachmentChoiceLevel(sourceItem);
+  const content = `
+    <div class="ptg-dialog-body ptg-attachment-choice-body">
+      <p class="ptg-dialog-help">${escapeHTML(sourceItem.name)} grants an Attachment of Choice at Level ${level}. Choose the concrete attachment to create.</p>
+      <div class="ptg-dialog-row">
+        <label>
+          <span>Attachment Type</span>
+          <select name="kind">
+            <option value="individual">Individual Bond</option>
+            <option value="group">Group Bond</option>
+            <option value="landmark">Landmark Bond</option>
+            <option value="relic">Relic</option>
+            <option value="truth">Truth</option>
+            <option value="vassal">Vassal</option>
+            <option value="worshipper">Worshipper</option>
+          </select>
+        </label>
+        <label>
+          <span>Level / Value</span>
+          <input type="number" name="level" value="${level}" readonly>
+        </label>
+      </div>
+      <label class="ptg-dialog-label">
+        <span>Name</span>
+        <input type="text" name="name" placeholder="Leave blank to use the chosen attachment type">
+      </label>
+      <label class="ptg-dialog-label">
+        <span>Definition</span>
+        <textarea name="definition" rows="4" placeholder="Who, what, or where this attachment is in the fiction."></textarea>
+      </label>
+    </div>
+  `;
+
+  return DialogV2.prompt({
+    window: { title: "Choose Attachment Type", resizable: true },
+    classes: ptgDialogClasses("ptg-attachment-choice-dialog"),
+    content,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Create Attachment",
+      callback: (event, button) => ({
+        kind: button.form.elements.kind?.value ?? "individual",
+        name: button.form.elements.name?.value?.trim() ?? "",
+        definition: button.form.elements.definition?.value?.trim() ?? "",
+        level
+      })
+    }
+  });
+}
+
+function attachmentOfChoiceItemData(sourceItem, selection) {
+  const kind = selection.kind ?? "individual";
+  const type = attachmentChoiceDocumentType(kind);
+  const level = Math.max(1, Number(selection.level ?? attachmentChoiceLevel(sourceItem)));
+  const kindLabel = attachmentChoiceKindLabel(kind);
+  const definition = String(selection.definition ?? "").trim();
+  const itemName = selection.name || definition || `${kindLabel} (${sourceItem.name})`;
+  const sourceSystem = sourceItem.system ?? {};
+  const sourceRules = sourceSystem.rules ?? {};
+  const sourceSummary = sourceSystem.summary || sourceRules.summary || `${sourceItem.name} grants ${kindLabel} at Level ${level}.`;
+  const sourceText = sourceSystem.description || sourceSystem.benefit || sourceRules.fullText || sourceSystem.relatedBonus || "";
+  const definitionText = definition ? `<p>Definition: ${escapeHTML(definition)}.</p>` : "";
+  const description = `
+    <p>${escapeHTML(sourceSummary)}</p>
+    ${definitionText}
+    ${sourceText}
+  `;
+  const common = {
+    level,
+    choiceSource: sourceSystem.choiceSource || sourceItem.name,
+    choiceKind: kind,
+    choiceLabel: sourceSystem.choiceLabel || sourceSystem.choice || sourceItem.name,
+    definition,
+    summary: sourceSummary,
+    relatedBonus: sourceSystem.relatedBonus || "",
+    relatedDetriment: sourceSystem.relatedDetriment || "",
+    sourcePage: sourceSystem.sourcePage ?? sourceRules.source?.page ?? null,
+    description,
+    notes: sourceSystem.notes || "",
+    rules: {
+      ...sourceRules,
+      summary: sourceSummary,
+      fullText: description,
+      source: {
+        ...(sourceRules.source ?? {}),
+        type
+      }
+    },
+    usage: defaultOwnedItemUsage(type === "truth" || type === "relic" ? "active" : "narrative"),
+    automation: defaultOwnedItemAutomation()
+  };
+  const strain = { value: 0, max: level };
+  const data = {
+    name: itemName,
+    type,
+    img: defaultItemImage(type),
+    system: common,
+    flags: canonicalSheetItemFlags("attachment-choice-drop", type, {
+      canonicalId: `attachment-choice:${slugify(sourceItem.name)}:${slugify(kind)}:${Date.now().toString(36)}`,
+      sourceItemUuid: sourceItem.uuid ?? "",
+      sourceItemName: sourceItem.name,
+      selectedAttachmentKind: kind
+    })
+  };
+
+  if (type === "bond") {
+    data.system.kind = kind;
+    data.system.location = kind === "landmark" ? definition : "";
+    data.system.strain = strain;
+  } else if (type === "relic") {
+    data.system.cost = level;
+    data.system.bonus = "";
+    data.system.benefit = description;
+    data.system.effect = description;
+  } else if (type === "truth") {
+    data.system.statement = definition || itemName;
+    data.system.rank = level;
+    data.system.cost = level;
+    data.system.fragmentCost = 0;
+    data.system.activation = "Passive";
+    data.system.benefit = description;
+    data.system.effect = description;
+  } else if (type === "worshipper") {
+    data.system.cost = level;
+    data.system.strain = strain;
+    data.system.group = definition || itemName;
+    data.system.size = "";
+    data.system.requestType = "";
+    data.system.currentRisk = "";
+    data.system.riskNotes = "";
+    data.system.requestLog = [];
+    data.system.benefit = description;
+  } else if (type === "vassal") {
+    data.system.cost = level;
+    data.system.strain = strain;
+    data.system.concept = definition || itemName;
+    data.system.loyalty = 0;
+    data.system.sourceActorName = "";
+    data.system.sourceActorCategory = "";
+    data.system.actorTemplate = {};
+    data.system.powerHooks = [];
+    data.system.benefit = description;
+  }
+
+  return data;
+}
+
+function attachmentChoiceLevel(sourceItem) {
+  const system = sourceItem.system ?? {};
+  return Math.max(1, Number(system.level ?? system.cost ?? system.value ?? system.rank ?? 1));
+}
+
+function attachmentChoiceDocumentType(kind) {
+  if (["individual", "group", "landmark"].includes(kind)) return "bond";
+  if (["relic", "truth", "vassal", "worshipper"].includes(kind)) return kind;
+  return "bond";
+}
+
+function attachmentChoiceKindLabel(kind) {
+  return {
+    individual: "Individual Bond",
+    group: "Group Bond",
+    landmark: "Landmark Bond",
+    relic: "Relic",
+    truth: "Truth",
+    vassal: "Vassal",
+    worshipper: "Worshipper"
+  }[kind] ?? labelCase(kind);
 }
 
 function clampInt(value, fallback, min, max) {
