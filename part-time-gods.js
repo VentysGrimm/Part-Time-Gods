@@ -46,6 +46,7 @@ import {
   registerTerritoryGridControls,
   setTerritoryGrid
 } from "./module/apps/territory-grid-app.mjs";
+import { openGMSetupPanel, openRulesReference } from "./module/apps/gm-setup-panel.mjs";
 import { openPantheonPoolDialog } from "./module/workflows/pantheon-pool-workflow.mjs";
 import { openPTGStoryWorkflow } from "./module/workflows/story-workflow.mjs";
 import { organizePTGCompendiumFolders, registerPTGMigrationSettings, runPTGMigrations } from "./module/migration/ptg-migrations.mjs";
@@ -79,6 +80,8 @@ Hooks.once("init", async () => {
     clearTerritoryGrid,
     calculateTerritoryInfluence,
     buildTerritoryGridCells,
+    openGMSetupPanel,
+    openRulesReference,
     openPTGCombatControls,
     openMortalDivineBalanceTracker,
     openPantheonPoolDialog,
@@ -100,6 +103,10 @@ Hooks.once("init", async () => {
     calculateInfluence: calculateTerritoryInfluence,
     buildCells: buildTerritoryGridCells,
     legacyControls: openTerritoryControls
+  };
+  game.ptg.setup = {
+    open: openGMSetupPanel,
+    rulesReference: openRulesReference
   };
 
   registerPTGCombatHooks();
@@ -190,7 +197,8 @@ Hooks.once("init", async () => {
     "systems/part-time-gods/templates/actor/parts/item-list.hbs",
     "systems/part-time-gods/templates/chat/item-use-card.hbs",
     "systems/part-time-gods/templates/apps/mortal-divine-tracker.hbs",
-    "systems/part-time-gods/templates/apps/territory-grid-app.hbs"
+    "systems/part-time-gods/templates/apps/territory-grid-app.hbs",
+    "systems/part-time-gods/templates/apps/gm-setup-panel.hbs"
   ]);
 });
 

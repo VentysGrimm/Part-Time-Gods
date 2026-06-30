@@ -1,0 +1,30 @@
+<section class="ptg-gm-setup-panel">
+  <header class="ptg-gm-setup-header">
+    <div>
+      <h1>PTG Setup</h1>
+      <span>{{userRole}}</span>
+    </div>
+    {{#unless isGM}}
+      <strong>GM actions disabled</strong>
+    {{/unless}}
+  </header>
+
+  <section class="ptg-gm-setup-groups">
+    {{#each groups as |group|}}
+      <section class="ptg-gm-setup-group">
+        <header>
+          <h2>{{group.label}}</h2>
+        </header>
+        <div class="ptg-gm-setup-actions">
+          {{#each group.actions as |action|}}
+            <button type="button" data-setup-action="{{action.key}}" title="{{action.label}}" {{#if action.disabled}}disabled{{/if}}>
+              <i class="{{action.icon}}"></i>
+              <span>{{action.label}}</span>
+              {{#if action.gmOnly}}<small>GM</small>{{/if}}
+            </button>
+          {{/each}}
+        </div>
+      </section>
+    {{/each}}
+  </section>
+</section>
