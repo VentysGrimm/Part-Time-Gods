@@ -7,7 +7,7 @@
   "scripts": {
     "check": "node scripts/check-syntax.mjs",
     "validate": "node scripts/validate-release.mjs",
-    "test": "node scripts/smoke-test.mjs",
+    "test": "node scripts/run-tests.mjs",
     "zip": "node scripts/build-release-zip.mjs",
     "release": "npm run check && npm run validate && npm test && npm run zip"
   },
