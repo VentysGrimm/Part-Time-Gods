@@ -105,12 +105,34 @@ async function validatePremadeSourceData() {
   const weakItems = weakItemExplanations(documents.items);
   if (weakItems.length) errors.push(`Weak premade Item explanations:\n${weakItems.map(key => `- ${key}`).join("\n")}`);
 
+  const rulesAudit = rulesJournalTextAudit(journalDocuments);
+  if (rulesAudit.missingSafeSummary.length) {
+    errors.push(`Rules reference pages missing safeSummary flags:\n${rulesAudit.missingSafeSummary.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (rulesAudit.totalWords > 12000 || rulesAudit.largestPageWords > 900) {
+    errors.push(`Rules reference text is too large for release-safe summaries: totalWords=${rulesAudit.totalWords}, largestPageWords=${rulesAudit.largestPageWords}`);
+  }
+
   const importFacingMacros = documents.macros
     .filter(macro => /\bimport\b|populate compendiums/i.test(`${macro.name} ${macro.command} ${macro.flags?.[SYSTEM_ID]?.summary ?? ""}`))
     .map(macro => macro.name);
   if (importFacingMacros.length) errors.push(`Import-facing macros should stay workflow-only: ${importFacingMacros.join(", ")}`);
 
   return { summary };
+}
+
+function rulesJournalTextAudit(journals) {
+  const pages = journals.flatMap(journal => (journal.pages ?? []).map(page => ({ journal, page })));
+  const missingSafeSummary = pages
+    .filter(({ page }) => !page.flags?.[SYSTEM_ID]?.safeSummary)
+    .map(({ journal, page }) => `${journal.name}:${page.name}`);
+  const wordCounts = pages.map(({ page }) => plainWordCount(page.text?.content ?? ""));
+
+  return {
+    totalWords: wordCounts.reduce((total, count) => total + count, 0),
+    largestPageWords: wordCounts.length ? Math.max(...wordCounts) : 0,
+    missingSafeSummary
+  };
 }
 
 function hasStableSourceKey(document) {
@@ -147,6 +169,16 @@ function plainTextLength(...values) {
     .replace(/\s+/g, " ")
     .trim()
     .length;
+}
+
+function plainWordCount(...values) {
+  const text = values
+    .filter(Boolean)
+    .join(" ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text ? text.split(/\s+/).length : 0;
 }
 
 async function importModule(relativePath) {

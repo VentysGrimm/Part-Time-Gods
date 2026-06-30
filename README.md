@@ -2,6 +2,8 @@
 
 A Foundry VTT system for Part-Time Gods Second Edition.
 
+This package is a play aid and does not replace the Part-Time Gods Second Edition rulebook. Users should own or otherwise have lawful access to the rulebook and any source material needed for play.
+
 ## Development
 
 This system is intended to live in Foundry's `Data/systems/part-time-gods` directory.
@@ -42,5 +44,6 @@ See `docs/issue-35-implementation-summary.md` for the current source-backed Foun
 Additional release and source notes:
 
 - `docs/compendium-source-pipeline.md`
+- `docs/legal-release-audit.md`
 - `CHANGELOG.md`
 - `ATTRIBUTION.md`

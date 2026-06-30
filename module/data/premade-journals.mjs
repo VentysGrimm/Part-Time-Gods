@@ -60,7 +60,9 @@ function normalizeRulesPage(entry, index) {
   if (!entry?.name || !entry.text?.content) return null;
 
   const systemFlags = entry.flags?.[SYSTEM_ID] ?? {};
-  const sourcePages = extractBookPages(entry.text.content);
+  const sourcePages = normalizeSourcePages(systemFlags.sourcePages).length
+    ? normalizeSourcePages(systemFlags.sourcePages)
+    : extractBookPages(entry.text.content);
   const ruleTopic = systemFlags.ruleTopic ?? slugify(entry.name);
   const slug = systemFlags.slug ?? ruleTopic;
 
@@ -174,6 +176,12 @@ function normalizeHeadingLevels(content) {
 function extractBookPages(content) {
   return Array.from(new Set(
     [...String(content ?? "").matchAll(/data-book-page="(\d+)"/g)].map(match => Number(match[1]))
+  )).sort((a, b) => a - b);
+}
+
+function normalizeSourcePages(pages) {
+  return Array.from(new Set(
+    (Array.isArray(pages) ? pages : []).map(page => Number(page)).filter(page => Number.isInteger(page) && page > 0)
   )).sort((a, b) => a - b);
 }
 
