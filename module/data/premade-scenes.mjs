@@ -22,7 +22,8 @@ export function getPremadeScenes() {
 export function getGodTerritorySceneData({
   authorId = getAuthorId(),
   name = TERRITORY_SCENE_NAME,
-  territoryData = createTerritoryData()
+  territoryData = createTerritoryData(),
+  territoryGrid = createTerritoryGridData()
 } = {}) {
   const slug = slugify(name);
 
@@ -61,7 +62,8 @@ export function getGodTerritorySceneData({
         columns: PLAY_GRID_SIZE,
         rows: PLAY_GRID_SIZE,
         labelBandSize: LABEL_BAND_SIZE,
-        territory: territoryData
+        territory: territoryData,
+        territoryGrid
       }
     }
   };
@@ -87,9 +89,11 @@ export async function importGodTerritoryScene({ notify = true, activate = false 
 
   if (existing) {
     const existingTerritoryData = existing.getFlag(SYSTEM_ID, "territory");
+    const existingTerritoryGrid = existing.getFlag(SYSTEM_ID, "territoryGrid");
     await updateExistingTerritoryScene(existing, getGodTerritorySceneData({
       authorId: game.user.id,
-      territoryData: mergeTerritoryData(existingTerritoryData)
+      territoryData: mergeTerritoryData(existingTerritoryData),
+      territoryGrid: mergeTerritoryGrid(existingTerritoryGrid)
     }));
     if (notify) ui.notifications.info("Updated the God Territory Grid Scene.");
     if (activate) await existing.activate();
@@ -164,6 +168,16 @@ function createTerritoryData() {
   };
 }
 
+function createTerritoryGridData() {
+  return {
+    version: TERRITORY_DATA_VERSION,
+    width: PLAY_GRID_SIZE,
+    height: PLAY_GRID_SIZE,
+    points: [],
+    updatedAt: ""
+  };
+}
+
 function mergeTerritoryData(existingData) {
   const territoryData = createTerritoryData();
   const existingCoordinates = existingData?.coordinates ?? {};
@@ -185,6 +199,20 @@ function mergeTerritoryData(existingData) {
     positions: existingData?.positions ?? {},
     movements: Array.isArray(existingData?.movements) ? existingData.movements : [],
     coordinates: territoryData.coordinates
+  };
+}
+
+function mergeTerritoryGrid(existingData) {
+  const territoryGrid = createTerritoryGridData();
+  const points = Array.isArray(existingData?.points) ? existingData.points : [];
+
+  return {
+    ...territoryGrid,
+    ...(existingData ?? {}),
+    version: TERRITORY_DATA_VERSION,
+    width: PLAY_GRID_SIZE,
+    height: PLAY_GRID_SIZE,
+    points
   };
 }
 

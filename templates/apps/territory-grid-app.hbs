@@ -1,0 +1,120 @@
+<section class="ptg-territory-grid-app">
+  <header class="ptg-territory-grid-header">
+    <label class="ptg-territory-scene-picker">
+      <span>Scene</span>
+      <select name="territorySceneUuid" data-territory-scene-select>
+        <option value="" {{#unless scene}}selected{{/unless}}>Active or first Territory scene</option>
+        {{#each sceneOptions as |option|}}
+          <option value="{{option.uuid}}" {{#if option.selected}}selected{{/if}}>{{option.name}}</option>
+        {{/each}}
+      </select>
+    </label>
+    <div class="ptg-territory-grid-actions">
+      {{#if isGM}}
+        <button type="button" data-action="create-scene" title="Create or update the God Territory Grid scene">
+          <i class="fas fa-map"></i>
+          <span>Scene</span>
+        </button>
+        <button type="button" data-action="import-attachments" title="Import character attachments into the grid" {{#unless hasScene}}disabled{{/unless}}>
+          <i class="fas fa-file-import"></i>
+          <span>Import</span>
+        </button>
+        <button type="button" data-action="clear-grid" title="Clear all stored Territory Grid points" {{#unless hasScene}}disabled{{/unless}}>
+          <i class="fas fa-trash"></i>
+          <span>Clear</span>
+        </button>
+      {{/if}}
+      <button type="button" data-action="refresh-grid" title="Refresh Territory Grid data">
+        <i class="fas fa-sync"></i>
+        <span>Refresh</span>
+      </button>
+    </div>
+  </header>
+
+  {{#if scene}}
+    <section class="ptg-territory-grid-summary">
+      <strong>{{scene.name}}</strong>
+      <span>{{pointCount}} points</span>
+      <span>{{bonusCellCount}} influenced cells</span>
+    </section>
+
+    <section class="ptg-territory-grid-body">
+      <div class="ptg-territory-grid-wrap">
+        <div class="ptg-territory-grid" aria-label="Territory Grid">
+          <span class="ptg-territory-axis ptg-territory-corner">#</span>
+          {{#each columns as |column|}}
+            <span class="ptg-territory-axis">{{column}}</span>
+          {{/each}}
+
+          {{#each rows as |row|}}
+            <span class="ptg-territory-axis">{{row.y}}</span>
+            {{#each row.cells as |cell|}}
+              <section class="ptg-territory-cell {{#if cell.hasPoints}}has-points{{/if}} {{#if cell.hasBonus}}has-bonus{{/if}}" data-coordinate="{{cell.key}}">
+                <header>
+                  <span>{{cell.label}}</span>
+                  {{#if cell.hasBonus}}
+                    <strong title="{{cell.bonusTitle}}">+{{cell.bonus}}</strong>
+                  {{/if}}
+                </header>
+
+                <div class="ptg-territory-cell-points">
+                  {{#each cell.points as |point|}}
+                    <article class="ptg-territory-point {{point.categoryClass}}">
+                      <button type="button" class="ptg-territory-point-main" data-action="edit-point" data-point-id="{{point.id}}" title="Edit {{point.name}}" {{#unless @root.isGM}}disabled{{/unless}}>
+                        <strong>{{point.name}}</strong>
+                        <small>{{point.categoryLabel}}{{#if point.level}} L{{point.level}}{{/if}}</small>
+                      </button>
+                      {{#if @root.isGM}}
+                        <button type="button" class="ptg-territory-point-delete" data-action="delete-point" data-point-id="{{point.id}}" title="Delete {{point.name}}">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      {{/if}}
+                    </article>
+                  {{/each}}
+                </div>
+
+                {{#if @root.isGM}}
+                  <button type="button" class="ptg-territory-cell-add" data-action="create-point" data-x="{{cell.x}}" data-y="{{cell.y}}" title="Add point at {{cell.label}}">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                {{/if}}
+              </section>
+            {{/each}}
+          {{/each}}
+        </div>
+      </div>
+
+      <aside class="ptg-territory-point-list">
+        <header>
+          <h2>Points</h2>
+        </header>
+        {{#if points.length}}
+          <ol>
+            {{#each points as |point|}}
+              <li class="{{point.categoryClass}}">
+                <button type="button" data-action="edit-point" data-point-id="{{point.id}}" title="Edit {{point.name}}" {{#unless @root.isGM}}disabled{{/unless}}>
+                  <strong>{{point.name}}</strong>
+                  <span>{{point.x}}-{{point.y}} - {{point.categoryLabel}}{{#if point.level}} - L{{point.level}}{{/if}}</span>
+                  {{#if point.owner}}<small>{{point.owner}}</small>{{/if}}
+                </button>
+              </li>
+            {{/each}}
+          </ol>
+        {{else}}
+          <p class="ptg-sheet-note">No Territory Grid points yet.</p>
+        {{/if}}
+      </aside>
+    </section>
+  {{else}}
+    <section class="ptg-territory-grid-empty">
+      <h2>Territory Grid</h2>
+      <p>Create or select the God Territory Grid scene to begin storing points.</p>
+      {{#if isGM}}
+        <button type="button" data-action="create-scene">
+          <i class="fas fa-map"></i>
+          <span>Create Scene</span>
+        </button>
+      {{/if}}
+    </section>
+  {{/if}}
+</section>

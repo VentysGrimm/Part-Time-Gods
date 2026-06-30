@@ -33,14 +33,16 @@ await api.importGodTerritoryScene({ activate: false });
     name: "PTG: Territory Controls",
     slug: "territory-controls",
     img: "icons/svg/target.svg",
-    summary: "Open the Territory Grid control dialog.",
+    summary: "Open the Territory Grid app.",
     command: `
+const territory = game.ptg?.territory;
 const api = game.partTimeGods;
-if (!api?.openTerritoryControls) {
-  ui.notifications.error("Part-Time Gods territory controls API is not available.");
+const open = territory?.open ?? api?.openTerritoryGridApp ?? api?.openTerritoryControls;
+if (!open) {
+  ui.notifications.error("Part-Time Gods Territory Grid API is not available.");
   return;
 }
-await api.openTerritoryControls();
+await open();
 `
   }),
   toolMacro({

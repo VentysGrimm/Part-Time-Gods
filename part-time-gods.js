@@ -36,6 +36,16 @@ import { getPremadeJournals } from "./module/data/premade-journals.mjs";
 import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
 import { openPTGCombatControls, registerPTGCombatHooks, rollPTGInitiative } from "./module/combat/ptg-combat.mjs";
 import { openMortalDivineBalanceTracker, registerMortalDivineTrackerSettings } from "./module/apps/mortal-divine-tracker.mjs";
+import {
+  buildTerritoryGridCells,
+  calculateTerritoryInfluence,
+  clearTerritoryGrid,
+  createOrOpenTerritoryGridScene,
+  getTerritoryGrid,
+  openTerritoryGridApp,
+  registerTerritoryGridControls,
+  setTerritoryGrid
+} from "./module/apps/territory-grid-app.mjs";
 import { openPantheonPoolDialog } from "./module/workflows/pantheon-pool-workflow.mjs";
 import { openPTGStoryWorkflow } from "./module/workflows/story-workflow.mjs";
 import { organizePTGCompendiumFolders, registerPTGMigrationSettings, runPTGMigrations } from "./module/migration/ptg-migrations.mjs";
@@ -62,6 +72,13 @@ Hooks.once("init", async () => {
     getGodTerritorySceneData,
     importGodTerritoryScene,
     openTerritoryControls,
+    openTerritoryGridApp,
+    createOrOpenTerritoryGridScene,
+    getTerritoryGrid,
+    setTerritoryGrid,
+    clearTerritoryGrid,
+    calculateTerritoryInfluence,
+    buildTerritoryGridCells,
     openPTGCombatControls,
     openMortalDivineBalanceTracker,
     openPantheonPoolDialog,
@@ -73,8 +90,20 @@ Hooks.once("init", async () => {
     openAntagonistBuilder,
     populatePremadeCompendiums
   };
+  game.ptg ??= {};
+  game.ptg.territory = {
+    open: openTerritoryGridApp,
+    createScene: createOrOpenTerritoryGridScene,
+    getGrid: getTerritoryGrid,
+    setGrid: setTerritoryGrid,
+    clearGrid: clearTerritoryGrid,
+    calculateInfluence: calculateTerritoryInfluence,
+    buildCells: buildTerritoryGridCells,
+    legacyControls: openTerritoryControls
+  };
 
   registerPTGCombatHooks();
+  registerTerritoryGridControls();
   registerPTGChatCardActions();
 
   CONFIG.PTG = config;
@@ -160,7 +189,8 @@ Hooks.once("init", async () => {
   await loadTemplates([
     "systems/part-time-gods/templates/actor/parts/item-list.hbs",
     "systems/part-time-gods/templates/chat/item-use-card.hbs",
-    "systems/part-time-gods/templates/apps/mortal-divine-tracker.hbs"
+    "systems/part-time-gods/templates/apps/mortal-divine-tracker.hbs",
+    "systems/part-time-gods/templates/apps/territory-grid-app.hbs"
   ]);
 });
 

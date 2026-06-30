@@ -1,6 +1,7 @@
 import { getDragEventData } from "../util/drop-data.mjs";
 import { openAntagonistBuilder } from "../data/premade-actors.mjs";
-import { importGodTerritoryScene, openTerritoryControls } from "../data/premade-scenes.mjs";
+import { importGodTerritoryScene } from "../data/premade-scenes.mjs";
+import { openTerritoryGridApp } from "../apps/territory-grid-app.mjs";
 import { openPTGCombatControls } from "../combat/ptg-combat.mjs";
 import { openMortalDivineBalanceTracker } from "../apps/mortal-divine-tracker.mjs";
 import { openPantheonPoolDialog } from "../workflows/pantheon-pool-workflow.mjs";
@@ -189,7 +190,7 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     if (tool === "territory-controls") {
       const scene = await this.#territoryScene();
-      return scene ? openTerritoryControls({ scene }) : openTerritoryControls();
+      return scene ? openTerritoryGridApp({ scene }) : openTerritoryGridApp();
     }
 
     ui.notifications.warn(`Unsupported Pantheon tool: ${tool}`);
