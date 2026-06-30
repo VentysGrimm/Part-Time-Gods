@@ -1,0 +1,17 @@
+{
+  "name": "part-time-gods",
+  "version": "0.0.2",
+  "private": true,
+  "type": "module",
+  "description": "Foundry VTT v14 system for Part-Time Gods Second Edition.",
+  "scripts": {
+    "check": "node scripts/check-syntax.mjs",
+    "validate": "node scripts/validate-release.mjs",
+    "test": "node scripts/smoke-test.mjs",
+    "zip": "node scripts/build-release-zip.mjs",
+    "release": "npm run check && npm run validate && npm test && npm run zip"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

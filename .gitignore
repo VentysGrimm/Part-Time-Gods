@@ -18,6 +18,7 @@ pnpm-debug.log*
 # Local scratch/export working files
 .repo-git-test/
 .codex-publish-test/
+dist/
 tmp/
 temp/
 

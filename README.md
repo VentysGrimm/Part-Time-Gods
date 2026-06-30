@@ -24,6 +24,9 @@ For installation steps, see `INSTALL.md`.
 
 ## Release Readiness Checklist
 
+- Check GitHub Actions CI for `npm run check` and `npm run validate` on `main` and pull requests.
+- Run `npm run check` and `npm run validate` from the system root.
+- Run `npm run release` to validate, smoke test, and create a runtime-safe release ZIP in `dist/`.
 - Run `.\scripts\validate-release.ps1` from the system root.
 - Run `node --check` against all `.js` and `.mjs` files after code changes.
 - Validate `system.json` paths for modules, styles, languages, packs, and Foundry v14 compatibility.
