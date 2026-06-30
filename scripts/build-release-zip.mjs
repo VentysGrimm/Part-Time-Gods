@@ -6,6 +6,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const system = JSON.parse(await fs.readFile(path.join(root, "system.json"), "utf8"));
 const distDir = path.join(root, "dist");
 const outPath = path.join(distDir, `${system.id}-${system.version}.zip`);
+const manifestOutPath = path.join(distDir, "system.json");
 const files = new Map();
 const CRC_TABLE = Array.from({ length: 256 }, (_, index) => {
   let value = index;
@@ -21,7 +22,9 @@ for (const pack of system.packs ?? []) await addDirectoryIfExists(pack.path);
 
 await fs.mkdir(distDir, { recursive: true });
 await fs.writeFile(outPath, createZip(files));
+await fs.copyFile(path.join(root, "system.json"), manifestOutPath);
 console.log(`Created ${path.relative(root, outPath)} with ${files.size} files.`);
+console.log(`Created ${path.relative(root, manifestOutPath)}.`);
 
 async function addDirectoryIfExists(relativePath) {
   if (!await pathExists(relativePath)) return;

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.2 - 2026-06-30
+
 - Added world migration support that converts legacy embedded actor text into canonical owned Items.
 - Added roll chat-card actions for opening actors/items, applying Conditions, and applying Health or Psyche damage.
 - Added user-facing character creation review and apply-choice previews before actor mutations.

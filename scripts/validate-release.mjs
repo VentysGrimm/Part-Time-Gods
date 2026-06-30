@@ -12,6 +12,7 @@ const system = await readJson("system.json");
 const errors = [];
 
 assertEqual(system.id, SYSTEM_ID, "system id");
+assertReleaseUrls(system);
 await assertFile("part-time-gods.js", "Main system entry point");
 await assertManifestAssets(system);
 
@@ -32,6 +33,19 @@ async function assertManifestAssets(manifest) {
   for (const esmodule of manifest.esmodules ?? []) await assertFile(esmodule, "Manifest esmodule");
   for (const stylesheet of manifest.styles ?? []) await assertFile(stylesheet, "Manifest stylesheet");
   for (const pack of manifest.packs ?? []) await assertDirectory(pack.path, `Compendium pack: ${pack.name}`);
+}
+
+function assertReleaseUrls(manifest) {
+  if (!/\/releases\/latest\/download\/system\.json$/.test(String(manifest.manifest ?? ""))) {
+    errors.push(`Manifest URL should point at the latest GitHub Release system.json asset: ${manifest.manifest}`);
+  }
+  if (/main\.zip|archive\/refs\/heads\/main/i.test(String(manifest.download ?? ""))) {
+    errors.push(`Download URL must not point at the main branch archive: ${manifest.download}`);
+  }
+  const expectedZip = `${manifest.id}-${manifest.version}.zip`;
+  if (!String(manifest.download ?? "").includes(`/releases/download/v${manifest.version}/`) || !String(manifest.download ?? "").endsWith(expectedZip)) {
+    errors.push(`Download URL should point at the versioned GitHub Release ZIP ${expectedZip}: ${manifest.download}`);
+  }
 }
 
 async function validatePremadeSourceData() {

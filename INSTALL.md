@@ -2,17 +2,25 @@
 
 ## Foundry Manifest
 
-Use the manifest URL from `system.json`:
+Use the latest-release manifest URL:
 
 ```text
-https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/main/system.json
+https://github.com/VentysGrimm/Part-Time-Gods/releases/latest/download/system.json
 ```
 
-This requires the repository and release assets to be reachable by the Foundry server. If the repository is private, install manually from a local checkout or a zip that the server can access.
+This manifest points Foundry to the versioned GitHub Release ZIP declared in `system.json`.
 
 ## Manual Install
 
-1. Copy or unzip this project into Foundry's data folder at `Data/systems/part-time-gods`.
+1. Download the versioned release ZIP, for example `part-time-gods-0.0.2.zip`, from GitHub Releases.
+2. Unzip it into Foundry's data folder at `Data/systems/part-time-gods`.
+3. Confirm `Data/systems/part-time-gods/system.json` exists.
+4. Restart Foundry VTT.
+5. Create a world using the `Part-Time Gods 2E` system.
+
+## Local Checkout Install
+
+1. Copy this project into Foundry's data folder at `Data/systems/part-time-gods`.
 2. Confirm `Data/systems/part-time-gods/system.json` exists.
 3. Restart Foundry VTT.
 4. Create a world using the `Part-Time Gods 2E` system.
@@ -22,7 +30,7 @@ This requires the repository and release assets to be reachable by the Foundry s
 From the system root, run:
 
 ```powershell
-.\scripts\validate-release.ps1
+npm.cmd run release
 ```
 
-Then open a Foundry VTT v14 world and smoke test the character sheet, item sheets, compendia, roll dialogs, chat card actions, Conditions, Manifestation Measures, and rules journals.
+This creates `dist/part-time-gods-0.0.2.zip` and `dist/system.json`. Upload both files to the matching GitHub Release tag, then open a Foundry VTT v14 world and smoke test the character sheet, item sheets, compendia, roll dialogs, chat card actions, Conditions, Manifestation Measures, and rules journals.
