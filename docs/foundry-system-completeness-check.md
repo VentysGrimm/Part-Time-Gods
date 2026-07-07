@@ -23,7 +23,7 @@ One blocking issue was found and fixed during this pass: the `opposition-actors`
 - Premade source data imports with a Foundry/fetch stub:
   - 40 character-creation Choice Items
   - 647 premade Items
-  - 62 premade Actors, including 9 optional Backers' Pregens character Actors
+  - 62 premade Actors, including 9 metadata-only Backers' Pregens character placeholders
   - 86 RollTables
   - 1 Scene
   - 9 rules-reference Journals with 48 pages

@@ -176,14 +176,14 @@ Target documents:
 - Character sheet mapping checklist.
 - Territory Grid Scene template and tile/region metadata.
 - Random Tables as `RollTable` documents.
-- Backer pregens as optional `Actor` examples; the source pregen sheets grant print/copy permission and now seed as optional character Actors.
+- Backer pregens as optional metadata-only `Actor` placeholders until full reproduction permission is confirmed.
 - Index terms as lightweight reference metadata.
 
 Acceptance criteria:
 
 - Character sheet fields map to DataModel paths.
 - Territory Grid can be created from a command or compendium Scene.
-- Pregens seed as optional character Actors with source metadata and embedded owned Items.
+- Pregens seed as optional metadata-only character placeholders with stable source metadata and no embedded owned Items.
 
 ## Implementation sequence
 

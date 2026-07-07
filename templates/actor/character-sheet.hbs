@@ -4,6 +4,15 @@
     <button type="button" class="item" data-group="primary" data-tab="back" data-ptg-tab="back" title="Printed sheet page 2">Page 2</button>
   </nav>
 
+  <section class="ptg-print-tools" aria-label="Foundry character tools">
+    <button type="button" data-character-creator>Creator</button>
+    <button type="button" data-mortality-workflow>Mortality: {{system.mortality.state}}</button>
+    <button type="button" data-resource-workflow="work">Go to Work</button>
+    {{#each pantheonMembership as |pantheon|}}
+      <button type="button" data-pantheon-pool-workflow data-pantheon-uuid="{{pantheon.uuid}}">{{pantheon.name}} Pool {{pantheon.pool}}</button>
+    {{/each}}
+  </section>
+
   <section class="ptg-character-page ptg-print-page ptg-print-front tab active" data-group="primary" data-tab="front" data-ptg-panel="front">
     <header class="ptg-print-header">
       <div class="ptg-print-logo" aria-label="Part-Time Gods Second Edition">
@@ -21,15 +30,6 @@
         </label>
       </div>
     </header>
-
-    <section class="ptg-print-tools" aria-label="Foundry character tools">
-      <button type="button" data-character-creator>Creator</button>
-      <button type="button" data-mortality-workflow>Mortality: {{system.mortality.state}}</button>
-      <button type="button" data-resource-workflow="work">Go to Work</button>
-      {{#each pantheonMembership as |pantheon|}}
-        <button type="button" data-pantheon-pool-workflow data-pantheon-uuid="{{pantheon.uuid}}">{{pantheon.name}} Pool {{pantheon.pool}}</button>
-      {{/each}}
-    </section>
 
     <section class="ptg-print-front-grid">
       <section class="ptg-print-section ptg-print-lines ptg-print-conditions">
@@ -88,7 +88,7 @@
       </section>
 
       <section class="ptg-print-resource-panel" aria-label="Character resources">
-        {{#each resourceTracks as |track|}}
+        {{#each frontResourceTracks as |track|}}
           <div class="ptg-print-resource {{track.key}}">
             <header>
               <h2>{{track.label}}</h2>
@@ -103,7 +103,7 @@
                   <button
                     type="button"
                     class="ptg-resource-box{{#if box.filled}} filled{{/if}}"
-                    data-resource-box="{{../track.key}}"
+                    data-resource-box="{{track.key}}"
                     data-resource-value="{{box.value}}"
                     aria-label="{{box.label}}"
                     title="{{box.label}}"
@@ -115,36 +115,64 @@
           </div>
         {{/each}}
 
-        <div class="ptg-print-resource numeric">
-          <header>
-            <h2>Free Time</h2>
-            <span>Max</span>
-            <input name="system.resources.freeTimeMax" type="number" value="{{system.resources.freeTimeMax}}" min="0" aria-label="Free Time Max">
-          </header>
-          <label>
-            <span>Current</span>
-            <input name="system.resources.freeTime" type="number" value="{{system.resources.freeTime}}" min="0">
-            <button type="button" data-resource-workflow="freeTime">Manage</button>
-          </label>
-        </div>
-
-        <div class="ptg-print-resource numeric">
-          <header>
-            <h2>Wealth</h2>
-            <span>Max</span>
-            <input name="system.resources.wealthMax" type="number" value="{{system.resources.wealthMax}}" min="0" aria-label="Wealth Max">
-          </header>
-          <label>
-            <span>Current</span>
-            <input name="system.resources.wealth" type="number" value="{{system.resources.wealth}}" min="0">
-            <button type="button" data-resource-workflow="wealth">Manage</button>
-          </label>
-        </div>
+        {{#each downtimeResourceTracks as |track|}}
+          <div class="ptg-print-resource ptg-print-flat-resource {{track.key}}">
+            <header>
+              <h2>{{track.label}}</h2>
+              <span>Max</span>
+              <input name="{{track.maxName}}" type="number" value="{{track.max}}" min="0" aria-label="{{track.label}} Max">
+            </header>
+            <div class="ptg-resource-pips" role="group" aria-label="{{track.label}} {{track.value}} of {{track.max}}">
+              <button type="button" data-flat-resource-step="{{track.key}}" data-resource-delta="-1" aria-label="Decrease {{track.label}}">-</button>
+              <div class="ptg-resource-boxes">
+                {{#each track.boxes as |box|}}
+                  <button
+                    type="button"
+                    class="ptg-resource-box{{#if box.filled}} filled{{/if}}"
+                    data-flat-resource-box="{{track.key}}"
+                    data-resource-value="{{box.value}}"
+                    aria-label="{{box.label}}"
+                    title="{{box.label}}"
+                  ></button>
+                {{/each}}
+              </div>
+              <button type="button" data-flat-resource-step="{{track.key}}" data-resource-delta="1" aria-label="Increase {{track.label}}">+</button>
+              <button type="button" class="ptg-print-manage-resource" data-resource-workflow="{{track.workflow}}" aria-label="Manage {{track.label}}">Manage</button>
+            </div>
+          </div>
+        {{/each}}
 
         <div class="ptg-print-resource legendary">
           <header><h2>Legendary Acts</h2></header>
           <textarea name="system.resources.legendaryActs">{{system.resources.legendaryActs}}</textarea>
         </div>
+
+        {{#with fragmentResourceTrack as |track|}}
+          <div class="ptg-print-resource {{track.key}}">
+            <header>
+              <h2>{{track.label}}</h2>
+              <span>Max</span>
+              <strong>{{track.max}}</strong>
+              <em>{{track.formula}}</em>
+            </header>
+            <div class="ptg-resource-pips" role="group" aria-label="{{track.label}} {{track.value}} of {{track.max}}">
+              <button type="button" data-resource-step="{{track.key}}" data-resource-delta="-1" aria-label="Decrease {{track.label}}">-</button>
+              <div class="ptg-resource-boxes">
+                {{#each track.boxes as |box|}}
+                  <button
+                    type="button"
+                    class="ptg-resource-box{{#if box.filled}} filled{{/if}}"
+                    data-resource-box="{{track.key}}"
+                    data-resource-value="{{box.value}}"
+                    aria-label="{{box.label}}"
+                    title="{{box.label}}"
+                  ></button>
+                {{/each}}
+              </div>
+              <button type="button" data-resource-step="{{track.key}}" data-resource-delta="1" aria-label="Increase {{track.label}}">+</button>
+            </div>
+          </div>
+        {{/with}}
       </section>
 
       <section class="ptg-print-section ptg-print-lines ptg-print-failings">

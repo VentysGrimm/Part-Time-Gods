@@ -4,7 +4,7 @@ Source: Part-Time Gods Second Edition Opposition chapter, book pp. 220-259, as c
 
 This table tracks the premade Actor coverage used by `module/data/premade-actors.mjs` and the `part-time-gods.opposition-actors` compendium.
 
-The same compendium also includes a `Backers' Pregens` folder for optional source-backed character Actors from PDF pp. 290-307; these are not opposition statblocks.
+The same compendium also includes a `Backers' Pregens` folder for metadata-only character placeholders from PDF pp. 290-307; these are not opposition statblocks and do not ship full pregen stats or prose.
 
 | Category | Covered premade Actors | Remaining gaps / notes |
 | --- | --- | --- |
@@ -16,7 +16,7 @@ The same compendium also includes a `Backers' Pregens` folder for optional sourc
 | Outsiders, pp. 244-253 | Manananggal, Minotaur, Ningyo, Phoenix, Pucks, Puck Crawler, Puck Gnawer, Puck Hider, Puck Possessor, Puck Screamer, Rakshasa, Satyr, Slasher | The base Pucks Actor covers the shared stat line. Puck variant Actors reuse that stat line and expose variant powers as readable rules text. |
 | Outsiders, pp. 254-258 | Snarlequin, Spirit, Tengu, Unicorn, Elemental Spirit | Spirit covers the base spirit chassis and ghost/object-possession notes. Elemental Spirit covers the elemental family as a template Actor. |
 | Custom Antagonists | PTG Opposition Builder | The builder creates scene-specific custom Actors from the book p. 259 threat bands instead of seeding every possible custom combination. |
-| Backers' Pregens | James Fordham, Curtis Jasper "CJ" Lis, Todd Ebert, Tessara Romanov, Tadhg (Tod) Devanson, Nathan Veris, Eden Harrington, Luke Edwards, Danielle Cassidy | Optional character Actors with embedded owned Items; grouped separately from Opposition categories. |
+| Backers' Pregens | James Fordham, Curtis Jasper "CJ" Lis, Todd Ebert, Tessara Winfield, Tod Browning, Nathan Underwood, Eden Delerosa, Luke Drury, Danielle Frost | Metadata-only character placeholders with stable source IDs and PDF page references; grouped separately from Opposition categories. |
 
 Automation hooks are stored on premade Actor flags at `flags.part-time-gods.powerHooks` and are copied into source-backed Vassal Items. Combat can roll antagonist/vassal Attack and Defense statblock pools directly, and Vassal task cards can roll an embedded statblock pool while recording Strain, risk, current task, and request history.
 

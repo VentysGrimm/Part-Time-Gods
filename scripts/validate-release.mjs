@@ -113,12 +113,43 @@ async function validatePremadeSourceData() {
     errors.push(`Rules reference text is too large for release-safe summaries: totalWords=${rulesAudit.totalWords}, largestPageWords=${rulesAudit.largestPageWords}`);
   }
 
+  const pregenAudit = backersPregensAudit(documents.actors);
+  if (pregenAudit.unsafe.length) {
+    errors.push(`Backers' Pregens must remain metadata-only until permission is confirmed:\n${pregenAudit.unsafe.map(key => `- ${key}`).join("\n")}`);
+  }
+
   const importFacingMacros = documents.macros
     .filter(macro => /\bimport\b|populate compendiums/i.test(`${macro.name} ${macro.command} ${macro.flags?.[SYSTEM_ID]?.summary ?? ""}`))
     .map(macro => macro.name);
   if (importFacingMacros.length) errors.push(`Import-facing macros should stay workflow-only: ${importFacingMacros.join(", ")}`);
 
   return { summary };
+}
+
+function backersPregensAudit(actors) {
+  const unsafe = actors
+    .filter(actor => actor.flags?.[SYSTEM_ID]?.kind === "backers-pregen")
+    .map(actor => {
+      const system = actor.system ?? {};
+      const skillTotal = Object.values(system.skills ?? {}).reduce((total, value) => total + Number(value ?? 0), 0);
+      const manifestationTotal = Object.values(system.manifestations ?? {}).reduce((total, value) => total + Number(value ?? 0), 0);
+      const embeddedItems = actor.items?.length ?? 0;
+      const notesWords = plainWordCount(system.notes ?? "");
+      const licensingStatus = actor.flags?.[SYSTEM_ID]?.licensingStatus ?? "";
+      const hasSourceStats = skillTotal > 0
+        || manifestationTotal > 0
+        || embeddedItems > 0
+        || Number(system.derived?.initiative ?? 0) > 0
+        || Number(system.derived?.strength ?? 0) > 0
+        || Number(system.derived?.movement ?? 0) > 0
+        || Number(system.resources?.freeTime ?? 0) > 0
+        || Number(system.resources?.wealth ?? 0) > 0;
+      if (licensingStatus === "metadata-only" && !hasSourceStats && notesWords <= 45) return null;
+      return `${actor.name}: licensingStatus=${licensingStatus || "missing"}, embeddedItems=${embeddedItems}, notesWords=${notesWords}`;
+    })
+    .filter(Boolean);
+
+  return { unsafe };
 }
 
 function rulesJournalTextAudit(journals) {

@@ -57,7 +57,11 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.inventorySections = this.#prepareInventorySections(context.inventory);
     context.creationSteps = this.#prepareCreationSteps(context.inventory);
     context.choiceDetails = this.actor.getFlag("part-time-gods", "choiceDetails") ?? {};
-    context.resourceTracks = this.#prepareResourceTracks();
+    const resourceTracks = this.#prepareResourceTracks();
+    context.resourceTracks = resourceTracks;
+    context.frontResourceTracks = resourceTracks.filter(track => track.key !== "fragments");
+    context.fragmentResourceTrack = resourceTracks.find(track => track.key === "fragments");
+    context.downtimeResourceTracks = this.#prepareDowntimeResourceTracks();
     context.gearSummary = this.#prepareGearSummary(context.inventory.gear);
     context.pantheonMembership = this.#preparePantheonMembership();
     context.xpPurchases = xpPurchaseHistoryWithLegacy(context.system.resources);
@@ -115,6 +119,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
     for (const button of this.element.querySelectorAll("[data-resource-step]")) {
       button.addEventListener("click", event => this.#onResourceStep(event.currentTarget));
+    }
+    for (const button of this.element.querySelectorAll("[data-flat-resource-box]")) {
+      button.addEventListener("click", event => this.#onFlatResourceBox(event));
+      button.addEventListener("contextmenu", event => this.#onFlatResourceBox(event));
+    }
+    for (const button of this.element.querySelectorAll("[data-flat-resource-step]")) {
+      button.addEventListener("click", event => this.#onFlatResourceStep(event.currentTarget));
     }
     this.element.querySelector("[data-mortality-workflow]")?.addEventListener("click", () => this.#openMortalityWorkflow());
     for (const button of this.element.querySelectorAll("[data-pantheon-pool-workflow]")) {
@@ -922,9 +933,17 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   #prepareResourceTracks() {
     const resources = this.actor.system.resources ?? {};
     return [
-      resourceTrack("health", "Health", resources.health, "5 + Fortitude + Spark"),
-      resourceTrack("psyche", "Psyche", resources.psyche, "5 + Discipline + Spark"),
-      resourceTrack("fragments", "Fragments", resources.fragments, "Spark x3")
+      resourceTrack("health", "Health", resources.health, "5 + Fortitude + Spark", 10),
+      resourceTrack("psyche", "Psyche", resources.psyche, "5 + Discipline + Spark", 10),
+      resourceTrack("fragments", "Fragments", resources.fragments, "Spark x3", 20)
+    ];
+  }
+
+  #prepareDowntimeResourceTracks() {
+    const resources = this.actor.system.resources ?? {};
+    return [
+      flatResourceTrack("freeTime", "Free Time", resources.freeTime, resources.freeTimeMax, "freeTime", 10),
+      flatResourceTrack("wealth", "Wealth", resources.wealth, resources.wealthMax, "wealth", 10)
     ];
   }
 
@@ -949,11 +968,38 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     await this.#updateResourceTrack(key, current + delta);
   }
 
+  async #onFlatResourceBox(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const key = button.dataset.flatResourceBox;
+    const value = Number(button.dataset.resourceValue ?? 0);
+    const current = Number(foundry.utils.getProperty(this.actor, `system.resources.${key}`) ?? 0);
+    const next = event.type === "contextmenu" || event.shiftKey || event.ctrlKey || event.metaKey
+      ? Math.max(0, value - 1)
+      : value;
+
+    if (next === current) return;
+    await this.#updateFlatResource(key, next);
+  }
+
+  async #onFlatResourceStep(button) {
+    const key = button.dataset.flatResourceStep;
+    const delta = Number(button.dataset.resourceDelta ?? 0);
+    const current = Number(foundry.utils.getProperty(this.actor, `system.resources.${key}`) ?? 0);
+    await this.#updateFlatResource(key, current + delta);
+  }
+
   async #updateResourceTrack(key, value) {
     const resource = foundry.utils.getProperty(this.actor, `system.resources.${key}`) ?? {};
     const max = Math.max(0, Number(resource.max ?? 0));
     const next = Math.max(0, Math.min(max, Number(value) || 0));
     await this.actor.update({ [`system.resources.${key}.value`]: next });
+  }
+
+  async #updateFlatResource(key, value) {
+    const max = Math.max(0, Number(foundry.utils.getProperty(this.actor, `system.resources.${key}Max`) ?? 0));
+    const next = Math.max(0, Math.min(max, Number(value) || 0));
+    await this.actor.update({ [`system.resources.${key}`]: next });
   }
 
   #prepareCreationSteps(inventory) {
@@ -1562,9 +1608,10 @@ function itemDetail(label, value) {
   };
 }
 
-function resourceTrack(key, label, resource, formula) {
+function resourceTrack(key, label, resource, formula, minimumBoxes = 0) {
   const max = Math.max(0, Number(resource?.max ?? 0));
   const value = Math.max(0, Math.min(max, Number(resource?.value ?? 0)));
+  const boxCount = Math.max(max, minimumBoxes);
 
   return {
     key,
@@ -1572,12 +1619,35 @@ function resourceTrack(key, label, resource, formula) {
     value,
     max,
     formula,
-    boxes: Array.from({ length: max }, (_, index) => {
+    boxes: Array.from({ length: boxCount }, (_, index) => {
       const count = index + 1;
       return {
         value: count,
         filled: count <= value,
-        label: `${label} ${count} of ${max}`
+        label: `${label} ${count}${max ? ` of ${max}` : ""}`
+      };
+    })
+  };
+}
+
+function flatResourceTrack(key, label, value, max, workflow, minimumBoxes = 0) {
+  const trackMax = Math.max(0, Number(max ?? 0));
+  const trackValue = Math.max(0, Math.min(trackMax, Number(value ?? 0)));
+  const boxCount = Math.max(trackMax, minimumBoxes);
+
+  return {
+    key,
+    label,
+    value: trackValue,
+    max: trackMax,
+    workflow,
+    maxName: `system.resources.${key}Max`,
+    boxes: Array.from({ length: boxCount }, (_, index) => {
+      const count = index + 1;
+      return {
+        value: count,
+        filled: count <= trackValue,
+        label: `${label} ${count}${trackMax ? ` of ${trackMax}` : ""}`
       };
     })
   };
