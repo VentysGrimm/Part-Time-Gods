@@ -13,7 +13,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Playing the Game, Dice Basics, and Glossary</h1><p>Playing the Game, Dice Basics, and Glossary is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 11-13. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Playing the Game, Dice Basics, and Glossary</li><li>Introduction</li><li>Playing the Game</li><li>Dice Rolling Basics</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"11\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"12\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"13\"></span>"
+          "content": "<h1>Playing the Game, Dice Basics, and Glossary</h1><p>Part-Time Gods play alternates between mortal obligations and divine problems. Characters still have jobs, relationships, neighborhoods, and fragile human lives, but the Spark gives them mythic leverage when a scene turns supernatural.</p><p>Most checks are built from a Skill plus another Skill or a Manifestation. Roll the pool of d10s, count 7-9 as one success and 10 as two successes, then compare successes to the difficulty or opposing result. The dice engine, roll dialogs, and tests cover those mechanical pieces in Foundry.</p><p>Use this page as a glossary landing point. For character choices, use the Character Creation pack. For powers, rituals, and measures, use premade power Items. For opposition, use the Opposition Actors pack and builder. For table prompts, use the Story Workflow and RollTable packs.</p><ul><li>Core dice: d10 pool, 7-9 one success, 10 two successes.</li><li>Core tension: mortal duties and divine identity both matter.</li><li>Foundry links: dice engine, character sheet rolls, source-keyed Items, and rules-reference journals.</li></ul><p><strong>Structured Foundry support:</strong> module/dice/ptg-dice-engine.mjs, templates/chat/roll-card.hbs, packs/character-creation, packs/premade-items.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"11\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"12\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"13\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -31,7 +31,13 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 11,
             "sourcePageEnd": 13,
-            "safeSummary": "Playing the Game, Dice Basics, and Glossary is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 11-13. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Core play reference for PTG2E book pp. 11-13, covering table roles, dice-pool reading, glossary terms, and where later Foundry mechanics live.",
+            "supportItems": [
+              "module/dice/ptg-dice-engine.mjs",
+              "templates/chat/roll-card.hbs",
+              "packs/character-creation",
+              "packs/premade-items"
+            ]
           }
         }
       }
@@ -65,7 +71,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Theologies and Dominions</h1><p>Theologies and Dominions is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 23-24. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Theologies and Dominions</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"23\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"24\"></span>"
+          "content": "<h1>Theologies and Dominions</h1><p>Theologies describe how a god understands the divine order and what sort of supernatural community or philosophy shaped their awakening. Dominions describe what the god rules, protects, embodies, or warps through mythic action.</p><p>In Foundry, Theologies and Dominion categories are character-creation choice Items. Their grants, Blessings, Curses, attachment options, source pages, and rules references are stored in structured data so the character creator can apply them instead of relying on hardcoded sheet text.</p><p>Specific Dominions from the random tables also exist as standalone Domain Items. Use those as quick prompts or as concrete portfolio entries when a player wants a more focused divine identity.</p><ul><li>Theology answers what the character believes about divinity.</li><li>Dominion answers what the character has mythic authority over.</li><li>Structured data: theology, domain, blessing, curse, and attachment Item grants.</li></ul><p><strong>Structured Foundry support:</strong> module/data/premade-choices.mjs, module/data/premade-items.mjs, templates/item/item-sheet.hbs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"23\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"24\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -82,7 +88,12 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 23,
             "sourcePageEnd": 24,
-            "safeSummary": "Theologies and Dominions is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 23-24. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Original summary for PTG2E book pp. 23-24, covering Theologies as divine worldviews and Dominions as the god's mythic portfolio.",
+            "supportItems": [
+              "module/data/premade-choices.mjs",
+              "module/data/premade-items.mjs",
+              "templates/item/item-sheet.hbs"
+            ]
           }
         }
       },
@@ -96,7 +107,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Territories, Pantheons, Worshippers, and Outsiders</h1><p>Territories, Pantheons, Worshippers, and Outsiders is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 25, 27-29. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Territories, Pantheons, Worshippers, and Outsiders</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"25\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"27\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"28\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"29\"></span>"
+          "content": "<h1>Territories, Pantheons, Worshippers, and Outsiders</h1><p>Territory is the part of the world where a god&#39;s mortal ties and divine influence become concrete. It is not just a map space; it is a network of locations, attachments, secrets, travel costs, and contested influence.</p><p>Pantheons give multiple gods a shared structure for action and a shared Pantheon Pool. Worshippers and Vassals provide support, favors, pressure, and risk. Outsiders are supernatural presences that can become threats, allies, servants, or scene complications depending on the table&#39;s choices.</p><p>The system represents these ideas through the Pantheon actor sheet, Pantheon Pool workflow, Territory Grid scene/app, Worshipper and Vassal Items, source-backed Vassal actor templates, and the Opposition Actors compendium.</p><ul><li>Territory: tracked with scene flags and grid coordinates.</li><li>Pantheon: shared actor and shared pool workflow.</li><li>Worshippers, Vassals, Outsiders: Item and Actor data with request/task hooks.</li></ul><p><strong>Structured Foundry support:</strong> module/apps/territory-grid-app.mjs, module/workflows/pantheon-pool-workflow.mjs, module/data/premade-actors.mjs, module/data/premade-items.mjs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"25\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"27\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"28\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"29\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -115,7 +126,13 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 25,
             "sourcePageEnd": 29,
-            "safeSummary": "Territories, Pantheons, Worshippers, and Outsiders is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 25, 27-29. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Original summary for PTG2E book pp. 25 and 27-29, covering divine territory, pantheon play, worshipper support, and outsider threats.",
+            "supportItems": [
+              "module/apps/territory-grid-app.mjs",
+              "module/workflows/pantheon-pool-workflow.mjs",
+              "module/data/premade-actors.mjs",
+              "module/data/premade-items.mjs"
+            ]
           }
         }
       },
@@ -129,7 +146,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Keeping Hidden and Staying Human</h1><p>Keeping Hidden and Staying Human is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 30-33. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Keeping Hidden and Staying Human</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"30\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"31\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"32\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"33\"></span>"
+          "content": "<h1>Keeping Hidden and Staying Human</h1><p>Part-Time Gods treats secrecy and humanity as play pressures rather than background color. A god can solve problems with divine power, but visible miracles, ignored relationships, job fallout, and neglected mortal needs create new problems.</p><p>Staying human means choosing when to spend time on work, attachments, recovery, and ordinary life. Keeping hidden means watching witnesses, territory, Outsiders, worshippers, and the consequences of supernatural attention.</p><p>In Foundry, the Mortal-Divine tracker, Free Time and Wealth workflow, Attachment Strain actions, Conditions, and Story Workflow prompts keep these pressures active without replacing GM judgment.</p><ul><li>Secrecy creates consequences when divinity becomes too visible.</li><li>Humanity is tracked through obligations, attachments, work, and recovery.</li><li>Foundry support: balance tracker, downtime resources, conditions, and story cards.</li></ul><p><strong>Structured Foundry support:</strong> module/apps/mortal-divine-tracker.mjs, module/workflows/story-workflow.mjs, module/sheets/character-sheet.mjs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"30\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"31\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"32\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"33\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -148,7 +165,12 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 30,
             "sourcePageEnd": 33,
-            "safeSummary": "Keeping Hidden and Staying Human is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 30-33. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Original summary for PTG2E book pp. 30-33, covering secrecy, exposure, mortal balance, human obligations, and divine pressure.",
+            "supportItems": [
+              "module/apps/mortal-divine-tracker.mjs",
+              "module/workflows/story-workflow.mjs",
+              "module/sheets/character-sheet.mjs"
+            ]
           }
         }
       }
@@ -1581,7 +1603,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Developing Stories, Extras, Setting, and Plots</h1><p>Developing Stories, Extras, Setting, and Plots is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 263-266. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Developing Stories, Extras, Setting, and Plots</li><li>DeCsrceeantidnigng NeSwtoMrymths</li><li>Crucial Extras</li><li>These Extras are important to the story. They should</li><li>be fleshed out as much as (or close to) the players&amp;#39;</li><li>Quick Reference Names Need a name on the fly, just pick one from the</li><li>with their own Attachments which serve as their first</li><li>crucial Extras. Together with the GM, they should</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"263\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"264\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"265\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"266\"></span>"
+          "content": "<h1>Developing Stories, Extras, Setting, and Plots</h1><p>Chapter 7 frames story prep around people, places, and pressures that matter to the gods. Crucial Extras should have enough motive, attachment, and trouble to push scenes forward without requiring a full stat block every time.</p><p>The setting should make divine problems collide with ordinary routines: neighborhoods, jobs, institutions, worshippers, rival gods, Outsiders, and recurring mortal NPCs. Plots work best when they threaten something the characters care about and force choices between human and divine priorities.</p><p>Use the Story Workflow for prompts, the Opposition Builder for scene-specific threats, and source-backed roll tables when a quick name, hook, location, or pressure would move play forward.</p><ul><li>Build stories around attachments, territory, secrets, and divine obligations.</li><li>Use Extras as active pressure points, not scenery.</li><li>Foundry support: story workflow, opposition builder, roll tables, and actor/item notes.</li></ul><p><strong>Structured Foundry support:</strong> module/workflows/story-workflow.mjs, module/data/premade-macros.mjs, module/data/premade-roll-tables.mjs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"263\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"264\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"265\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"266\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1600,7 +1622,12 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 263,
             "sourcePageEnd": 266,
-            "safeSummary": "Developing Stories, Extras, Setting, and Plots is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 263-266. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Original summary for PTG2E book pp. 263-266, covering story preparation, crucial extras, setting pressure, plots, and scene seeds.",
+            "supportItems": [
+              "module/workflows/story-workflow.mjs",
+              "module/data/premade-macros.mjs",
+              "module/data/premade-roll-tables.mjs"
+            ]
           }
         }
       },
@@ -1614,7 +1641,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Pacing, Conflict, Conclusions, and Story Tricks</h1><p>Pacing, Conflict, Conclusions, and Story Tricks is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 267-271. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Pacing, Conflict, Conclusions, and Story Tricks</li><li>DeCsrceeantidnigng NeSwtoMrymths</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"267\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"268\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"269\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"270\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"271\"></span>"
+          "content": "<h1>Pacing, Conflict, Conclusions, and Story Tricks</h1><p>Good pacing gives mortal scenes, divine scenes, investigation, relationship strain, and conflict room to breathe. Not every problem needs a battle; some conflicts are social, logistical, spiritual, or emotional until the players escalate them.</p><p>Conclusions should answer the scene&#39;s driving question and leave useful fallout: a changed attachment, a revealed secret, a new enemy, a cost paid, or a lead into the next divine problem. Story tricks are tools for changing pressure when the table stalls or a conflict needs a sharper choice.</p><p>Foundry support lives in chat cards, Conditions, damage workflows, combat controls, story prompts, and journal source references. The GM still chooses stakes, fallout, and when a conflict is truly resolved.</p><ul><li>Pace scenes by question, pressure, and consequence.</li><li>Conflict can be physical, social, divine, investigative, or relational.</li><li>Foundry support: combat workflow, conditions, damage, chat cards, and story prompts.</li></ul><p><strong>Structured Foundry support:</strong> module/combat/ptg-combat.mjs, module/workflows/damage-workflow.mjs, module/conditions/condition-workflow.mjs, module/workflows/story-workflow.mjs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"267\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"268\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"269\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"270\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"271\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1634,7 +1661,13 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 267,
             "sourcePageEnd": 271,
-            "safeSummary": "Pacing, Conflict, Conclusions, and Story Tricks is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 267-271. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Original summary for PTG2E book pp. 267-271, covering scene pacing, conflict choice, conclusion timing, and reusable story tricks.",
+            "supportItems": [
+              "module/combat/ptg-combat.mjs",
+              "module/workflows/damage-workflow.mjs",
+              "module/conditions/condition-workflow.mjs",
+              "module/workflows/story-workflow.mjs"
+            ]
           }
         }
       },
@@ -1648,7 +1681,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Attachment Tricks, Downtime, Territory, and Sourcing Players</h1><p>Attachment Tricks, Downtime, Territory, and Sourcing Players is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 272-277. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Attachment Tricks, Downtime, Territory, and Sourcing Players</li><li>DeCsrceeantidnigng NeSwtoMrymths</li><li>Location Name</li><li>Known Information Secret</li><li>2-8</li><li>Library</li><li>2-9</li><li>The Iron Rack</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"272\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"273\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"274\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"275\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"276\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"277\"></span>"
+          "content": "<h1>Attachment Tricks, Downtime, Territory, and Sourcing Players</h1><p>Attachment tricks turn Bonds, Worshippers, Vassals, Relics, and Failings into active scene hooks. A request, neglected need, strain increase, favor, or threatened location can all pull the god back into mortal consequences.</p><p>Downtime keeps the campaign from becoming only crisis scenes. Work, vacation, human resources, recovery, job fallout, and table-authored obligations are useful ways to make Free Time and Wealth matter between divine conflicts.</p><p>Territory handling combines grid coordinates, known information, secrets, movement costs, influence, and contested landmarks. Player sourcing lets the table answer focused questions and then turn those answers into scenes, locations, attachments, or threats.</p><ul><li>Attachment tricks: create scenes from needs, favors, strain, and neglect.</li><li>Downtime: spend or recover Free Time and Wealth while changing obligations.</li><li>Territory/player sourcing: use grid tools, roll tables, and story workflow prompts.</li></ul><p><strong>Structured Foundry support:</strong> module/workflows/story-workflow.mjs, module/apps/territory-grid-app.mjs, module/data/premade-scenes.mjs, module/data/premade-roll-tables.mjs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"272\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"273\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"274\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"275\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"276\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"277\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1669,7 +1702,13 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 272,
             "sourcePageEnd": 277,
-            "safeSummary": "Attachment Tricks, Downtime, Territory, and Sourcing Players is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 272-277. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Original summary for PTG2E book pp. 272-277, covering attachment pressure, downtime fallout, territory handling, and player-sourced prompts.",
+            "supportItems": [
+              "module/workflows/story-workflow.mjs",
+              "module/apps/territory-grid-app.mjs",
+              "module/data/premade-scenes.mjs",
+              "module/data/premade-roll-tables.mjs"
+            ]
           }
         }
       }
