@@ -12,22 +12,46 @@ test("PTG dice count 7-9 as one success and 10 as two successes", async () => {
   assert.equal(outcome.successes, 5);
   assert.equal(outcome.passed, true);
   assert.equal(outcome.margin, 0);
+  assert.equal(outcome.boosts, 0);
   assert.equal(outcome.criticalFailure, false);
 });
 
 test("Fate Die rolls one die for zero or negative pools", async () => {
   queueRolls([10], [1]);
 
-  const success = await PTGDiceEngine.rollPool(0, { sendToChat: false });
+  const success = await PTGDiceEngine.rollPool(0, { difficulty: 2, sendToChat: false });
   assert.equal(success.fateDie, true);
   assert.equal(success.dice, 1);
-  assert.equal(success.successes, 1);
+  assert.equal(success.successes, 2);
+  assert.equal(success.passed, true);
 
   const failure = await PTGDiceEngine.rollPool(-2, { sendToChat: false });
   assert.equal(failure.fateDie, true);
   assert.equal(failure.dice, 1);
   assert.equal(failure.successes, 0);
   assert.equal(failure.criticalFailure, true);
+  assert.equal(failure.criticalConsequenceCount, 1);
+});
+
+test("Difficulty margin produces one Boost per three extra successes", async () => {
+  queueRolls([7, 8, 9, 10, 10]);
+  const outcome = await PTGDiceEngine.rollPool(5, { difficulty: 4, sendToChat: false });
+
+  assert.equal(outcome.successes, 7);
+  assert.equal(outcome.margin, 3);
+  assert.equal(outcome.boosts, 1);
+  assert.equal(outcome.passed, true);
+});
+
+test("Critical failure counts one consequence per one-result", async () => {
+  queueRolls([1, 1, 3]);
+  const outcome = await PTGDiceEngine.rollPool(3, { difficulty: 1, sendToChat: false });
+
+  assert.equal(outcome.successes, 0);
+  assert.equal(outcome.ones, 2);
+  assert.equal(outcome.criticalFailure, true);
+  assert.equal(outcome.criticalConsequenceCount, 2);
+  assert.equal(outcome.passed, false);
 });
 
 test("Skill Combo and Manifestation checks preserve base pool math", async () => {

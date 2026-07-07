@@ -212,6 +212,45 @@ const CONDITION_RULE_METADATA = {
   Scarred: conditionRule("crossover", "both", "long-term", "Usually requires downtime, significant healing, or story resolution.", "Lingering mark, wound, or trauma; severity records lasting weight.", { target: "scar-related-rolls", mode: "fictional-or-situational", amount: "severity" })
 };
 
+const CHAPTER_FOUR_RULE_DEFINITIONS = [
+  chapterFourRuleDefinition("Blessings", 175, "Blessings are positive character traits, mortal advantages, or divine gifts. Most are passive or triggered edges, and some interact with Skills, damage, Attachments, or the Pantheon Pool.", "blessing-reference", { target: "character creation and triggered advantages" }),
+  chapterFourRuleDefinition("Curses", 176, "Curses are player-facing trouble hooks that make a Scene worse, usually by creating conflict, damage, loss, Strain, tension, or a special Theology drawback.", "curse-reference", { target: "scene complication and Pantheon Pool gain" }),
+  chapterFourRuleDefinition("Skill-Combo Checks", 176, "Skill checks combine two Skills, roll a number of d10s equal to their total levels, and compare successes against Difficulty or opposition.", "skill-combo-roll", { roll: { type: "skill-combo", difficulty: 1 } }),
+  chapterFourRuleDefinition("Rolling Dice", 183, "Each d10 result of 7-9 is one success and each 10 is two successes. A roll with no successes and at least one 1 is a Critical Failure.", "dice-reference", { roll: { successFaces: [7, 8, 9], doubleSuccessFace: 10, criticalFailure: "no-successes-and-one" } }),
+  chapterFourRuleDefinition("Difficulties and Modifiers", 183, "Difficulty ranges from Easy 0 through Legendary 5. Bonuses add dice, penalties remove dice, and the player may suggest a different Skill Combo if the method changes.", "difficulty-reference", { roll: { difficulties: { easy: 0, simple: 1, moderate: 2, tough: 3, challenging: 4, legendary: 5 } } }),
+  chapterFourRuleDefinition("Fate Die", 183, "When a final pool is 0 or lower, roll one Fate Die. Only a 10 succeeds, and it still counts as two successes; a 1 can still create a Critical Failure.", "fate-die", { roll: { fateDie: true, successFace: 10, successesOnSuccess: 2 } }),
+  chapterFourRuleDefinition("Opposed Checks", 183, "Opposed Checks compare two active rolls. The acting character must exceed the defender or opposition; ties favor the defender by default.", "opposed-check", { roll: { type: "opposed", tie: "defender" } }),
+  chapterFourRuleDefinition("Extended Checks", 184, "Extended Checks track a larger goal across multiple rolls, usually needing at least five total successes. A Critical Failure ends the attempt with the worst-case stakes.", "extended-check", { roll: { type: "extended", minimumTarget: 5 } }),
+  chapterFourRuleDefinition("Rounding", 184, "When a value must be divided or rounded, round to a whole number and round up unless another rule says otherwise.", "rounding-reference"),
+  chapterFourRuleDefinition("Support", 184, "Support lets multiple characters divide a task across distinct Skills. Extra helpers beyond the initial support can join by sacrificing Pantheon Dice and contributing a unique Skill.", "support-reference", { roll: { modifier: "support", pantheonCost: 1 } }),
+  chapterFourRuleDefinition("Boosts", 184, "For every three successes above Difficulty, the player earns one immediate Boost that can improve the result, add damage, help Bonds, add Pantheon Dice, save time, or create other table-approved benefits.", "boost-reference", { roll: { boostThreshold: 3 } }),
+  chapterFourRuleDefinition("Critical Failure", 185, "A Critical Failure occurs when a roll has no successes and at least one 1. Each consequence can add a Pantheon Die and may create harm, Conditions, Strain, time loss, or enemy openings.", "critical-failure-reference", { roll: { criticalFailure: true, pantheonDicePerConsequence: 1 } }),
+  chapterFourRuleDefinition("Specialties", 185, "A Specialty is focused expertise inside a Skill. When it applies, it grants +1 die, and each Skill can have up to two Specialties.", "specialty-reference", { roll: { specialtyBonus: 1, specialtyLimit: 2 } }),
+  chapterFourRuleDefinition("Tools and High-Quality Tools", 186, "Tools grant situational bonuses from +1 to +3. High-quality purchases can add up to +3 more, costing 1 Wealth per additional bonus.", "tool-reference", { cost: { wealth: 1 }, roll: { toolBonusMin: 1, toolBonusMax: 3, highQualityMax: 3 } }),
+  chapterFourRuleDefinition("Repetitive Skill Usage", 186, "The third repeated use of the same Skill Combo or obvious pattern applies a cumulative -1 penalty until the character changes approach. Extended Checks ignore this penalty.", "repetition-reference", { roll: { thirdUsePenalty: -1, excludes: "extended-checks" } }),
+  chapterFourRuleDefinition("Pantheon Pool", 187, "The Pantheon Pool is a shared pool capped at 10 dice by default. It starts each session with one die per player and changes through Blessings, Boosts, Curses, Critical Failures, excess Manifestation successes, and group-approved spends.", "pantheon-pool-reference", { target: "shared pantheon dice", resourceChange: { resource: "pantheon", amount: 1 } }),
+  chapterFourRuleDefinition("Strength and Encumbrance", 188, "Strength covers lifting, carrying, pushing, and breaking. Encumbrance is derived from Strength, and exceeding limits can create Ignored Limits or escalating Strength checks.", "strength-reference", { roll: { type: "strength", skillCombo: ["athletics", "might"] } }),
+  chapterFourRuleDefinition("Free Time", 190, "Free Time is the character's countdown resource for scenes, travel, duties, and taking extra care. Spending 1 Free Time can buy extra travel or a +2 bonus when time helps.", "free-time-reference", { cost: { freeTime: 1 }, roll: { takingTimeBonus: 2 } }),
+  chapterFourRuleDefinition("Wealth", 191, "Wealth is abstract spending power for goods, travel, favors, delays, bribes, and lifestyle leverage. Costs usually range from 1 to 6.", "wealth-reference", { cost: { wealth: 1 } }),
+  chapterFourRuleDefinition("Going to Work", 192, "Going to Work removes the god from the next Scene or moves them into a work Scene, restores full occupation Wealth, and restores half occupation Free Time rounded down.", "going-to-work", { resourceChange: { resource: "freeTimeAndWealth", mode: "work" } }),
+  chapterFourRuleDefinition("Interacting with Attachments", 193, "When Free Time runs out, an Attachment enters the next Scene. Devoted Scenes, Split Attention, Delay Tactics, and Ignore choices trade Free Time recovery, Strain, Wealth, and story pressure.", "attachment-interaction", { target: "bonds, worshippers, and vassals" }),
+  chapterFourRuleDefinition("Interacting with Territory", 195, "Territory grants Manifestation advantages around points of interest and controls grid movement. Characters move four squares between Scenes for free and can extend travel with Free Time or Wealth.", "territory-interaction", { target: "territory grid and manifestation positioning" })
+];
+
+const CRITICAL_FAILURE_EFFECT_DEFINITIONS = [
+  criticalFailureEffectDefinition("Critical Failure: Harm", 176, "The failed action causes direct physical or mental harm; use damage workflow or an appropriate Condition if the harm lingers.", { resource: "health-or-psyche", amount: 1 }),
+  criticalFailureEffectDefinition("Critical Failure: New Condition", 176, "Apply a new Level 1 Condition or increase a fitting existing Condition by 1.", { conditionLevel: 1 }),
+  criticalFailureEffectDefinition("Critical Failure: Skill Penalty", 176, "The failed Skill suffers a -1 situational penalty for the rest of the Scene.", { penalty: -1, duration: "scene" }),
+  criticalFailureEffectDefinition("Critical Failure: Skill Locked", 176, "The failed Skill becomes unavailable for the rest of the Scene unless the GM offers a recovery path.", { blocksSkill: true, duration: "scene" }),
+  criticalFailureEffectDefinition("Critical Failure: Lost Materials", 177, "Supplies, money, or bought materials for the attempt are consumed and must be replaced before retrying.", { resource: "wealth-or-materials" }),
+  criticalFailureEffectDefinition("Critical Failure: Fragile Item", 177, "An item used in the failed action gains the Fragile quality and is at risk of breaking on another bad turn.", { itemQuality: "fragile" }),
+  criticalFailureEffectDefinition("Critical Failure: False Read", 177, "The character misreads an emotion, fact, or evaluation and does not immediately know the interpretation is wrong.", { information: "false-read" }),
+  criticalFailureEffectDefinition("Critical Failure: Attachment Strain", 177, "One of the god's Attachments suffers 1 Strain from the fallout.", { resource: "attachment-strain", amount: 1 }),
+  criticalFailureEffectDefinition("Critical Failure: Lost Free Time", 177, "The failed task becomes a time sink and costs the character 1 Free Time.", { resource: "freeTime", amount: -1 }),
+  criticalFailureEffectDefinition("Critical Failure: Enemy Opening", 177, "An enemy gains an immediate opening, such as an instant attack or equivalent pressure.", { enemyOpening: true }),
+  criticalFailureEffectDefinition("Critical Failure: Unique Consequence", 177, "The GM creates a fitting non-mechanical or story-specific consequence tied to the player's stated worry.", { custom: true })
+];
+
 const MANIFESTATION_POWER_DEFINITIONS = [
   manifestationPowerDefinition("Aegis", "aegis", 148, "Protection, wards, cleansing, and warning effects.", ["Protection Field", "Purge", "Warning"], "Use Aegis when the god shields a person or place, cleanses harmful divine influence, or senses danger before it lands."),
   manifestationPowerDefinition("Beckon", "beckon", 149, "Summoning, multiplication, and banishment.", ["Banish", "Multiply", "Summon"], "Use Beckon when the god calls something tied to their Dominion, multiplies it, or sends it away from the scene."),
@@ -284,6 +323,7 @@ const OTHERWORLD_STAGE_DEFINITIONS = [
 ];
 
 export const PTG_PREMADE_ITEMS = [
+  ...CHAPTER_FOUR_RULE_DEFINITIONS.map(chapterFourRulePower),
   ...MANIFESTATION_POWER_DEFINITIONS.map(manifestationPower),
   ...MANIFESTATION_APPLICATION_DEFINITIONS.map(manifestationApplicationPower),
   ...RITUAL_POWER_DEFINITIONS.map(ritualPower),
@@ -356,6 +396,8 @@ export const PTG_PREMADE_ITEMS = [
   curse("Power", "Failing", 109, 0, "Control obsession drains resources but eases acquisition of assets."),
   curse("Self-Destruction", "Failing", 109, 0, "Danger becomes seductive, worsening incoming harm but stiffening against fear."),
   curse("Vengeance", "Failing", 110, 0, "Retaliation becomes difficult to resist but helps when pursuing payback."),
+
+  ...CRITICAL_FAILURE_EFFECT_DEFINITIONS.map(criticalFailureEffectCondition),
 
   condition("Bleeding", "physical", 1, 205, "Ongoing physical harm from blood loss or open wounds."),
   condition("Burned/Frozen", "physical", 1, 205, "Temperature injury that makes continued action harder."),
@@ -777,6 +819,109 @@ function gearQualityBonus(automationData = {}) {
   if (automationData.rangeStep) bonus.rangeStep = automationData.rangeStep;
   if (automationData.armorTag) bonus.armorTag = automationData.armorTag;
   return Object.keys(bonus).length ? bonus : null;
+}
+
+function chapterFourRuleDefinition(name, page, summary, action, options = {}) {
+  return { name, page, summary, action, ...options };
+}
+
+function chapterFourRulePower(definition) {
+  const fullText = paragraphs(
+    `${definition.name} is a Chapter 4 procedure reference.`,
+    definition.summary,
+    "Use this Item as a compact rules card for roll dialogs, resource workflows, chat cards, and table-facing reminders.",
+    "The full source remains the rulebook; this system entry preserves only release-safe summary text and automation metadata."
+  );
+  const roll = definition.roll ?? null;
+  const resourceChange = definition.resourceChange ?? null;
+
+  return baseItem("power", definition.name, definition.page, {
+    ...itemRules("power", definition.name, definition.page, definition.summary, {
+      kind: "chapter-4-rule",
+      trigger: "When resolving the matching Chapter 4 procedure.",
+      target: definition.target ?? "table procedure",
+      cost: definition.cost ?? {},
+      fullText,
+      enabled: Boolean(roll || resourceChange),
+      action: definition.action,
+      roll,
+      resourceChange
+    }),
+    domain: "",
+    manifestation: "",
+    rank: 0,
+    cost: 0,
+    chapterCost: definition.cost ?? {},
+    activation: "passive",
+    duration: "By procedure",
+    range: "Table",
+    target: definition.target ?? "table procedure",
+    requiresRoll: Boolean(roll),
+    difficulty: Number(roll?.difficulty ?? 0),
+    effect: fullText,
+    limitations: paragraphs(
+      "This is a system-facing summary, not replacement rulebook prose.",
+      "The GM still confirms exact fictional stakes, eligibility, and edge cases."
+    ),
+    notes: paragraphs(`Source-backed Chapter 4 rule reference from book p. ${definition.page}.`)
+  }, {
+    folder: "chapter-4-rules",
+    kind: "chapter-4-rule",
+    sourceId: `ptg2e.chapter-4.rule.${slugify(definition.name)}`
+  });
+}
+
+function criticalFailureEffectDefinition(name, page, effect, automation = {}) {
+  return { name, page, effect, automation };
+}
+
+function criticalFailureEffectCondition(definition) {
+  const fullText = paragraphs(
+    `${definition.name} is a possible Critical Failure consequence.`,
+    definition.effect,
+    "Apply it when a roll has no successes and at least one 1-result. Multiple 1-results can justify multiple consequences if the player and GM compound the failure."
+  );
+  const rollModifier = definition.automation.penalty ? { target: "failed-skill", mode: "scene-penalty", amount: definition.automation.penalty } : null;
+
+  return baseItem("condition", definition.name, definition.page, {
+    category: "criticalFailure",
+    severity: 1,
+    severityMode: "level",
+    appliesTo: definition.automation.resource ?? definition.automation.itemQuality ?? "scene",
+    duration: definition.automation.duration ?? "immediate-or-scene",
+    recovery: "Resolve through the fiction, resource workflow, Condition recovery, or GM ruling.",
+    removal: "Clear after the consequence has been paid, recovered, or converted into a longer-term Condition.",
+    sourcePage: definition.page,
+    sourceSection: "Possible Critical Failure Effects",
+    rollModifier,
+    criticalFailure: definition.automation,
+    effect: fullText,
+    notes: paragraphs(
+      `Source-backed Critical Failure consequence from book p. ${definition.page}.`,
+      "Critical Failure consequences can also add Pantheon Dice through the Pantheon Pool workflow."
+    ),
+    ...itemRules("condition", definition.name, definition.page, definition.effect, {
+      kind: "critical-failure-effect",
+      trigger: "critical-failure",
+      target: "failed check",
+      fullText,
+      enabled: true,
+      action: "track-critical-failure",
+      condition: {
+        name: definition.name,
+        category: "criticalFailure",
+        severity: 1,
+        appliesTo: definition.automation.resource ?? definition.automation.itemQuality ?? "scene",
+        duration: definition.automation.duration ?? "immediate-or-scene",
+        recovery: "Resolve through the fiction, resource workflow, Condition recovery, or GM ruling.",
+        rollModifier
+      }
+    })
+  }, {
+    folder: "critical-failure-effects",
+    kind: "critical-failure-effect",
+    sourceId: `ptg2e.chapter-4.critical-failure.${slugify(definition.name)}`
+  });
 }
 
 function manifestationPowerDefinition(name, manifestation, page, summary, specialties, useText) {

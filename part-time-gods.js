@@ -443,6 +443,7 @@ export const PTG = {
     soul: "Soul"
   },
   difficulties: {
+    easy: 0,
     simple: 1,
     moderate: 2,
     tough: 3,

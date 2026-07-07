@@ -17,6 +17,50 @@ const EXPECTED_MANIFESTATION_APPLICATIONS = {
   soul: ["Call Spirit", "Figments", "Redefine"]
 };
 const EXPECTED_MANIFESTATION_MEASURES = ["damage", "range", "targets", "duration", "scale", "detail", "magnitude", "modifier", "area", "trigger"];
+const EXPECTED_CHAPTER_FOUR_RULES = [
+  "Blessings",
+  "Curses",
+  "Skill-Combo Checks",
+  "Rolling Dice",
+  "Difficulties and Modifiers",
+  "Fate Die",
+  "Opposed Checks",
+  "Extended Checks",
+  "Rounding",
+  "Support",
+  "Boosts",
+  "Critical Failure",
+  "Specialties",
+  "Tools and High-Quality Tools",
+  "Repetitive Skill Usage",
+  "Pantheon Pool",
+  "Strength and Encumbrance",
+  "Free Time",
+  "Wealth",
+  "Going to Work",
+  "Interacting with Attachments",
+  "Interacting with Territory"
+];
+const EXPECTED_CHAPTER_FOUR_CRITICAL_FAILURE_EFFECTS = [
+  "Critical Failure: Harm",
+  "Critical Failure: New Condition",
+  "Critical Failure: Skill Penalty",
+  "Critical Failure: Skill Locked",
+  "Critical Failure: Lost Materials",
+  "Critical Failure: Fragile Item",
+  "Critical Failure: False Read",
+  "Critical Failure: Attachment Strain",
+  "Critical Failure: Lost Free Time",
+  "Critical Failure: Enemy Opening",
+  "Critical Failure: Unique Consequence"
+];
+const EXPECTED_CHAPTER_FOUR_ROLL_TABLES = [
+  "Possible Critical Failure Effects",
+  "Boost Effect Menu",
+  "Pantheon Pool Uses",
+  "Attachment Interaction Choices",
+  "Wealth Cost Tiers"
+];
 
 installFoundrySourceMocks();
 
@@ -28,6 +72,7 @@ assertReleaseUrls(system);
 await assertFile("part-time-gods.js", "Main system entry point");
 await assertManifestAssets(system);
 await assertProductionUxScaffold();
+await assertChapterFourRulesScaffold();
 
 const sourceResult = await validatePremadeSourceData();
 if (errors.length) {
@@ -103,6 +148,31 @@ async function assertProductionUxScaffold() {
   const pantheonTemplate = await readText("templates/actor/pantheon-sheet.hbs");
   for (const key of ["PTG.Help.PantheonPool", "PTG.Help.Fragments", "PTG.Help.Spark", "PTG.Help.Strain"]) {
     if (!pantheonTemplate.includes(key)) errors.push(`Pantheon sheet missing localized help key ${key}`);
+  }
+}
+
+async function assertChapterFourRulesScaffold() {
+  const entryPoint = await readText("part-time-gods.js");
+  if (!entryPoint.includes("easy: 0")) errors.push("Difficulty config missing Chapter 4 Easy (0) tier.");
+
+  const diceEngine = await readText("module/dice/ptg-dice-engine.mjs");
+  for (const token of ["successes += 2", "boosts: Math.floor", "criticalConsequenceCount", "ones,"]) {
+    if (!diceEngine.includes(token)) errors.push(`Dice engine missing Chapter 4 runtime token ${token}`);
+  }
+
+  const characterSheet = await readText("module/sheets/character-sheet.mjs");
+  for (const token of ["Support Bonus", "Boost Choice", "repetitionPenalty", "extendedTarget", "opposingSuccesses", "Tool Modifier", "Specialty Bonus", "goingToWork"]) {
+    if (!characterSheet.includes(token)) errors.push(`Character sheet roll/resource workflow missing ${token}`);
+  }
+
+  const actorDocument = await readText("module/documents/actor/part-time-gods-actor.mjs");
+  for (const token of ["adjustDowntimeResources", "goToWork"]) {
+    if (!actorDocument.includes(token)) errors.push(`Actor document missing Chapter 4 resource workflow ${token}`);
+  }
+
+  const skillConfig = await readText("module/config/skills.mjs");
+  for (const token of ["PTG_SKILL_SOURCE", "PTG_SPECIALTY_LIMIT", "specialtyLimit: 2"]) {
+    if (!skillConfig.includes(token)) errors.push(`Skill config missing Chapter 4 source metadata ${token}`);
   }
 }
 
@@ -205,6 +275,20 @@ async function validatePremadeSourceData() {
     errors.push(`Manifestation measure metadata missing:\n${manifestationAudit.missingMeasures.map(key => `- ${key}`).join("\n")}`);
   }
 
+  const chapterFourAudit = chapterFourRulesAudit(documents.items, documents.rollTables);
+  if (chapterFourAudit.missingRules.length) {
+    errors.push(`Missing Chapter 4 rule Items:\n${chapterFourAudit.missingRules.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFourAudit.missingCriticalFailureEffects.length) {
+    errors.push(`Missing Chapter 4 Critical Failure consequence Conditions:\n${chapterFourAudit.missingCriticalFailureEffects.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFourAudit.missingRuleMetadata.length) {
+    errors.push(`Chapter 4 rule Items missing automation/source metadata:\n${chapterFourAudit.missingRuleMetadata.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFourAudit.missingRollTables.length) {
+    errors.push(`Missing Chapter 4 procedural RollTables:\n${chapterFourAudit.missingRollTables.map(key => `- ${key}`).join("\n")}`);
+  }
+
   const importFacingMacros = documents.macros
     .filter(macro => /\bimport\b|populate compendiums/i.test(`${macro.name} ${macro.command} ${macro.flags?.[SYSTEM_ID]?.summary ?? ""}`))
     .map(macro => macro.name);
@@ -272,6 +356,30 @@ function manifestationApplicationAudit(items) {
   const missingMeasures = EXPECTED_MANIFESTATION_MEASURES.filter(measure => !measureSet.has(measure));
 
   return { missing, missingMetadata, missingMeasures };
+}
+
+function chapterFourRulesAudit(items, rollTables) {
+  const rulesBySourceId = new Map(
+    items
+      .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-4-rule")
+      .map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item])
+  );
+  const criticalEffectsBySourceId = new Map(
+    items
+      .filter(item => item.type === "condition" && item.flags?.[SYSTEM_ID]?.kind === "critical-failure-effect")
+      .map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item])
+  );
+  const missingRules = EXPECTED_CHAPTER_FOUR_RULES
+    .filter(name => !rulesBySourceId.has(`ptg2e.chapter-4.rule.${sourceSlug(name)}`));
+  const missingCriticalFailureEffects = EXPECTED_CHAPTER_FOUR_CRITICAL_FAILURE_EFFECTS
+    .filter(name => !criticalEffectsBySourceId.has(`ptg2e.chapter-4.critical-failure.${sourceSlug(name)}`));
+  const missingRuleMetadata = [...rulesBySourceId.values()]
+    .filter(item => item.system?.usage?.kind !== "chapter-4-rule" || !item.system?.automation?.action || Number(item.flags?.[SYSTEM_ID]?.page ?? 0) < 175)
+    .map(item => item.name);
+  const tableNames = new Set(rollTables.map(table => table.name));
+  const missingRollTables = EXPECTED_CHAPTER_FOUR_ROLL_TABLES.filter(name => !tableNames.has(name));
+
+  return { missingRules, missingCriticalFailureEffects, missingRuleMetadata, missingRollTables };
 }
 
 function rulesJournalTextAudit(journals) {

@@ -4,6 +4,16 @@
  * Foundry VTT v14
  */
 
+export const PTG_SKILL_SOURCE = {
+  book: "Part-Time Gods Second Edition",
+  chapter: 4,
+  pages: "177-182",
+  table: "Skill-Combo System",
+  specialtyLimit: 2
+};
+
+export const PTG_SPECIALTY_LIMIT = 2;
+
 export const PTG_SKILLS = {
   athletics: {
     label: "Athletics",

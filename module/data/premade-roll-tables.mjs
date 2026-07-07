@@ -50,6 +50,52 @@ const coordinateRows = Array.from({ length: 10 }, (_, index) => {
   const value = index + 1;
   return [value, `${value}`];
 });
+const chapterFourCriticalFailureRows = [
+  [1, "Harm: suffer 1 physical or mental damage."],
+  [2, "Condition: apply a Level 1 Condition or raise a fitting existing Condition by 1."],
+  [3, "Skill Penalty: take -1 with the failed Skill for the rest of the Scene."],
+  [4, "Skill Locked: the failed Skill is unavailable for the rest of the Scene."],
+  [5, "Lost Materials: supplies or purchased materials for the task are lost."],
+  [6, "Fragile Item: an item used gains Fragile and risks breaking later."],
+  [7, "False Read: the character misinterprets emotion, evidence, or evaluation."],
+  [8, "Attachment Strain: one Attachment suffers 1 Strain."],
+  [9, "Lost Free Time: the task costs 1 Free Time."],
+  [10, "Enemy Opening: an enemy gains an immediate attack or equivalent pressure."],
+  [11, "Unique Consequence: the GM creates a fitting story consequence."]
+];
+const chapterFourBoostRows = [
+  [1, "Area of Effect: broaden the action to nearby targets or the surrounding area."],
+  [2, "Epiphany: reveal a useful connection or pattern."],
+  [3, "Extra Info: learn something useful through the action."],
+  [4, "Extra Oomph: make the result more effective than expected."],
+  [5, "Happy Bonds: avoid Strain from a Bond involved in the action."],
+  [6, "Hit Harder: deal +1 damage."],
+  [7, "Pantheon Pool: add 1 die to the Pantheon Pool."],
+  [8, "Preparation: grant +1 to a later check in the same Scene."],
+  [9, "Style: impress, distract, stun, or win bystander favor."],
+  [10, "Time Crunch: complete the task in half the usual time."]
+];
+const chapterFourPantheonRows = [
+  [1, "Bonus Dice: add agreed Pantheon Dice to a check."],
+  [2, "Divine Edit: sacrifice 2 dice for a minor scene declaration."],
+  [3, "Extra Support: sacrifice 1 die per extra helper after the first assistant."],
+  [4, "Miracle: sacrifice 4 dice for a major divine declaration."],
+  [5, "Our Territory: sacrifice 2 dice to penalize intruder Manifestations for the Scene."]
+];
+const chapterFourAttachmentRows = [
+  [1, "Devoted Scene: focus on the Attachment, heal Strain, and recover Free Time by Attachment level."],
+  [2, "Split Attention: mix mortal and divine duties, recover Free Time, and roll for Strain healing or fallout."],
+  [3, "Delay Tactics: spend Wealth or call a favor to recover 2 Free Time and postpone the demand."],
+  [4, "Ignore: recover up to 4 Free Time but deal Strain to the ignored Attachment."]
+];
+const chapterFourWealthRows = [
+  [1, "Cost 1: cheap, common, or easily accessible."],
+  [2, "Cost 2: costly items, minor luxury, or meaningful services."],
+  [3, "Cost 3: pricey, specialized, or hard-to-find needs."],
+  [4, "Cost 4: lavish, rare, or large-ticket expenses."],
+  [5, "Cost 5: very expensive items or services."],
+  [6, "Cost 6: one-of-a-kind, exceptional, or major experiences."]
+];
 
 function archetypeOptionTables() {
   return PTG_PREMADE_CHOICES
@@ -116,6 +162,22 @@ function labelize(value) {
 }
 
 export const PTG_PREMADE_ROLL_TABLES = [
+  table("Possible Critical Failure Effects", "1d11", 176, chapterFourCriticalFailureRows, {
+    description: "<p><strong>Source:</strong> Part-Time Gods Second Edition, book pp. 176-177. Use as a compact consequence menu when a roll has no successes and at least one 1-result.</p>"
+  }),
+  table("Boost Effect Menu", "1d10", 184, chapterFourBoostRows, {
+    description: "<p><strong>Source:</strong> Part-Time Gods Second Edition, book pp. 184-185. One Boost is earned per three successes above Difficulty and must be used immediately.</p>"
+  }),
+  table("Pantheon Pool Uses", "1d5", 187, chapterFourPantheonRows, {
+    description: "<p><strong>Source:</strong> Part-Time Gods Second Edition, book p. 187. Spending or sacrificing shared Pantheon Dice should have group agreement.</p>"
+  }),
+  table("Attachment Interaction Choices", "1d4", 193, chapterFourAttachmentRows, {
+    description: "<p><strong>Source:</strong> Part-Time Gods Second Edition, book pp. 193-194. Use when a character has no Free Time and an Attachment enters the Scene.</p>"
+  }),
+  table("Wealth Cost Tiers", "1d6", 191, chapterFourWealthRows, {
+    description: "<p><strong>Source:</strong> Part-Time Gods Second Edition, book pp. 191-192. Use as a quick abstract cost guide for goods, services, delays, and favors.</p>"
+  }),
+
   table("Random Occupation - Class", "1d10", 282, [
     [[1, 2], reroll],
     [[3, 4], "Strangers"],

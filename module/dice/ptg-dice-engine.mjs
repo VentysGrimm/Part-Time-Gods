@@ -20,7 +20,7 @@ export class PTGDiceEngine {
       const value = result.result;
 
       if (fateDie) {
-        if (value === 10) successes = 1;
+        if (value === 10) successes += 2;
       } else if (value === 10) successes += 2;
       else if (value >= 7) successes += 1;
 
@@ -40,7 +40,10 @@ export class PTGDiceEngine {
       difficulty,
       passed: successes >= difficulty,
       margin: successes - difficulty,
+      ones,
       criticalFailure: successes === 0 && ones > 0,
+      criticalConsequenceCount: successes === 0 && ones > 0 ? ones : 0,
+      boosts: Math.floor(Math.max(0, successes - difficulty) / 3),
       checkMode: options.checkMode ?? "standard",
       extended: options.extended ?? null,
       boostChoice: options.boostChoice ?? "",
@@ -125,11 +128,11 @@ export class PTGDiceEngine {
         <div>Extended Result: ${extendedProgress >= Number(outcome.extended.target ?? 0) ? "Complete" : "In Progress"}</div>
       `
       : "";
-    const boostRows = outcome.margin > 0
-      ? `<div>Boost: ${escapeHTML(outcome.boostChoice || `${outcome.margin} extra success${outcome.margin === 1 ? "" : "es"} available`)}</div>`
+    const boostRows = outcome.boosts > 0
+      ? `<div>Boosts: ${outcome.boosts}${outcome.boostChoice ? ` - ${escapeHTML(outcome.boostChoice)}` : ""}</div>`
       : "";
     const criticalRows = outcome.criticalFailure
-      ? "<div>Consequence: The GM may introduce a complication, Condition, Strain, lost time, or other PTG2E setback.</div>"
+      ? `<div>Consequence: ${outcome.criticalConsequenceCount} critical failure consequence${outcome.criticalConsequenceCount === 1 ? "" : "s"}; the GM may introduce complications, Conditions, Strain, lost time, or other PTG2E setbacks.</div>`
       : "";
     const conditionRows = (outcome.conditionWarnings ?? []).length
       ? `
