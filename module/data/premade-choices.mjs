@@ -550,19 +550,24 @@ function theology(name, page, otherNames, stereotype, grants) {
 
 function choice(type, name, page, system) {
   const slug = slugify(name);
+  const sourceId = `ptg2e.chapter-2.${type}.${slug}`;
 
   return {
     name,
     type,
     img: defaultIcon(type),
-    system,
+    system: {
+      slug,
+      sourceId,
+      ...system
+    },
     flags: {
       "part-time-gods": {
         premadeChoice: true,
         source: "Part-Time Gods Second Edition",
         page,
         slug,
-        sourceId: `choice:${type}:${slug}`
+        sourceId
       }
     }
   };

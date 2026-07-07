@@ -1668,7 +1668,11 @@ function baseItem(type, name, page, system, flags = {}) {
     name,
     type,
     img: defaultIcon(type),
-    system,
+    system: {
+      slug,
+      sourceId,
+      ...system
+    },
     flags: {
       "part-time-gods": {
         premade: true,

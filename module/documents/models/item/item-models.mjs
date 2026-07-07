@@ -68,6 +68,8 @@ class PTGBaseItemData extends foundry.abstract.TypeDataModel {
 
   static rulesAutomationFields(sourceType = "", kind = "narrative") {
     return {
+      slug: this.textField(),
+      sourceId: this.textField(),
       rules: this.rulesField(sourceType),
       usage: this.usageField(kind),
       automation: this.automationField()

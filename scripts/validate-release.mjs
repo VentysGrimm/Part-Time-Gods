@@ -102,6 +102,11 @@ async function validatePremadeSourceData() {
   }
   if (missingStableKeys.length) errors.push(`Missing stable source keys:\n${missingStableKeys.map(key => `- ${key}`).join("\n")}`);
 
+  const missingSystemSourceKeys = itemSystemSourceKeyAudit([...documents.items, ...documents.choices]);
+  if (missingSystemSourceKeys.length) {
+    errors.push(`Item documents missing system.slug/system.sourceId:\n${missingSystemSourceKeys.map(key => `- ${key}`).join("\n")}`);
+  }
+
   const weakItems = weakItemExplanations(documents.items);
   if (weakItems.length) errors.push(`Weak premade Item explanations:\n${weakItems.map(key => `- ${key}`).join("\n")}`);
 
@@ -169,6 +174,12 @@ function rulesJournalTextAudit(journals) {
 function hasStableSourceKey(document) {
   const flags = document?.flags?.[SYSTEM_ID] ?? {};
   return Boolean(flags.slug && flags.sourceId);
+}
+
+function itemSystemSourceKeyAudit(documents) {
+  return documents
+    .filter(document => !document.system?.slug || !document.system?.sourceId)
+    .map(document => `${document.type}:${document.name}`);
 }
 
 function weakItemExplanations(documents) {
