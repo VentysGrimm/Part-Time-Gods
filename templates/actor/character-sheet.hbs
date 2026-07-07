@@ -1,15 +1,15 @@
 <form class="ptg-sheet ptg-character-sheet" autocomplete="off">
-  <nav class="ptg-page-tabs tabs" data-group="primary" aria-label="Character sheet pages">
-    <button type="button" class="item active" data-group="primary" data-tab="front" data-ptg-tab="front" title="Printed sheet page 1">Page 1</button>
-    <button type="button" class="item" data-group="primary" data-tab="back" data-ptg-tab="back" title="Printed sheet page 2">Page 2</button>
+  <nav class="ptg-page-tabs tabs" data-group="primary" aria-label="{{ptgLocalize "PTG.Sheet.CharacterPages"}}">
+    <button type="button" class="item active" data-group="primary" data-tab="front" data-ptg-tab="front" title="{{ptgLocalize "PTG.Sheet.PrintedPage1"}}">{{ptgLocalize "PTG.Sheet.Page1"}}</button>
+    <button type="button" class="item" data-group="primary" data-tab="back" data-ptg-tab="back" title="{{ptgLocalize "PTG.Sheet.PrintedPage2"}}">{{ptgLocalize "PTG.Sheet.Page2"}}</button>
   </nav>
 
-  <section class="ptg-print-tools" aria-label="Foundry character tools">
-    <button type="button" data-character-creator>Creator</button>
-    <button type="button" data-mortality-workflow>Mortality: {{system.mortality.state}}</button>
-    <button type="button" data-resource-workflow="work">Go to Work</button>
+  <section class="ptg-print-tools" aria-label="{{ptgLocalize "PTG.Sheet.FoundryCharacterTools"}}">
+    <button type="button" data-character-creator title="{{ptgLocalize "PTG.Help.CharacterCreator"}}">{{ptgLocalize "PTG.Sheet.Creator"}}</button>
+    <button type="button" data-mortality-workflow title="{{ptgLocalize "PTG.Help.MortalDivineBalance"}}">{{ptgLocalize "PTG.Sheet.Mortality"}}: {{system.mortality.state}}</button>
+    <button type="button" data-resource-workflow="work" title="{{ptgLocalize "PTG.Help.FreeTime"}}">{{ptgLocalize "PTG.Sheet.GoToWork"}}</button>
     {{#each pantheonMembership as |pantheon|}}
-      <button type="button" data-pantheon-pool-workflow data-pantheon-uuid="{{pantheon.uuid}}">{{pantheon.name}} Pool {{pantheon.pool}}</button>
+      <button type="button" data-pantheon-pool-workflow data-pantheon-uuid="{{pantheon.uuid}}" title="{{ptgLocalize "PTG.Help.PantheonPool"}}">{{pantheon.name}} {{ptgLocalize "PTG.Sheet.Pool"}} {{pantheon.pool}}</button>
     {{/each}}
   </section>
 
@@ -34,8 +34,8 @@
     <section class="ptg-print-front-grid">
       <section class="ptg-print-section ptg-print-lines ptg-print-conditions">
         <div class="ptg-print-section-heading">
-          <h2>Conditions</h2>
-          {{#if editable}}<button type="button" data-condition-create>Add</button>{{/if}}
+          <h2 title="{{ptgLocalize "PTG.Help.Conditions"}}">Conditions</h2>
+          {{#if editable}}<button type="button" data-condition-create title="{{ptgLocalize "PTG.Help.Conditions"}}">Add</button>{{/if}}
         </div>
         {{#if system.derived.conditionWarnings}}
           <ul class="ptg-print-warning-list">
@@ -44,7 +44,7 @@
             {{/each}}
           </ul>
         {{/if}}
-        <textarea name="system.conditions" aria-label="Condition notes">{{system.conditions}}</textarea>
+        <textarea name="system.conditions" aria-label="Condition notes" title="{{ptgLocalize "PTG.Help.Conditions"}}">{{system.conditions}}</textarea>
         {{#if inventory.conditions.length}}
           <div class="ptg-print-condition-list">
             {{#each inventory.conditions as |item|}}
@@ -82,8 +82,8 @@
           <input name="system.resources.occupationFreeTime" type="number" value="{{system.resources.occupationFreeTime}}" min="0">
         </label>
         <label class="ptg-print-stat editable">
-          <h2>Spark</h2>
-          <input name="system.resources.spark" type="number" value="{{system.resources.spark}}" min="1">
+          <h2 title="{{ptgLocalize "PTG.Help.Spark"}}">Spark</h2>
+          <input name="system.resources.spark" type="number" value="{{system.resources.spark}}" min="1" title="{{ptgLocalize "PTG.Help.Spark"}}">
         </label>
       </section>
 
@@ -91,12 +91,12 @@
         {{#each frontResourceTracks as |track|}}
           <div class="ptg-print-resource {{track.key}}">
             <header>
-              <h2>{{track.label}}</h2>
+              <h2 title="{{track.help}}">{{track.label}}</h2>
               <span>Max</span>
               <strong>{{track.max}}</strong>
               <em>{{track.formula}}</em>
             </header>
-            <div class="ptg-resource-pips" role="group" aria-label="{{track.label}} {{track.value}} of {{track.max}}">
+            <div class="ptg-resource-pips" role="group" aria-label="{{track.label}} {{track.value}} of {{track.max}}" title="{{track.help}}">
               <button type="button" data-resource-step="{{track.key}}" data-resource-delta="-1" aria-label="Decrease {{track.label}}">-</button>
               <div class="ptg-resource-boxes">
                 {{#each track.boxes as |box|}}
@@ -118,11 +118,11 @@
         {{#each downtimeResourceTracks as |track|}}
           <div class="ptg-print-resource ptg-print-flat-resource {{track.key}}">
             <header>
-              <h2>{{track.label}}</h2>
+              <h2 title="{{track.help}}">{{track.label}}</h2>
               <span>Max</span>
-              <input name="{{track.maxName}}" type="number" value="{{track.max}}" min="0" aria-label="{{track.label}} Max">
+              <input name="{{track.maxName}}" type="number" value="{{track.max}}" min="0" aria-label="{{track.label}} Max" title="{{track.help}}">
             </header>
-            <div class="ptg-resource-pips" role="group" aria-label="{{track.label}} {{track.value}} of {{track.max}}">
+            <div class="ptg-resource-pips" role="group" aria-label="{{track.label}} {{track.value}} of {{track.max}}" title="{{track.help}}">
               <button type="button" data-flat-resource-step="{{track.key}}" data-resource-delta="-1" aria-label="Decrease {{track.label}}">-</button>
               <div class="ptg-resource-boxes">
                 {{#each track.boxes as |box|}}
@@ -137,7 +137,7 @@
                 {{/each}}
               </div>
               <button type="button" data-flat-resource-step="{{track.key}}" data-resource-delta="1" aria-label="Increase {{track.label}}">+</button>
-              <button type="button" class="ptg-print-manage-resource" data-resource-workflow="{{track.workflow}}" aria-label="Manage {{track.label}}">Manage</button>
+              <button type="button" class="ptg-print-manage-resource" data-resource-workflow="{{track.workflow}}" aria-label="Manage {{track.label}}" title="{{track.help}}">Manage</button>
             </div>
           </div>
         {{/each}}
@@ -150,12 +150,12 @@
         {{#with fragmentResourceTrack as |track|}}
           <div class="ptg-print-resource {{track.key}}">
             <header>
-              <h2>{{track.label}}</h2>
+              <h2 title="{{track.help}}">{{track.label}}</h2>
               <span>Max</span>
               <strong>{{track.max}}</strong>
               <em>{{track.formula}}</em>
             </header>
-            <div class="ptg-resource-pips" role="group" aria-label="{{track.label}} {{track.value}} of {{track.max}}">
+            <div class="ptg-resource-pips" role="group" aria-label="{{track.label}} {{track.value}} of {{track.max}}" title="{{track.help}}">
               <button type="button" data-resource-step="{{track.key}}" data-resource-delta="-1" aria-label="Decrease {{track.label}}">-</button>
               <div class="ptg-resource-boxes">
                 {{#each track.boxes as |box|}}
@@ -226,20 +226,20 @@
 
       <section class="ptg-print-side-stack">
         <section class="ptg-print-section ptg-print-manifestations">
-          <h2>Manifestations</h2>
+          <h2 title="{{ptgLocalize "PTG.Help.ManifestationMeasures"}}">Manifestations</h2>
           <div class="ptg-manifestation-columns">
             {{#each manifestationColumns as |column|}}
               <div class="ptg-score-column">
                 {{#each column as |key|}}
                   <label class="ptg-score-row">
-                    <button type="button" data-roll-manifestation="{{key}}">{{ptgLabel "manifestations" key}}</button>
+                    <button type="button" data-roll-manifestation="{{key}}" title="{{ptgLocalize "PTG.Help.ManifestationMeasures"}}">{{ptgLabel "manifestations" key}}</button>
                     <input name="system.manifestations.{{key}}" type="number" value="{{lookup @root.system.manifestations key}}" min="0">
                   </label>
                 {{/each}}
               </div>
             {{/each}}
           </div>
-          <p class="ptg-print-help">Manifestation + Skill. <strong>7-9</strong> = 1 Success, <strong>10</strong> = 2 successes. Level 0 Manifestations cannot be used.</p>
+          <p class="ptg-print-help" title="{{ptgLocalize "PTG.Help.ManifestationMeasures"}}">Manifestation + Skill. <strong>7-9</strong> = 1 Success, <strong>10</strong> = 2 successes. Level 0 Manifestations cannot be used. {{ptgLocalize "PTG.Help.ManifestationMeasures"}}</p>
           <div class="ptg-print-mini-actions">
             <button type="button" data-ritual-action="territory">Territory Ritual</button>
             <button type="button" data-ritual-action="spark">Spark Ritual</button>
@@ -259,7 +259,7 @@
           <strong>Unspent {{xpUnspent}}</strong>
           <button type="button" data-xp-award>Award</button>
           <button type="button" data-advancement-purchase>Spend</button>
-          <button type="button" data-spark-advancement>Spark</button>
+          <button type="button" data-spark-advancement title="{{ptgLocalize "PTG.Help.Spark"}}">Spark</button>
         </section>
       </section>
     </section>
@@ -341,7 +341,7 @@
         {{#if editable}}<button type="button" data-item-create="bond">Add</button>{{/if}}
       </div>
       <div class="ptg-print-attachment-table bonds">
-        <div class="ptg-print-attachment-head">
+        <div class="ptg-print-attachment-head" title="{{ptgLocalize "PTG.Help.Strain"}}">
           <span>Name</span>
           <span>Type</span>
           <span>Location</span>
@@ -394,7 +394,7 @@
         {{/if}}
       </div>
       <div class="ptg-print-attachment-table followers">
-        <div class="ptg-print-attachment-head">
+        <div class="ptg-print-attachment-head" title="{{ptgLocalize "PTG.Help.Strain"}}">
           <span>Name</span>
           <span>Type</span>
           <span>Location</span>

@@ -1,5 +1,6 @@
 import { conditionItemFromSelection, loadPremadeConditions } from "../conditions/condition-workflow.mjs";
 import { getDragEventData, itemFromDropData } from "../util/drop-data.mjs";
+import { localizeFallback } from "../util/localization.mjs";
 import { openPantheonPoolDialog, pantheonPoolMax, pantheonPoolOptions, spendPantheonDiceForActor } from "../workflows/pantheon-pool-workflow.mjs";
 import { generateRandomGod } from "../util/random-god-generator.mjs";
 
@@ -933,17 +934,17 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   #prepareResourceTracks() {
     const resources = this.actor.system.resources ?? {};
     return [
-      resourceTrack("health", "Health", resources.health, "5 + Fortitude + Spark", 10),
-      resourceTrack("psyche", "Psyche", resources.psyche, "5 + Discipline + Spark", 10),
-      resourceTrack("fragments", "Fragments", resources.fragments, "Spark x3", 20)
+      resourceTrack("health", "PTG.Resources.Health", "Health", resources.health, "5 + Fortitude + Spark", 10, "PTG.Help.Health"),
+      resourceTrack("psyche", "PTG.Resources.Psyche", "Psyche", resources.psyche, "5 + Discipline + Spark", 10, "PTG.Help.Psyche"),
+      resourceTrack("fragments", "PTG.Resources.Fragments", "Fragments", resources.fragments, "Spark x3", 20, "PTG.Help.Fragments")
     ];
   }
 
   #prepareDowntimeResourceTracks() {
     const resources = this.actor.system.resources ?? {};
     return [
-      flatResourceTrack("freeTime", "Free Time", resources.freeTime, resources.freeTimeMax, "freeTime", 10),
-      flatResourceTrack("wealth", "Wealth", resources.wealth, resources.wealthMax, "wealth", 10)
+      flatResourceTrack("freeTime", "PTG.Resources.FreeTime", "Free Time", resources.freeTime, resources.freeTimeMax, "freeTime", 10, "PTG.Help.FreeTime"),
+      flatResourceTrack("wealth", "PTG.Resources.Wealth", "Wealth", resources.wealth, resources.wealthMax, "wealth", 10, "PTG.Help.Wealth")
     ];
   }
 
@@ -1608,7 +1609,8 @@ function itemDetail(label, value) {
   };
 }
 
-function resourceTrack(key, label, resource, formula, minimumBoxes = 0) {
+function resourceTrack(key, labelKey, fallbackLabel, resource, formula, minimumBoxes = 0, helpKey = "") {
+  const label = localizeFallback(labelKey, fallbackLabel);
   const max = Math.max(0, Number(resource?.max ?? 0));
   const value = Math.max(0, Math.min(max, Number(resource?.value ?? 0)));
   const boxCount = Math.max(max, minimumBoxes);
@@ -1616,6 +1618,7 @@ function resourceTrack(key, label, resource, formula, minimumBoxes = 0) {
   return {
     key,
     label,
+    help: helpKey ? localizeFallback(helpKey, "") : "",
     value,
     max,
     formula,
@@ -1630,7 +1633,8 @@ function resourceTrack(key, label, resource, formula, minimumBoxes = 0) {
   };
 }
 
-function flatResourceTrack(key, label, value, max, workflow, minimumBoxes = 0) {
+function flatResourceTrack(key, labelKey, fallbackLabel, value, max, workflow, minimumBoxes = 0, helpKey = "") {
+  const label = localizeFallback(labelKey, fallbackLabel);
   const trackMax = Math.max(0, Number(max ?? 0));
   const trackValue = Math.max(0, Math.min(trackMax, Number(value ?? 0)));
   const boxCount = Math.max(trackMax, minimumBoxes);
@@ -1638,6 +1642,7 @@ function flatResourceTrack(key, label, value, max, workflow, minimumBoxes = 0) {
   return {
     key,
     label,
+    help: helpKey ? localizeFallback(helpKey, "") : "",
     value: trackValue,
     max: trackMax,
     workflow,

@@ -4,6 +4,7 @@ import { openPTGCombatControls } from "../combat/ptg-combat.mjs";
 import { openPantheonPoolDialog } from "../workflows/pantheon-pool-workflow.mjs";
 import { openMortalDivineBalanceTracker } from "./mortal-divine-tracker.mjs";
 import { createOrOpenTerritoryGridScene, openTerritoryGridApp } from "./territory-grid-app.mjs";
+import { SYSTEM_ID, localize, localizeFallback } from "../util/localization.mjs";
 
 const RULES_PACK_ID = "part-time-gods.rules-reference";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -16,10 +17,90 @@ export function openGMSetupPanel() {
   return setupPanel;
 }
 
+export function registerGMSetupSettings() {
+  game.settings.register(SYSTEM_ID, "showGMSetupOnReady", {
+    name: localize("PTG.Settings.ShowGMSetupOnReady.Name"),
+    hint: localize("PTG.Settings.ShowGMSetupOnReady.Hint"),
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true
+  });
+  game.settings.register(SYSTEM_ID, "gmSetupFirstRunComplete", {
+    name: localize("PTG.Settings.GMSetupFirstRunComplete.Name"),
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: false
+  });
+}
+
+export function registerGMSetupControls() {
+  Hooks.on("getSceneControlButtons", controls => {
+    const tool = {
+      name: "ptg-gm-setup",
+      title: localize("PTG.Setup.ControlTitle"),
+      icon: "fas fa-tools",
+      button: true,
+      visible: Boolean(game.user?.isGM),
+      onClick: () => openGMSetupPanel()
+    };
+
+    if (Array.isArray(controls)) {
+      let group = controls.find(control => control.name === "ptg");
+      if (!group) {
+        group = {
+          name: "ptg",
+          title: localize("PTG.Setup.ControlGroup"),
+          icon: "fas fa-map",
+          layer: "controls",
+          tools: []
+        };
+        controls.push(group);
+      }
+
+      group.tools ??= [];
+      if (!group.tools.some(existing => existing.name === tool.name)) group.tools.unshift(tool);
+      return;
+    }
+
+    if (!controls || typeof controls !== "object") return;
+
+    controls.ptg ??= {
+      name: "ptg",
+      title: localize("PTG.Setup.ControlGroup"),
+      icon: "fas fa-map",
+      layer: "controls",
+      tools: {}
+    };
+
+    const tools = controls.ptg.tools;
+    if (Array.isArray(tools)) {
+      if (!tools.some(existing => existing.name === tool.name)) tools.unshift(tool);
+    } else {
+      controls.ptg.tools = {
+        [tool.name]: tool,
+        ...(tools ?? {})
+      };
+    }
+  });
+}
+
+export async function maybeOpenFirstRunGMSetup() {
+  if (!game.user?.isGM) return false;
+  if (!game.settings.get(SYSTEM_ID, "showGMSetupOnReady")) return false;
+  if (game.settings.get(SYSTEM_ID, "gmSetupFirstRunComplete")) return false;
+
+  await game.settings.set(SYSTEM_ID, "gmSetupFirstRunComplete", true);
+  ui.notifications.info(localize("PTG.Setup.FirstRunNotification"));
+  openGMSetupPanel();
+  return true;
+}
+
 export async function openRulesReference() {
   const pack = game.packs?.get(RULES_PACK_ID);
   if (!pack) {
-    ui.notifications.warn("Part-Time Gods Rules Reference compendium is not available.");
+    ui.notifications.warn(localize("PTG.Setup.Notifications.RulesReferenceMissing"));
     return null;
   }
 
@@ -35,7 +116,7 @@ export async function openRulesReference() {
     return journal;
   }
 
-  ui.notifications.warn("Part-Time Gods Rules Reference compendium has no readable Journal entries.");
+  ui.notifications.warn(localize("PTG.Setup.Notifications.RulesReferenceEmpty"));
   return null;
 }
 
@@ -47,7 +128,7 @@ class GMSetupPanel extends HandlebarsApplicationMixin(ApplicationV2) {
       height: 620
     },
     window: {
-      title: "PTG GM Setup",
+      title: "PTG.Setup.WindowTitle",
       resizable: true
     },
     tag: "form"
@@ -66,10 +147,16 @@ class GMSetupPanel extends HandlebarsApplicationMixin(ApplicationV2) {
     return {
       ...context,
       isGM,
-      userRole: isGM ? "GM" : "Player",
+      title: localize("PTG.Setup.Title"),
+      subtitle: localize("PTG.Setup.Subtitle"),
+      userRole: isGM ? localize("PTG.Setup.Roles.GM") : localize("PTG.Setup.Roles.Player"),
+      firstRunTitle: localize("PTG.Setup.FirstRunTitle"),
+      firstRunHint: localize("PTG.Setup.FirstRunHint"),
+      gmActionsDisabled: localize("PTG.Setup.GMActionsDisabled"),
+      gmBadge: localize("PTG.Setup.GMBadge"),
       groups: setupGroups().map(group => ({
         ...group,
-        actions: group.actions.map(action => ({
+        actions: group.actions.filter(Boolean).map(action => ({
           ...action,
           disabled: action.gmOnly && !isGM
         }))
@@ -89,17 +176,17 @@ class GMSetupPanel extends HandlebarsApplicationMixin(ApplicationV2) {
     const actionKey = button.dataset.setupAction;
     const action = setupActions()[actionKey];
     if (!action) {
-      ui.notifications.warn(`Unsupported PTG setup action: ${actionKey}`);
+      ui.notifications.warn(localize("PTG.Setup.Notifications.UnsupportedAction", { action: actionKey }));
       return null;
     }
 
     if (action.gmOnly && !game.user?.isGM) {
-      ui.notifications.warn("Only a GM can use that Part-Time Gods setup action.");
+      ui.notifications.warn(localize("PTG.Setup.Notifications.GMOnly"));
       return null;
     }
 
     if (typeof action.handler !== "function") {
-      ui.notifications.warn(`Part-Time Gods setup helper is missing for ${action.label}.`);
+      ui.notifications.warn(localize("PTG.Setup.Notifications.MissingHelper", { label: action.label }));
       return null;
     }
 
@@ -107,7 +194,7 @@ class GMSetupPanel extends HandlebarsApplicationMixin(ApplicationV2) {
       return await action.handler();
     } catch (error) {
       console.error("Part-Time Gods 2E | GM setup action failed.", actionKey, error);
-      ui.notifications.error(`${action.label} failed. See the console for details.`);
+      ui.notifications.error(localize("PTG.Setup.Notifications.ActionFailed", { label: action.label }));
       return null;
     }
   }
@@ -118,12 +205,14 @@ function setupGroups() {
   return [
     {
       key: "setup",
-      label: "Setup",
+      label: localize("PTG.Setup.Groups.Setup.Label"),
+      hint: localize("PTG.Setup.Groups.Setup.Hint"),
       actions: [actions["populate-compendia"], actions["territory-scene"], actions["rules-reference"]]
     },
     {
       key: "play",
-      label: "Table Tools",
+      label: localize("PTG.Setup.Groups.Play.Label"),
+      hint: localize("PTG.Setup.Groups.Play.Hint"),
       actions: [
         actions["territory-controls"],
         actions["combat-controls"],
@@ -136,64 +225,83 @@ function setupGroups() {
 }
 
 function setupActions() {
-  return {
+  const definitions = {
     "populate-compendia": {
       key: "populate-compendia",
-      label: "Populate Compendia",
+      labelKey: "PTG.Setup.Actions.PopulateCompendia.Label",
+      hintKey: "PTG.Setup.Actions.PopulateCompendia.Hint",
       icon: "fas fa-database",
       gmOnly: true,
       handler: () => populatePremadeCompendiums({ notify: true })
     },
     "territory-scene": {
       key: "territory-scene",
-      label: "Territory Scene",
+      labelKey: "PTG.Setup.Actions.TerritoryScene.Label",
+      hintKey: "PTG.Setup.Actions.TerritoryScene.Hint",
       icon: "fas fa-map",
       gmOnly: true,
       handler: () => createOrOpenTerritoryGridScene({ activate: false, notify: true })
     },
     "territory-controls": {
       key: "territory-controls",
-      label: "Territory Grid",
+      labelKey: "PTG.Setup.Actions.TerritoryGrid.Label",
+      hintKey: "PTG.Setup.Actions.TerritoryGrid.Hint",
       icon: "fas fa-crosshairs",
       gmOnly: true,
       handler: () => openTerritoryGridApp()
     },
     "combat-controls": {
       key: "combat-controls",
-      label: "Combat Controls",
+      labelKey: "PTG.Setup.Actions.CombatControls.Label",
+      hintKey: "PTG.Setup.Actions.CombatControls.Hint",
       icon: "fas fa-shield-alt",
       gmOnly: true,
       handler: () => openPTGCombatControls()
     },
     "pantheon-pool": {
       key: "pantheon-pool",
-      label: "Pantheon Pool",
+      labelKey: "PTG.Setup.Actions.PantheonPool.Label",
+      hintKey: "PTG.Setup.Actions.PantheonPool.Hint",
       icon: "fas fa-users",
       gmOnly: false,
       handler: () => openPantheonPoolDialog(defaultPantheonPoolContext())
     },
     "mortal-divine-tracker": {
       key: "mortal-divine-tracker",
-      label: "Mortal/Divine Tracker",
+      labelKey: "PTG.Setup.Actions.MortalDivineTracker.Label",
+      hintKey: "PTG.Setup.Actions.MortalDivineTracker.Hint",
       icon: "fas fa-balance-scale",
       gmOnly: true,
       handler: () => openMortalDivineBalanceTracker(defaultCharacterActor())
     },
     "antagonist-builder": {
       key: "antagonist-builder",
-      label: "Opposition Builder",
+      labelKey: "PTG.Setup.Actions.OppositionBuilder.Label",
+      hintKey: "PTG.Setup.Actions.OppositionBuilder.Hint",
       icon: "fas fa-user-secret",
       gmOnly: true,
       handler: () => openAntagonistBuilder()
     },
     "rules-reference": {
       key: "rules-reference",
-      label: "Rules Reference",
+      labelKey: "PTG.Setup.Actions.RulesReference.Label",
+      hintKey: "PTG.Setup.Actions.RulesReference.Hint",
       icon: "fas fa-book-open",
       gmOnly: false,
       handler: () => openRulesReference()
     }
   };
+
+  return Object.fromEntries(
+    Object.entries(definitions).map(([key, action]) => [
+      key,
+      {
+        ...action,
+        label: localizeFallback(action.labelKey, action.key),
+        hint: localizeFallback(action.hintKey, "")
+      }
+    ])
+  );
 }
 
 function defaultPantheonPoolContext() {

@@ -30,12 +30,29 @@
       "CharacterSheet": "Part-Time Gods Character",
       "AntagonistSheet": "Part-Time Gods Antagonist",
       "PantheonSheet": "Part-Time Gods Pantheon",
-      "ItemSheet": "Part-Time Gods Item"
+      "ItemSheet": "Part-Time Gods Item",
+      "CharacterPages": "Character sheet pages",
+      "PrintedPage1": "Printed sheet page 1",
+      "PrintedPage2": "Printed sheet page 2",
+      "Page1": "Page 1",
+      "Page2": "Page 2",
+      "FoundryCharacterTools": "Foundry character tools",
+      "Creator": "Creator",
+      "Mortality": "Mortality",
+      "GoToWork": "Go to Work",
+      "Pool": "Pool"
     },
     "Settings": {
       "AutoPopulate": {
         "Name": "Auto-populate premade Part-Time Gods compendiums",
         "Hint": "Creates the system's premade character creation choices, play items, maps, and rules journals in system compendiums for GMs."
+      },
+      "ShowGMSetupOnReady": {
+        "Name": "Show the Part-Time Gods GM setup panel on first GM login",
+        "Hint": "Opens the setup panel once in a fresh world so GMs can find compendium population, territory, combat, opposition, and rules tools without slash commands."
+      },
+      "GMSetupFirstRunComplete": {
+        "Name": "GM setup first-run flow completed"
       },
       "CanonicalEmbeddedItemsMigration": {
         "Name": "Canonical embedded Items migration"
@@ -55,6 +72,74 @@
       "EmbeddedItemsMigrationFailed": "Part-Time Gods embedded Item migration failed. Check the console for details.",
       "OnlyGMFollowerScene": "Only a GM can create Worshipper and Vassal actors on a scene.",
       "NoActiveScene": "No active scene is available for token creation."
+    },
+    "Setup": {
+      "WindowTitle": "PTG GM Setup",
+      "Title": "PTG Setup",
+      "Subtitle": "World setup and table tools",
+      "ControlGroup": "Part-Time Gods",
+      "ControlTitle": "PTG GM Setup",
+      "FirstRunTitle": "First-run setup",
+      "FirstRunHint": "Use these tools to populate packs, create the territory scene, open rules, and launch the table workflows most GMs need first.",
+      "FirstRunNotification": "Part-Time Gods GM setup is open. You can reopen it from the PTG scene controls or game.ptg.setup.open().",
+      "GMActionsDisabled": "GM actions disabled",
+      "GMBadge": "GM",
+      "Roles": {
+        "GM": "GM",
+        "Player": "Player"
+      },
+      "Groups": {
+        "Setup": {
+          "Label": "Setup",
+          "Hint": "Run these once in a new world or after rebuilding source-backed compendiums."
+        },
+        "Play": {
+          "Label": "Table Tools",
+          "Hint": "Open the main PTG2E workflows without remembering slash commands."
+        }
+      },
+      "Actions": {
+        "PopulateCompendia": {
+          "Label": "Populate Compendia",
+          "Hint": "Create or refresh the system's source-backed Items, Actors, Journals, Tables, Scenes, and Macros."
+        },
+        "TerritoryScene": {
+          "Label": "Create/Open Territory Scene",
+          "Hint": "Create or open the God Territory Grid scene and prepare its stored grid data."
+        },
+        "TerritoryGrid": {
+          "Label": "Open Territory Grid",
+          "Hint": "Open the Territory Grid app for tracking landmarks, worshippers, rivals, threats, and influence."
+        },
+        "CombatControls": {
+          "Label": "Combat Controls",
+          "Hint": "Open PTG2E combat helpers for initiative, damage, and condition handling."
+        },
+        "PantheonPool": {
+          "Label": "Pantheon Pool",
+          "Hint": "Open the shared Pantheon Dice workflow for divine costs, Curses, and table-facing spends."
+        },
+        "MortalDivineTracker": {
+          "Label": "Mortal/Divine Tracker",
+          "Hint": "Track a character's pressure between mortal obligations and divine identity."
+        },
+        "OppositionBuilder": {
+          "Label": "Opposition Builder",
+          "Hint": "Open the antagonist builder for source-backed Outsiders, mortals, spirits, and quick opposition."
+        },
+        "RulesReference": {
+          "Label": "Rules Reference",
+          "Hint": "Open the summarized rules-reference compendium with source-page markers."
+        }
+      },
+      "Notifications": {
+        "RulesReferenceMissing": "Part-Time Gods Rules Reference compendium is not available.",
+        "RulesReferenceEmpty": "Part-Time Gods Rules Reference compendium has no readable Journal entries.",
+        "UnsupportedAction": "Unsupported PTG setup action: {action}",
+        "GMOnly": "Only a GM can use that Part-Time Gods setup action.",
+        "MissingHelper": "Part-Time Gods setup helper is missing for {label}.",
+        "ActionFailed": "{label} failed. See the console for details."
+      }
     },
     "Folders": {
       "Vassals": "PTG Vassals",
@@ -77,6 +162,20 @@
       "Psyche": "Psyche",
       "Fragments": "Fragments",
       "Wealth": "Wealth"
+    },
+    "Help": {
+      "CharacterCreator": "Open the character creator to apply source-backed Occupation, Archetype, Dominion, and Theology choices.",
+      "MortalDivineBalance": "Track whether the character is leaning toward mortal obligations or divine identity.",
+      "Health": "Health measures physical harm. Its maximum is 5 plus Fortitude plus Spark.",
+      "Psyche": "Psyche measures mental or spiritual harm. Its maximum is 5 plus Discipline plus Spark.",
+      "FreeTime": "Free Time is the character's available downtime for work, obligations, recovery, investigation, and mortal life.",
+      "Wealth": "Wealth is spendable money and material leverage for gear, favors, lifestyle pressure, and downtime choices.",
+      "PantheonPool": "The Pantheon Pool stores shared Pantheon Dice that can be spent by members and refilled through Curses or table events.",
+      "Fragments": "Fragments fuel divine effort and Manifestation boosts. Fragment maximum is Spark times 3.",
+      "Spark": "Spark is the god's divine tier. It affects Health, Psyche, Fragments, advancement, and mythic scope.",
+      "Strain": "Strain marks pressure on Bonds, Worshippers, and Vassals. High Strain means the relationship needs attention.",
+      "Conditions": "Conditions capture harm, complications, ongoing penalties, and recoverable states.",
+      "ManifestationMeasures": "Manifestation Measures spend successes after a Manifestation roll on damage, range, targets, duration, scale, or narrative detail."
     },
     "Skills": {
       "athletics": "Athletics",

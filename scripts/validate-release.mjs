@@ -15,6 +15,7 @@ assertEqual(system.id, SYSTEM_ID, "system id");
 assertReleaseUrls(system);
 await assertFile("part-time-gods.js", "Main system entry point");
 await assertManifestAssets(system);
+await assertProductionUxScaffold();
 
 const sourceResult = await validatePremadeSourceData();
 if (errors.length) {
@@ -33,6 +34,60 @@ async function assertManifestAssets(manifest) {
   for (const esmodule of manifest.esmodules ?? []) await assertFile(esmodule, "Manifest esmodule");
   for (const stylesheet of manifest.styles ?? []) await assertFile(stylesheet, "Manifest stylesheet");
   for (const pack of manifest.packs ?? []) await assertDirectory(pack.path, `Compendium pack: ${pack.name}`);
+}
+
+async function assertProductionUxScaffold() {
+  const language = await readJson("lang/en.json");
+  const requiredLocalizationKeys = [
+    "PTG.Settings.ShowGMSetupOnReady.Name",
+    "PTG.Settings.ShowGMSetupOnReady.Hint",
+    "PTG.Settings.GMSetupFirstRunComplete.Name",
+    "PTG.Setup.WindowTitle",
+    "PTG.Setup.ControlTitle",
+    "PTG.Setup.FirstRunHint",
+    "PTG.Setup.FirstRunNotification",
+    "PTG.Setup.Actions.PopulateCompendia.Label",
+    "PTG.Setup.Actions.TerritoryScene.Label",
+    "PTG.Setup.Actions.CombatControls.Label",
+    "PTG.Setup.Actions.OppositionBuilder.Label",
+    "PTG.Setup.Actions.RulesReference.Label",
+    "PTG.Help.FreeTime",
+    "PTG.Help.Wealth",
+    "PTG.Help.PantheonPool",
+    "PTG.Help.Fragments",
+    "PTG.Help.Spark",
+    "PTG.Help.Strain",
+    "PTG.Help.Conditions",
+    "PTG.Help.ManifestationMeasures"
+  ];
+  const missingKeys = requiredLocalizationKeys.filter(key => !localizationValue(language, key));
+  if (missingKeys.length) errors.push(`Missing production UX localization keys:\n${missingKeys.map(key => `- ${key}`).join("\n")}`);
+
+  const setupModule = await readText("module/apps/gm-setup-panel.mjs");
+  for (const token of ["registerGMSetupSettings", "registerGMSetupControls", "maybeOpenFirstRunGMSetup", "showGMSetupOnReady"]) {
+    if (!setupModule.includes(token)) errors.push(`GM setup module missing ${token}`);
+  }
+
+  const entryPoint = await readText("part-time-gods.js");
+  for (const token of ["registerGMSetupSettings()", "registerGMSetupControls()", "maybeOpenFirstRunGMSetup()"]) {
+    if (!entryPoint.includes(token)) errors.push(`Main entry point missing ${token}`);
+  }
+
+  const setupTemplate = await readText("templates/apps/gm-setup-panel.hbs");
+  for (const token of ["{{firstRunHint}}", "{{action.hint}}", "{{@root.gmBadge}}"]) {
+    if (!setupTemplate.includes(token)) errors.push(`GM setup template missing ${token}`);
+  }
+
+  const characterTemplate = await readText("templates/actor/character-sheet.hbs");
+  const characterSheet = await readText("module/sheets/character-sheet.mjs");
+  for (const key of ["PTG.Help.FreeTime", "PTG.Help.Wealth", "PTG.Help.Fragments", "PTG.Help.Spark", "PTG.Help.Strain", "PTG.Help.Conditions", "PTG.Help.ManifestationMeasures"]) {
+    if (!characterTemplate.includes(key) && !characterSheet.includes(key)) errors.push(`Character sheet missing localized help key ${key}`);
+  }
+
+  const pantheonTemplate = await readText("templates/actor/pantheon-sheet.hbs");
+  for (const key of ["PTG.Help.PantheonPool", "PTG.Help.Fragments", "PTG.Help.Spark", "PTG.Help.Strain"]) {
+    if (!pantheonTemplate.includes(key)) errors.push(`Pantheon sheet missing localized help key ${key}`);
+  }
 }
 
 function assertReleaseUrls(manifest) {
@@ -230,6 +285,14 @@ async function importModule(relativePath) {
 async function readJson(relativePath) {
   const content = await fs.readFile(path.join(root, relativePath), "utf8");
   return JSON.parse(content.replace(/^\uFEFF/, ""));
+}
+
+async function readText(relativePath) {
+  return fs.readFile(path.join(root, relativePath), "utf8");
+}
+
+function localizationValue(language, key) {
+  return key.split(".").reduce((value, part) => value?.[part], language);
 }
 
 async function exists(relativePath) {

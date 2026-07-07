@@ -1,11 +1,12 @@
 <section class="ptg-gm-setup-panel">
   <header class="ptg-gm-setup-header">
     <div>
-      <h1>PTG Setup</h1>
+      <h1>{{title}}</h1>
+      <p>{{firstRunHint}}</p>
       <span>{{userRole}}</span>
     </div>
     {{#unless isGM}}
-      <strong>GM actions disabled</strong>
+      <strong>{{gmActionsDisabled}}</strong>
     {{/unless}}
   </header>
 
@@ -15,12 +16,16 @@
         <header>
           <h2>{{group.label}}</h2>
         </header>
+        <p>{{group.hint}}</p>
         <div class="ptg-gm-setup-actions">
           {{#each group.actions as |action|}}
-            <button type="button" data-setup-action="{{action.key}}" title="{{action.label}}" {{#if action.disabled}}disabled{{/if}}>
+            <button type="button" data-setup-action="{{action.key}}" title="{{action.hint}}" aria-label="{{action.label}}: {{action.hint}}" {{#if action.disabled}}disabled{{/if}}>
               <i class="{{action.icon}}"></i>
-              <span>{{action.label}}</span>
-              {{#if action.gmOnly}}<small>GM</small>{{/if}}
+              <span>
+                <strong>{{action.label}}</strong>
+                <small>{{action.hint}}</small>
+              </span>
+              {{#if action.gmOnly}}<em>{{@root.gmBadge}}</em>{{/if}}
             </button>
           {{/each}}
         </div>

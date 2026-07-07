@@ -46,7 +46,13 @@ import {
   registerTerritoryGridControls,
   setTerritoryGrid
 } from "./module/apps/territory-grid-app.mjs";
-import { openGMSetupPanel, openRulesReference } from "./module/apps/gm-setup-panel.mjs";
+import {
+  maybeOpenFirstRunGMSetup,
+  openGMSetupPanel,
+  openRulesReference,
+  registerGMSetupControls,
+  registerGMSetupSettings
+} from "./module/apps/gm-setup-panel.mjs";
 import { openPantheonPoolDialog } from "./module/workflows/pantheon-pool-workflow.mjs";
 import { openPTGStoryWorkflow } from "./module/workflows/story-workflow.mjs";
 import { organizePTGCompendiumFolders, registerPTGMigrationSettings, runPTGMigrations } from "./module/migration/ptg-migrations.mjs";
@@ -111,6 +117,7 @@ Hooks.once("init", async () => {
 
   registerPTGCombatHooks();
   registerTerritoryGridControls();
+  registerGMSetupControls();
   registerPTGChatCardActions();
 
   CONFIG.PTG = config;
@@ -179,6 +186,7 @@ Hooks.once("init", async () => {
     type: String,
     default: ""
   });
+  registerGMSetupSettings();
   registerMortalDivineTrackerSettings();
   registerPTGMigrationSettings();
 
@@ -226,9 +234,11 @@ Hooks.once("ready", async () => {
     ui.notifications.error(localize("PTG.Notifications.EmbeddedItemsMigrationFailed"));
   }
 
-  if (!game.settings.get(SYSTEM_ID, "autoPopulatePremadeCompendiums")) return;
+  if (game.settings.get(SYSTEM_ID, "autoPopulatePremadeCompendiums")) {
+    await populatePremadeCompendiums({ notify: true });
+  }
 
-  await populatePremadeCompendiums({ notify: true });
+  await maybeOpenFirstRunGMSetup();
 });
 
 Hooks.on("dropCanvasData", async (canvas, data) => {
