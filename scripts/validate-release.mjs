@@ -5,6 +5,18 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const SYSTEM_ID = "part-time-gods";
 const ROUTE_PREFIX = "systems/part-time-gods/";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const EXPECTED_MANIFESTATION_APPLICATIONS = {
+  aegis: ["Protection Field", "Purge", "Warning"],
+  beckon: ["Banish", "Multiply", "Summon"],
+  journey: ["Blink", "Phasing", "Swift"],
+  minion: ["Bestow", "Enchant", "Instill Life"],
+  oracle: ["Area Sense", "Read Minds", "Temporal View"],
+  puppetry: ["Manipulation", "Marionette", "Transfer"],
+  ruin: ["Blast", "Geas", "Warrior"],
+  shaping: ["Ambience", "Transmutation", "Vessel"],
+  soul: ["Call Spirit", "Figments", "Redefine"]
+};
+const EXPECTED_MANIFESTATION_MEASURES = ["damage", "range", "targets", "duration", "scale", "detail", "magnitude", "modifier", "area", "trigger"];
 
 installFoundrySourceMocks();
 
@@ -62,6 +74,10 @@ async function assertProductionUxScaffold() {
   ];
   const missingKeys = requiredLocalizationKeys.filter(key => !localizationValue(language, key));
   if (missingKeys.length) errors.push(`Missing production UX localization keys:\n${missingKeys.map(key => `- ${key}`).join("\n")}`);
+  const missingMeasureOptions = EXPECTED_MANIFESTATION_MEASURES.filter(key => !localizationValue(language, `PTG.Config.MeasureOptions.${key}`));
+  if (missingMeasureOptions.length) {
+    errors.push(`Manifestation dialog Measure options missing localization keys:\n${missingMeasureOptions.map(key => `- ${key}`).join("\n")}`);
+  }
 
   const setupModule = await readText("module/apps/gm-setup-panel.mjs");
   for (const token of ["registerGMSetupSettings", "registerGMSetupControls", "maybeOpenFirstRunGMSetup", "showGMSetupOnReady"]) {
@@ -178,6 +194,17 @@ async function validatePremadeSourceData() {
     errors.push(`Backers' Pregens must remain metadata-only until permission is confirmed:\n${pregenAudit.unsafe.map(key => `- ${key}`).join("\n")}`);
   }
 
+  const manifestationAudit = manifestationApplicationAudit(documents.items);
+  if (manifestationAudit.missing.length) {
+    errors.push(`Missing Chapter 3 manifestation application Items:\n${manifestationAudit.missing.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (manifestationAudit.missingMetadata.length) {
+    errors.push(`Manifestation application Items missing roll metadata:\n${manifestationAudit.missingMetadata.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (manifestationAudit.missingMeasures.length) {
+    errors.push(`Manifestation measure metadata missing:\n${manifestationAudit.missingMeasures.map(key => `- ${key}`).join("\n")}`);
+  }
+
   const importFacingMacros = documents.macros
     .filter(macro => /\bimport\b|populate compendiums/i.test(`${macro.name} ${macro.command} ${macro.flags?.[SYSTEM_ID]?.summary ?? ""}`))
     .map(macro => macro.name);
@@ -210,6 +237,41 @@ function backersPregensAudit(actors) {
     .filter(Boolean);
 
   return { unsafe };
+}
+
+function manifestationApplicationAudit(items) {
+  const expected = Object.entries(EXPECTED_MANIFESTATION_APPLICATIONS)
+    .flatMap(([manifestation, names]) => names.map(name => ({
+      manifestation,
+      name,
+      sourceId: `ptg2e.chapter-3.manifestation.${manifestation}.${sourceSlug(name)}`
+    })));
+  const applications = items.filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "manifestation-application");
+  const bySourceId = new Map(applications.map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item]));
+  const missing = expected
+    .filter(({ sourceId }) => !bySourceId.has(sourceId))
+    .map(({ manifestation, name }) => `${manifestation}:${name}`);
+  const missingMetadata = applications
+    .filter(item => {
+      const roll = item.system?.automation?.roll ?? {};
+      return roll.type !== "manifestation"
+        || !roll.manifestation
+        || !roll.application
+        || !Array.isArray(roll.suggestedSkills)
+        || !roll.suggestedSkills.length
+        || !Array.isArray(roll.commonMeasures)
+        || !roll.commonMeasures.length;
+    })
+    .map(item => item.name);
+  const measureSet = new Set();
+  for (const item of applications) {
+    const roll = item.system?.automation?.roll ?? {};
+    for (const measure of roll.measures ?? []) measureSet.add(measure);
+    for (const measure of roll.commonMeasures ?? []) measureSet.add(measure);
+  }
+  const missingMeasures = EXPECTED_MANIFESTATION_MEASURES.filter(measure => !measureSet.has(measure));
+
+  return { missing, missingMetadata, missingMeasures };
 }
 
 function rulesJournalTextAudit(journals) {
@@ -293,6 +355,14 @@ async function readText(relativePath) {
 
 function localizationValue(language, key) {
   return key.split(".").reduce((value, part) => value?.[part], language);
+}
+
+function sourceSlug(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 async function exists(relativePath) {

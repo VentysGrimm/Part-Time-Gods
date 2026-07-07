@@ -488,6 +488,10 @@ export const PTG = {
     targets: "Additional Targets",
     duration: "Duration",
     scale: "Scale",
+    magnitude: "Magnitude",
+    modifier: "Modifier",
+    area: "Area Affected",
+    trigger: "Trigger",
     detail: "Effect Detail"
   },
   choiceTypes: {

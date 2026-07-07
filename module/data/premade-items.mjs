@@ -224,6 +224,44 @@ const MANIFESTATION_POWER_DEFINITIONS = [
   manifestationPowerDefinition("Soul", "soul", 163, "Spirits, memories, and identity.", ["Call Spirit", "Figments", "Redefine"], "Use Soul when the god touches spirits, memories, identity, or the meaning of a being.")
 ];
 
+const MANIFESTATION_APPLICATION_DEFINITIONS = [
+  manifestationApplicationDefinition("aegis", "Protection Field", 147, ["empathy"], ["damage", "duration", "modifier"], "Creates protection around a target, place, or relationship tied to the god's Dominion. Successes can become armor-like protection, defensive difficulty, duration, or backlash against attackers."),
+  manifestationApplicationDefinition("aegis", "Purge", 148, ["medicine"], ["damage", "duration", "targets"], "Removes an unwanted substance, condition, influence, damage source, or impurity when that removal fits the god's Dominion and the scene's stakes."),
+  manifestationApplicationDefinition("aegis", "Warning", 149, ["intuition"], ["duration", "targets", "trigger"], "Places a Dominion-shaped warning on a target or situation so danger, intrusion, or a defined trigger alerts the god or protected subject."),
+
+  manifestationApplicationDefinition("beckon", "Banish", 150, ["influence"], ["area", "targets", "duration", "trigger"], "Pushes away a Dominion-linked person, object, creature, element, or concept from a defined center for as long as the effect holds."),
+  manifestationApplicationDefinition("beckon", "Multiply", 150, ["crafts"], ["duration", "magnitude", "targets"], "Duplicates something already present in the scene and tied to the Dominion, scaling the amount, targets, or duration with spent Measures."),
+  manifestationApplicationDefinition("beckon", "Summon", 151, ["knowledge"], ["duration", "targets"], "Draws a Dominion-linked person, object, creature, element, or concept toward a center or target, with duration defining how long it remains available."),
+
+  manifestationApplicationDefinition("journey", "Blink", 152, ["speed"], ["area", "range", "targets"], "Moves the user or another target instantly through a Dominion connection, using range and target Measures to define the jump."),
+  manifestationApplicationDefinition("journey", "Phasing", 152, ["travel"], ["targets", "magnitude", "duration"], "Moves a target through people, objects, walls, or other physical obstacles when the path or obstacle fits the Dominion."),
+  manifestationApplicationDefinition("journey", "Swift", 153, ["athletics", "crafts"], ["targets", "modifier", "duration"], "Improves movement, speed, travel, pursuit, or escape through the Dominion, often as a bonus to movement or movement-related checks."),
+
+  manifestationApplicationDefinition("minion", "Bestow", 153, ["empathy"], ["duration", "modifier", "targets"], "Gifts a living target with an aspect of the Dominion as a temporary blessing, burden, permission, or situational modifier."),
+  manifestationApplicationDefinition("minion", "Enchant", 154, ["deception"], ["damage", "duration", "targets"], "Overrides impulse, emotion, or behavior in line with the Dominion; damage can represent self-harm or psychic conflict from acting against nature."),
+  manifestationApplicationDefinition("minion", "Instill Life", 154, ["medicine"], ["duration", "magnitude", "range"], "Gives life, agency, or intelligent animation to a Dominion subject, with Magnitude carrying much of the effect's scope."),
+
+  manifestationApplicationDefinition("oracle", "Area Sense", 155, ["intuition"], ["area", "modifier", "trigger"], "Senses, tracks, or notices the Dominion across an area, including scene conditions, traces, or triggers the god defines."),
+  manifestationApplicationDefinition("oracle", "Read Minds", 156, ["discipline"], ["duration", "magnitude", "range"], "Reads or locates Dominion-relevant information in a mind, memory, feeling, or thought pattern within the effect's range."),
+  manifestationApplicationDefinition("oracle", "Temporal View", 157, ["perception"], ["duration", "magnitude", "targets"], "Views or experiences the Dominion through time, usually to inspect past or possible context tied to a person, place, object, or event."),
+
+  manifestationApplicationDefinition("puppetry", "Manipulation", 158, ["fighting"], ["damage", "magnitude", "range", "targets"], "Moves, redirects, or controls Dominion-linked targets with force of will; damage covers impacts or dangerous movement."),
+  manifestationApplicationDefinition("puppetry", "Marionette", 158, ["perform"], ["duration", "range", "modifier", "targets"], "Temporarily controls a target connected to the Dominion, with Measures setting how long, how far, and how precisely the control works."),
+  manifestationApplicationDefinition("puppetry", "Transfer", 159, ["tech"], ["duration", "magnitude", "range", "targets"], "Moves an aspect, quality, condition, knowledge, sensation, or burden of the Dominion from one target to another."),
+
+  manifestationApplicationDefinition("ruin", "Blast", 160, ["marksman"], ["damage", "range", "targets"], "Inflicts distance harm through the Dominion. At least one success should normally be spent on Range when the target is not in immediate reach."),
+  manifestationApplicationDefinition("ruin", "Geas", 160, ["knowledge"], ["damage", "magnitude", "duration", "trigger"], "Places a Dominion-shaped curse, prohibition, or consequence on a target, with the punishment described through Damage or Magnitude."),
+  manifestationApplicationDefinition("ruin", "Warrior", 161, ["might"], ["damage", "duration", "modifier"], "Turns the Dominion into battle readiness, personal force, or destructive prowess, usually improving damage or combat-facing checks."),
+
+  manifestationApplicationDefinition("shaping", "Ambience", 162, ["survival"], ["area", "duration", "magnitude", "modifier"], "Floods the environment with the Dominion, changing scene atmosphere, hazards, comfort, or broad situational modifiers."),
+  manifestationApplicationDefinition("shaping", "Transmutation", 162, ["crafts"], ["duration", "magnitude", "targets"], "Changes a target's form, material, condition, or presentation according to the Dominion and the scale of the invested Measures."),
+  manifestationApplicationDefinition("shaping", "Vessel", 163, ["fortitude"], ["duration", "magnitude", "modifier"], "Changes the god's own body or presence to express the Dominion; it follows Transmutation logic but does not use Targets for other subjects."),
+
+  manifestationApplicationDefinition("soul", "Call Spirit", 163, ["influence"], ["duration", "modifier", "range", "targets"], "Calls a spirit, ghost, incorporeal entity, or Dominion-relevant presence to the god or another defined point."),
+  manifestationApplicationDefinition("soul", "Figments", 164, ["stealth"], ["area", "targets", "duration", "magnitude", "modifier"], "Creates sensory illusions or false impressions tied to the Dominion. It should not deal direct damage, but it can mislead, distract, or impose modifiers."),
+  manifestationApplicationDefinition("soul", "Redefine", 164, ["discipline"], ["targets", "duration", "range"], "Changes a basic truth or meaning about the Dominion or a target associated with it, bounded by duration, range, and target scope.")
+];
+
 const RITUAL_POWER_DEFINITIONS = [
   ritualPowerDefinition("Admittance", "territory", 166, "Travel", "Puppetry", 1, { freeTime: 1, fragments: 1 }, "Dampens the god's Spark for one full day so entering another god's Territory does not challenge or disrupt it."),
   ritualPowerDefinition("Bolster", "territory", 167, "Fortitude", "Aegis", 1, { freeTime: 2, fragments: 1 }, "Protects a Territory for one full day, warns when anyone with a Spark enters, and raises Challenge ritual Difficulty by +2."),
@@ -247,6 +285,7 @@ const OTHERWORLD_STAGE_DEFINITIONS = [
 
 export const PTG_PREMADE_ITEMS = [
   ...MANIFESTATION_POWER_DEFINITIONS.map(manifestationPower),
+  ...MANIFESTATION_APPLICATION_DEFINITIONS.map(manifestationApplicationPower),
   ...RITUAL_POWER_DEFINITIONS.map(ritualPower),
   ...OTHERWORLD_STAGE_DEFINITIONS.map(otherworldStagePower),
   ...gearQualityItems(),
@@ -787,6 +826,66 @@ function manifestationPower(definition) {
   }, { folder: "manifestation" });
 }
 
+function manifestationApplicationDefinition(manifestation, name, page, skills, commonMeasures, summary) {
+  return { manifestation, name, page, skills, commonMeasures, summary };
+}
+
+function manifestationApplicationPower(definition) {
+  const manifestationName = titleCase(definition.manifestation);
+  const itemName = `${manifestationName}: ${definition.name}`;
+  const skillText = suggestedCheckText(definition);
+  const measureText = definition.commonMeasures.map(measureLabel).join(", ");
+  const fullText = paragraphs(
+    `${definition.name} is a ${manifestationName} application.`,
+    definition.summary,
+    `Suggested check: ${skillText}.`,
+    `Common Measures: ${measureText}.`,
+    "Use the Manifestation dialog's Dominion Fit and Dominion Scope options to represent strongly aligned, broad, specific, weak, or unsupported Dominion use."
+  );
+
+  return baseItem("power", itemName, definition.page, {
+    ...itemRules("power", itemName, definition.page, definition.summary, {
+      kind: "manifestation-application",
+      trigger: `The god applies ${manifestationName} through ${definition.name}.`,
+      target: "By Dominion, target, and selected Measures.",
+      fullText,
+      enabled: true,
+      action: "manifestation-roll",
+      roll: {
+        type: "manifestation",
+        manifestation: definition.manifestation,
+        application: slugify(definition.name),
+        suggestedSkills: definition.skills,
+        difficulty: 1,
+        commonMeasures: definition.commonMeasures,
+        measures: manifestationMeasureSet(definition.commonMeasures)
+      }
+    }),
+    domain: "",
+    manifestation: definition.manifestation,
+    rank: 0,
+    cost: 0,
+    activation: "action",
+    duration: definition.commonMeasures.includes("duration") ? "By Duration Measure" : "Usually instant or scene-defined",
+    range: definition.commonMeasures.includes("range") ? "By Range Measure" : "By Dominion and target",
+    target: definition.commonMeasures.includes("targets") ? "By Targets Measure" : "By application",
+    requiresRoll: true,
+    difficulty: 1,
+    effect: fullText,
+    limitations: paragraphs(
+      "The effect must remain inside the god's Dominion and any table limits set for broad or specific Dominion scope.",
+      "Costs, resistance, Backlash, exact Measure costs, and edge cases remain GM-facing rulings from the rules reference."
+    ),
+    notes: paragraphs(`Source-backed Manifestation application reference from book p. ${definition.page}.`)
+  }, {
+    folder: "manifestation-application",
+    kind: "manifestation-application",
+    manifestation: definition.manifestation,
+    application: slugify(definition.name),
+    sourceId: `ptg2e.chapter-3.manifestation.${definition.manifestation}.${slugify(definition.name)}`
+  });
+}
+
 function ritualPowerDefinition(name, category, page, primary, secondary, difficulty, cost, effect) {
   return { name, category, page, primary, secondary, difficulty, cost, effect };
 }
@@ -1102,6 +1201,31 @@ function titleCase(value) {
 
 function labelKey(value) {
   return slugify(value).replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+}
+
+function suggestedCheckText(definition) {
+  const manifestationName = titleCase(definition.manifestation);
+  const skills = definition.skills.map(skill => `${manifestationName} + ${titleCase(skill)}`);
+  return skills.join(" or ");
+}
+
+function manifestationMeasureSet(commonMeasures = []) {
+  return Array.from(new Set(["damage", "range", "targets", "duration", "scale", "detail", ...commonMeasures]));
+}
+
+function measureLabel(key) {
+  return {
+    area: "Area Affected",
+    damage: "Damage",
+    detail: "Effect Detail",
+    duration: "Duration",
+    magnitude: "Magnitude",
+    modifier: "Modifier",
+    range: "Range",
+    scale: "Scale",
+    targets: "Targets",
+    trigger: "Trigger"
+  }[key] ?? titleCase(key);
 }
 
 function difficultyLabel(value) {
