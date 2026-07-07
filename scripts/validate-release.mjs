@@ -61,6 +61,38 @@ const EXPECTED_CHAPTER_FOUR_ROLL_TABLES = [
   "Attachment Interaction Choices",
   "Wealth Cost Tiers"
 ];
+const EXPECTED_CHAPTER_FIVE_RULES = [
+  "Divine Battles",
+  "Battle Timing",
+  "Determining Initiative",
+  "Alternative Initiative",
+  "Turn Sequence",
+  "Actions and Defenses",
+  "Taking Damage",
+  "Anatomy of Damage",
+  "Conditions in Battle",
+  "Healing",
+  "Natural Healing",
+  "Medical Treatment",
+  "Armor",
+  "Weapons",
+  "Range",
+  "Battle Examples"
+];
+const EXPECTED_CHAPTER_FIVE_BATTLE_ACTIONS = {
+  fists: {
+    "quick-action": ["Feint", "Move", "Prepare", "Pulling Punches", "Resist Condition", "Touch"],
+    "standard-action": ["Ambush", "Close Combat Attack", "Disarm", "Grab or Break Grab", "Protect", "Ranged Attack", "Sprint", "Tackle", "Throwing Attack", "Divine Powers"],
+    "quick-defense": ["Brace", "Catch", "Prepare"],
+    "standard-defense": ["Block", "Dodge", "Run for Cover", "Divine Powers"]
+  },
+  wits: {
+    "quick-action": ["Mislead", "Present Evidence", "Read the Room", "Resist Condition", "Shout Out", "Taunt"],
+    "standard-action": ["Compose", "Encourage", "Escalate", "Fast Talk", "Frighten", "Provoke", "Retreat", "Take Something", "Uncomfortable Silence", "Divine Powers"],
+    "quick-defense": ["Big Reveal", "Give the Signal", "Um Actually"],
+    "standard-defense": ["Laugh It Off", "Stand My Ground", "Turn It Around", "Divine Powers"]
+  }
+};
 
 installFoundrySourceMocks();
 
@@ -73,6 +105,7 @@ await assertFile("part-time-gods.js", "Main system entry point");
 await assertManifestAssets(system);
 await assertProductionUxScaffold();
 await assertChapterFourRulesScaffold();
+await assertChapterFiveCombatScaffold();
 
 const sourceResult = await validatePremadeSourceData();
 if (errors.length) {
@@ -173,6 +206,38 @@ async function assertChapterFourRulesScaffold() {
   const skillConfig = await readText("module/config/skills.mjs");
   for (const token of ["PTG_SKILL_SOURCE", "PTG_SPECIALTY_LIMIT", "specialtyLimit: 2"]) {
     if (!skillConfig.includes(token)) errors.push(`Skill config missing Chapter 4 source metadata ${token}`);
+  }
+}
+
+async function assertChapterFiveCombatScaffold() {
+  const entryPoint = await readText("part-time-gods.js");
+  for (const token of ["registerPTGCombatHooks", "openPTGCombatControls", "quick: \"Quick Action\"", "standard: \"Standard Action\""]) {
+    if (!entryPoint.includes(token)) errors.push(`Main entry point/config missing Chapter 5 combat token ${token}`);
+  }
+
+  const language = await readJson("lang/en.json");
+  for (const key of ["PTG.Config.ActivationTypes.quick", "PTG.Config.ActivationTypes.standard"]) {
+    if (!localizationValue(language, key)) errors.push(`Missing Chapter 5 activation localization ${key}`);
+  }
+
+  const combat = await readText("module/combat/ptg-combat.mjs");
+  for (const token of ["quickAction", "standardAction", "quickDefense", "standardDefense", "battleFists", "battleWits", "physicalDamage", "mentalDamage", "healing", "rollPTGInitiative", "applyConditionToActor", "conditionCombatModifier"]) {
+    if (!combat.includes(token)) errors.push(`Combat workflow missing Chapter 5 token ${token}`);
+  }
+
+  const damage = await readText("module/workflows/damage-workflow.mjs");
+  for (const token of ["resource === \"psyche\"", "applyArmor", "armorProofBonus", "health", "psyche"]) {
+    if (!damage.includes(token)) errors.push(`Damage workflow missing Chapter 5 token ${token}`);
+  }
+
+  const conditions = await readText("module/conditions/condition-workflow.mjs");
+  for (const token of ["condition-reduce", "condition-recover", "increase", "replace", "separate"]) {
+    if (!conditions.includes(token)) errors.push(`Condition workflow missing Chapter 5 token ${token}`);
+  }
+
+  const characterTemplate = await readText("templates/actor/character-sheet.hbs");
+  for (const token of ["data-item-action=\"condition-reduce\"", "data-item-action=\"condition-increase\"", "data-item-action=\"condition-recover\""]) {
+    if (!characterTemplate.includes(token)) errors.push(`Character sheet missing Condition action ${token}`);
   }
 }
 
@@ -289,6 +354,20 @@ async function validatePremadeSourceData() {
     errors.push(`Missing Chapter 4 procedural RollTables:\n${chapterFourAudit.missingRollTables.map(key => `- ${key}`).join("\n")}`);
   }
 
+  const chapterFiveAudit = chapterFiveBattleAudit(documents.items);
+  if (chapterFiveAudit.missingRules.length) {
+    errors.push(`Missing Chapter 5 battle rule Items:\n${chapterFiveAudit.missingRules.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFiveAudit.missingActions.length) {
+    errors.push(`Missing Chapter 5 Battle action/defense Items:\n${chapterFiveAudit.missingActions.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFiveAudit.missingActionMetadata.length) {
+    errors.push(`Chapter 5 Battle action Items missing roll metadata:\n${chapterFiveAudit.missingActionMetadata.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFiveAudit.missingGearFamilies.length) {
+    errors.push(`Chapter 5 gear/condition families incomplete:\n${chapterFiveAudit.missingGearFamilies.map(key => `- ${key}`).join("\n")}`);
+  }
+
   const importFacingMacros = documents.macros
     .filter(macro => /\bimport\b|populate compendiums/i.test(`${macro.name} ${macro.command} ${macro.flags?.[SYSTEM_ID]?.summary ?? ""}`))
     .map(macro => macro.name);
@@ -380,6 +459,61 @@ function chapterFourRulesAudit(items, rollTables) {
   const missingRollTables = EXPECTED_CHAPTER_FOUR_ROLL_TABLES.filter(name => !tableNames.has(name));
 
   return { missingRules, missingCriticalFailureEffects, missingRuleMetadata, missingRollTables };
+}
+
+function chapterFiveBattleAudit(items) {
+  const rulesBySourceId = new Map(
+    items
+      .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-5-rule")
+      .map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item])
+  );
+  const actionsBySourceId = new Map(
+    items
+      .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "battle-action")
+      .map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item])
+  );
+  const missingRules = EXPECTED_CHAPTER_FIVE_RULES
+    .filter(name => !rulesBySourceId.has(`ptg2e.chapter-5.rule.${sourceSlug(name)}`));
+  const expectedActions = Object.entries(EXPECTED_CHAPTER_FIVE_BATTLE_ACTIONS)
+    .flatMap(([battle, groups]) => Object.entries(groups)
+      .flatMap(([actionType, names]) => names.map(name => ({
+        battle,
+        actionType,
+        name,
+        sourceId: `ptg2e.chapter-5.${battle}.${actionType}.${sourceSlug(name)}`
+      }))));
+  const missingActions = expectedActions
+    .filter(({ sourceId }) => !actionsBySourceId.has(sourceId))
+    .map(({ battle, actionType, name }) => `${battle}:${actionType}:${name}`);
+  const missingActionMetadata = [...actionsBySourceId.values()]
+    .filter(item => {
+      const roll = item.system?.automation?.roll ?? {};
+      return roll.type !== "battle-action"
+        || !roll.battle
+        || !roll.actionType
+        || !roll.actionName
+        || !["quick", "standard"].includes(item.system?.activation)
+        || !["health", "psyche"].includes(roll.damageResource);
+    })
+    .map(item => item.name);
+  const chapterFiveItems = items.filter(item => {
+    const page = Number(item.flags?.[SYSTEM_ID]?.page ?? item.system?.sourcePage ?? 0);
+    return page >= 205 && page <= 212;
+  });
+  const familyCounts = chapterFiveItems.reduce((counts, item) => {
+    counts[item.type] = (counts[item.type] ?? 0) + 1;
+    return counts;
+  }, {});
+  const missingGearFamilies = [
+    ["condition", 20],
+    ["gearQuality", 42],
+    ["armor", 14],
+    ["weapon", 9]
+  ]
+    .filter(([type, minimum]) => Number(familyCounts[type] ?? 0) < minimum)
+    .map(([type, minimum]) => `${type}: expected at least ${minimum}, got ${Number(familyCounts[type] ?? 0)}`);
+
+  return { missingRules, missingActions, missingActionMetadata, missingGearFamilies };
 }
 
 function rulesJournalTextAudit(journals) {

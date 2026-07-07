@@ -251,6 +251,79 @@ const CRITICAL_FAILURE_EFFECT_DEFINITIONS = [
   criticalFailureEffectDefinition("Critical Failure: Unique Consequence", 177, "The GM creates a fitting non-mechanical or story-specific consequence tied to the player's stated worry.", { custom: true })
 ];
 
+const CHAPTER_FIVE_RULE_DEFINITIONS = [
+  chapterFiveRuleDefinition("Divine Battles", 197, "Divine Battles cover physical Battles of Fists and mental or social Battles of Wits. Both use the same action economy but usually threaten different resource tracks.", "battle-reference"),
+  chapterFiveRuleDefinition("Battle Timing", 198, "Chapter 5 frames time as days, Scenes, Battles, Turns, and Rounds. A Battle begins with Initiative and ends when one side retreats, forfeits, or is defeated.", "battle-timing"),
+  chapterFiveRuleDefinition("Determining Initiative", 198, "Initiative is normally 1d10 plus Intuition and Speed, rerolled each Round unless the table chooses a fixed order.", "initiative", { roll: { type: "initiative", formula: "1d10 + initiative" } }),
+  chapterFiveRuleDefinition("Alternative Initiative", 198, "The GM may swap the Initiative Skill basis when the scene demands it, such as chases, unusual terrain, or social-only conflicts.", "initiative-alternative"),
+  chapterFiveRuleDefinition("Turn Sequence", 199, "Each Turn moves through choosing Actions, choosing Defenses, then rolling and resolving effects. Ties favor the defender.", "turn-sequence"),
+  chapterFiveRuleDefinition("Actions and Defenses", 199, "Each Round usually grants one Standard Action, one Quick Action, one Standard Defense, and one Quick Defense. Standard slots can cover Quick tasks with a +2 bonus.", "action-economy"),
+  chapterFiveRuleDefinition("Taking Damage", 204, "Physical harm usually reduces Health and mental or social harm usually reduces Psyche, though either damage type can appear in either Battle mode.", "damage-reference", { roll: { damageTracks: ["health", "psyche"] } }),
+  chapterFiveRuleDefinition("Anatomy of Damage", 205, "Damage can come from success margin, flat damage, Manifestation Damage Measures, weapon damage, and Boost damage, then armor may reduce physical damage.", "damage-anatomy", { roll: { components: ["margin", "flat", "measure", "weapon", "boost", "armor"] } }),
+  chapterFiveRuleDefinition("Conditions in Battle", 205, "Incoming damage can become Condition levels within table limits, and battle Conditions carry severity, recovery, and roll metadata.", "battle-conditions", { roll: { conditionLimit: 4, conditionLevelLimit: 10 } }),
+  chapterFiveRuleDefinition("Healing", 207, "Healing can come from powers, care, rest, medical treatment, or recovery periods, and can reduce damage or Conditions depending on the method.", "healing-reference"),
+  chapterFiveRuleDefinition("Natural Healing", 207, "Natural healing between major Scenes or days recovers limited Health or Psyche based on Fortitude or Discipline, with the table choosing the appropriate track.", "natural-healing", { roll: { healing: "natural" } }),
+  chapterFiveRuleDefinition("Medical Treatment", 208, "Medical treatment uses Medicine plus a fitting Secondary Skill, with limits based on Medicine, tools, trauma level, and whether the healer treats themself.", "medical-treatment", { roll: { type: "healing", primary: "medicine" } }),
+  chapterFiveRuleDefinition("Armor", 209, "Armor reduces physical damage, carries penalties and qualities, usually ranges from 1 to 4, and can stack with divine armor from abilities.", "armor-reference"),
+  chapterFiveRuleDefinition("Weapons", 210, "Weapons usually add damage and qualities to Battle of Fists attacks. Firearms have their own default quality assumptions and costs.", "weapon-reference"),
+  chapterFiveRuleDefinition("Range", 212, "Battle range covers Grappling, Point Blank, Close, Near, Far, and Distant positioning, with weapon qualities and penalties changing what attacks are viable.", "range-reference"),
+  chapterFiveRuleDefinition("Battle Examples", 212, "The Chapter 5 examples demonstrate Initiative, Quick and Standard Actions, Defenses, damage, armor, Manifestations, and Battle of Wits exchanges.", "battle-example-reference")
+];
+
+const BATTLE_ACTION_DEFINITIONS = [
+  battleActionDefinition("fists", "quick-action", "Feint", 200, [["fighting", "deception"]], "Throw the opponent off balance. Success creates a +2 bonus to the next attack; failure helps the target defend."),
+  battleActionDefinition("fists", "quick-action", "Move", 200, [], "Move up to the character's Movement as a Quick Action."),
+  battleActionDefinition("fists", "quick-action", "Prepare", 200, [], "Reload, draw a weapon, stand up, or otherwise set up the next Battle step."),
+  battleActionDefinition("fists", "quick-action", "Pulling Punches", 200, [["fighting", "medicine"]], "Reduce the damage dealt by the next Standard Action to send a message without full harm."),
+  battleActionDefinition("fists", "quick-action", "Resist Condition", 200, [["varies", "varies"]], "Use the Quick Action to resist a Condition whose recovery or resistance calls for a check."),
+  battleActionDefinition("fists", "quick-action", "Touch", 200, [["fighting", "speed"]], "Touch a target without making an attack, often to deliver another effect such as a Manifestation.", { bonus: 1, range: "Grappling or Close" }),
+
+  battleActionDefinition("fists", "standard-action", "Ambush", 200, [["stealth", "varies"]], "Attack from hiding, using a Secondary Skill that fits the weapon or method."),
+  battleActionDefinition("fists", "standard-action", "Close Combat Attack", 200, [["fighting", "speed"]], "Attack unarmed or with a melee weapon."),
+  battleActionDefinition("fists", "standard-action", "Disarm", 200, [["fighting", "perception"]], "Knock away or strip a target's wielded weapon and its benefits."),
+  battleActionDefinition("fists", "standard-action", "Grab or Break Grab", 200, [["might", "speed"]], "Start or escape a grapple. Grabbed targets take physical penalties, and combatants in the grab are easier for each other to attack."),
+  battleActionDefinition("fists", "standard-action", "Protect", 201, [["fighting", "fortitude"]], "Step in front of an attack meant for someone else, taking the hit while reducing damage by the Protect result.", { usesDefense: true }),
+  battleActionDefinition("fists", "standard-action", "Ranged Attack", 201, [["marksman", "perception"]], "Shoot or fire a ranged weapon at a target using range and weapon quality rules."),
+  battleActionDefinition("fists", "standard-action", "Sprint", 201, [], "Move at triple Movement. It can create a first-attack or retreat bonus, but disengaging from close combat costs Health."),
+  battleActionDefinition("fists", "standard-action", "Tackle", 201, [["might", "speed"]], "Bring the target down and deal normal damage, with the attacker taking half unless a Boost changes the result."),
+  battleActionDefinition("fists", "standard-action", "Throwing Attack", 201, [["marksman", "athletics"]], "Throw a weapon at a target using Range rules."),
+  battleActionDefinition("fists", "standard-action", "Divine Powers", 201, [["varies", "varies"]], "Use a Manifestation, Truth, or other divine ability that fits a Battle of Fists."),
+
+  battleActionDefinition("fists", "quick-defense", "Brace", 201, [], "Brace to improve Protect damage reduction or punish a Sprinting attacker if the defense exceeds the attack."),
+  battleActionDefinition("fists", "quick-defense", "Catch", 201, [["athletics", "speed"]], "Catch a falling target or incoming object; sharp targets can impose a penalty."),
+  battleActionDefinition("fists", "quick-defense", "Prepare", 201, [], "Draw, ready, pick up, or otherwise prepare a defensive tool or position."),
+  battleActionDefinition("fists", "standard-defense", "Block", 202, [["fighting", "speed"]], "Block an incoming attack with body, weapon, or shield. Blocking a weapon unarmed is harder."),
+  battleActionDefinition("fists", "standard-defense", "Dodge", 202, [["athletics", "speed"]], "Move out of the way of a close or physical attack."),
+  battleActionDefinition("fists", "standard-defense", "Run for Cover", 202, [["intuition", "speed"]], "Find and reach cover; the cover may absorb or reduce the attack if it makes sense."),
+  battleActionDefinition("fists", "standard-defense", "Divine Powers", 202, [["varies", "varies"]], "Use a suitable defensive Manifestation or divine ability, such as Aegis or Soul."),
+
+  battleActionDefinition("wits", "quick-action", "Mislead", 202, [["influence", "deception"]], "Twist words to distract the target. Success penalizes their next defense against the character's mental attack; failure can backfire."),
+  battleActionDefinition("wits", "quick-action", "Present Evidence", 202, [], "Reveal evidence as a mental weapon for a limited number of turns."),
+  battleActionDefinition("wits", "quick-action", "Read the Room", 202, [["empathy", "survival"]], "Assess dispositions and openings. Success helps a later Escalate or Frighten check; failure costs Initiative."),
+  battleActionDefinition("wits", "quick-action", "Resist Condition", 202, [["varies", "varies"]], "Use the Quick Action to resist a mental or social Condition."),
+  battleActionDefinition("wits", "quick-action", "Shout Out", 202, [], "Give an order, warning, or suggestion to an ally without fully withdrawing from the exchange."),
+  battleActionDefinition("wits", "quick-action", "Taunt", 202, [["deception", "discipline"]], "Insult or provoke the target to set up Fast Talk; failure can grant the target Initiative and escalate the scene."),
+
+  battleActionDefinition("wits", "standard-action", "Compose", 202, [["discipline", "empathy"]], "Steady the mind and ignore incoming mental damage from the next attack. Uses both Standard Action and Standard Defense.", { usesDefense: true }),
+  battleActionDefinition("wits", "standard-action", "Encourage", 202, [["intuition", "perception"]], "Help an ally ignore part of a Condition for the moment."),
+  battleActionDefinition("wits", "standard-action", "Escalate", 203, [["intuition", "empathy"]], "Push a situation or existing Condition over the edge."),
+  battleActionDefinition("wits", "standard-action", "Fast Talk", 203, [["varies", "speed"]], "Talk around, over-explain, or redirect an issue with a Skill that fits the tactic."),
+  battleActionDefinition("wits", "standard-action", "Frighten", 203, [["influence", "discipline"]], "Intimidate the target and potentially cause damage or Afraid."),
+  battleActionDefinition("wits", "standard-action", "Provoke", 203, [["influence", "empathy"]], "Push the target into doing something. Failure can deal mental damage to the actor."),
+  battleActionDefinition("wits", "standard-action", "Retreat", 203, [["deception", "perform"]], "Leave the Battle of Wits gracefully; failure causes mental fallout and Embarrassed."),
+  battleActionDefinition("wits", "standard-action", "Take Something", 203, [["deception", "empathy"]], "Steal trust, confidence, momentum, or emotional footing; Hopeless is a common rider."),
+  battleActionDefinition("wits", "standard-action", "Uncomfortable Silence", 203, [["discipline", "empathy"]], "Make the exchange awkward and assign Initiative penalties with successes."),
+  battleActionDefinition("wits", "standard-action", "Divine Powers", 203, [["varies", "varies"]], "Use a Manifestation, Truth, or other divine ability that fits a Battle of Wits."),
+
+  battleActionDefinition("wits", "quick-defense", "Big Reveal", 203, [["influence", "deception"]], "Reveal evidence or a secret to throw off Fast Talk or Take Something; extra defense can become damage."),
+  battleActionDefinition("wits", "quick-defense", "Give the Signal", 203, [["deception", "stealth"]], "Send a hidden message or cue; can improve Composure's damage reduction if used together."),
+  battleActionDefinition("wits", "quick-defense", "Um Actually", 203, [], "Use superior information to set up the next Defense check with a Knowledge-based bonus."),
+  battleActionDefinition("wits", "standard-defense", "Laugh It Off", 203, [["discipline", "deception"]], "Laugh off a volatile or cutting attack as if it cannot touch the defender."),
+  battleActionDefinition("wits", "standard-defense", "Stand My Ground", 203, [["empathy", "discipline"]], "Meet the attack's intensity and hold firm."),
+  battleActionDefinition("wits", "standard-defense", "Turn It Around", 203, [["varies", "intuition"]], "Find a way to reverse the attack. Success can improve later damage or next-round Initiative."),
+  battleActionDefinition("wits", "standard-defense", "Divine Powers", 203, [["varies", "varies"]], "Use a defensive Manifestation or divine ability that fits the social or mental exchange.")
+];
+
 const MANIFESTATION_POWER_DEFINITIONS = [
   manifestationPowerDefinition("Aegis", "aegis", 148, "Protection, wards, cleansing, and warning effects.", ["Protection Field", "Purge", "Warning"], "Use Aegis when the god shields a person or place, cleanses harmful divine influence, or senses danger before it lands."),
   manifestationPowerDefinition("Beckon", "beckon", 149, "Summoning, multiplication, and banishment.", ["Banish", "Multiply", "Summon"], "Use Beckon when the god calls something tied to their Dominion, multiplies it, or sends it away from the scene."),
@@ -324,6 +397,8 @@ const OTHERWORLD_STAGE_DEFINITIONS = [
 
 export const PTG_PREMADE_ITEMS = [
   ...CHAPTER_FOUR_RULE_DEFINITIONS.map(chapterFourRulePower),
+  ...CHAPTER_FIVE_RULE_DEFINITIONS.map(chapterFiveRulePower),
+  ...BATTLE_ACTION_DEFINITIONS.map(battleActionPower),
   ...MANIFESTATION_POWER_DEFINITIONS.map(manifestationPower),
   ...MANIFESTATION_APPLICATION_DEFINITIONS.map(manifestationApplicationPower),
   ...RITUAL_POWER_DEFINITIONS.map(ritualPower),
@@ -924,6 +999,118 @@ function criticalFailureEffectCondition(definition) {
   });
 }
 
+function chapterFiveRuleDefinition(name, page, summary, action, options = {}) {
+  return { name, page, summary, action, ...options };
+}
+
+function chapterFiveRulePower(definition) {
+  const fullText = paragraphs(
+    `${definition.name} is a Chapter 5 battle reference.`,
+    definition.summary,
+    "Use this Item as a compact rules card for PTG combat controls, damage workflows, Conditions, gear, and table-facing battle reminders.",
+    "The full source remains the rulebook; this system entry preserves only release-safe summary text and automation metadata."
+  );
+  const roll = definition.roll ?? null;
+
+  return baseItem("power", definition.name, definition.page, {
+    ...itemRules("power", definition.name, definition.page, definition.summary, {
+      kind: "chapter-5-rule",
+      trigger: "When resolving the matching Chapter 5 battle procedure.",
+      target: definition.target ?? "battle procedure",
+      fullText,
+      enabled: Boolean(roll),
+      action: definition.action,
+      roll
+    }),
+    domain: "",
+    manifestation: "",
+    rank: 0,
+    cost: 0,
+    activation: "passive",
+    duration: "By battle procedure",
+    range: "Battle",
+    target: definition.target ?? "battle procedure",
+    requiresRoll: Boolean(roll),
+    difficulty: Number(roll?.difficulty ?? 0),
+    effect: fullText,
+    limitations: paragraphs(
+      "This is a system-facing summary, not replacement rulebook prose.",
+      "The GM still confirms exact fictional stakes, action eligibility, range, cover, and edge cases."
+    ),
+    notes: paragraphs(`Source-backed Chapter 5 battle reference from book p. ${definition.page}.`)
+  }, {
+    folder: "chapter-5-rules",
+    kind: "chapter-5-rule",
+    sourceId: `ptg2e.chapter-5.rule.${slugify(definition.name)}`
+  });
+}
+
+function battleActionDefinition(battle, actionType, name, page, skills, summary, options = {}) {
+  return { battle, actionType, name, page, skills, summary, ...options };
+}
+
+function battleActionPower(definition) {
+  const battleLabelText = battleLabel(definition.battle);
+  const actionLabelText = battleActionTypeLabel(definition.actionType);
+  const itemName = `${battleLabelText} ${actionLabelText}: ${definition.name}`;
+  const skillText = battleSkillText(definition.skills);
+  const fullText = paragraphs(
+    `${definition.name} is a ${battleLabelText} ${actionLabelText}.`,
+    definition.summary,
+    `Suggested check: ${skillText}.`,
+    "Use the PTG Combat Controls dialog to mark Quick/Standard action and defense use, resolve attack and defense successes, apply Health or Psyche damage, and create or recover Conditions."
+  );
+  const isDefense = definition.actionType.includes("defense");
+  const isQuick = definition.actionType.startsWith("quick");
+  const damageResource = definition.battle === "wits" ? "psyche" : "health";
+
+  return baseItem("power", itemName, definition.page, {
+    ...itemRules("power", itemName, definition.page, definition.summary, {
+      kind: "battle-action",
+      trigger: `${battleLabelText} ${actionLabelText}`,
+      target: isDefense ? "incoming attack or pressure" : "opponent, ally, scene, or self",
+      fullText,
+      enabled: true,
+      action: "battle-action",
+      roll: {
+        type: "battle-action",
+        battle: definition.battle,
+        actionType: definition.actionType,
+        actionName: slugify(definition.name),
+        skills: definition.skills,
+        bonus: Number(definition.bonus ?? 0),
+        usesDefense: Boolean(definition.usesDefense || isDefense),
+        damageResource,
+        range: definition.range ?? "",
+        quick: isQuick,
+        standard: definition.actionType.startsWith("standard")
+      }
+    }),
+    domain: "",
+    manifestation: "",
+    rank: 0,
+    cost: 0,
+    activation: isQuick ? "quick" : "standard",
+    duration: "Battle turn",
+    range: definition.range ?? "By action and positioning",
+    target: isDefense ? "incoming attack or pressure" : "battle target or scene",
+    requiresRoll: definition.skills.length > 0,
+    difficulty: 1,
+    effect: fullText,
+    limitations: paragraphs(
+      "The action must fit the current fiction, range, equipment, and available Quick or Standard action slot.",
+      "The GM confirms alternate Skill Combos, cover, range penalties, Condition riders, and whether damage targets Health, Psyche, or both."
+    ),
+    notes: paragraphs(`Source-backed ${battleLabelText} action reference from book p. ${definition.page}.`)
+  }, {
+    folder: `battle-${definition.battle}`,
+    kind: "battle-action",
+    battle: definition.battle,
+    actionType: definition.actionType,
+    sourceId: `ptg2e.chapter-5.${definition.battle}.${definition.actionType}.${slugify(definition.name)}`
+  });
+}
+
 function manifestationPowerDefinition(name, manifestation, page, summary, specialties, useText) {
   return { name, manifestation, page, summary, specialties, useText };
 }
@@ -1371,6 +1558,32 @@ function measureLabel(key) {
     targets: "Targets",
     trigger: "Trigger"
   }[key] ?? titleCase(key);
+}
+
+function battleLabel(key) {
+  return {
+    fists: "Battle of Fists",
+    wits: "Battle of Wits"
+  }[key] ?? titleCase(key);
+}
+
+function battleActionTypeLabel(key) {
+  return {
+    "quick-action": "Quick Action",
+    "standard-action": "Standard Action",
+    "quick-defense": "Quick Defense",
+    "standard-defense": "Standard Defense"
+  }[key] ?? titleCase(key);
+}
+
+function battleSkillText(skills = []) {
+  if (!skills.length) return "No roll by default";
+  return skills
+    .map(([primary, secondary]) => {
+      if (primary === "varies" || secondary === "varies") return "Varies by fiction";
+      return `${titleCase(primary)} + ${titleCase(secondary)}`;
+    })
+    .join(" or ");
 }
 
 function difficultyLabel(value) {

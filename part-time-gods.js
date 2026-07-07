@@ -463,7 +463,9 @@ export const PTG = {
   activationTypes: {
     passive: "Passive",
     instant: "Instant",
+    quick: "Quick Action",
     action: "Action",
+    standard: "Standard Action",
     scene: "Scene",
     sustained: "Sustained",
     ritual: "Ritual"

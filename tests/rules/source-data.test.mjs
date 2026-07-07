@@ -95,6 +95,45 @@ test("Chapter 4 rules data covers dice, resource, and consequence procedures", (
   }
 });
 
+test("Chapter 5 battle data covers actions, defenses, gear, and conditions", () => {
+  const chapterFiveRules = items.PTG_PREMADE_ITEMS.filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-5-rule");
+  const battleActions = items.PTG_PREMADE_ITEMS.filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "battle-action");
+  const chapterFiveItems = items.PTG_PREMADE_ITEMS.filter(item => {
+    const page = Number(item.flags?.[SYSTEM_ID]?.page ?? item.system?.sourcePage ?? 0);
+    return page >= 205 && page <= 212;
+  });
+  const counts = groupByType(chapterFiveItems);
+
+  assert.equal(chapterFiveRules.length, 16);
+  assert.equal(battleActions.length, 46);
+  for (const name of ["Determining Initiative", "Turn Sequence", "Taking Damage", "Anatomy of Damage", "Armor", "Weapons", "Range"]) {
+    const item = chapterFiveRules.find(candidate => candidate.name === name);
+    assert.ok(item, `${name} Chapter 5 rule item`);
+    assert.equal(item.system.usage.kind, "chapter-5-rule");
+    assert.match(item.system.sourceId, /^ptg2e\.chapter-5\.rule\./);
+  }
+
+  for (const name of [
+    "Battle of Fists Quick Action: Feint",
+    "Battle of Fists Standard Action: Close Combat Attack",
+    "Battle of Fists Standard Defense: Dodge",
+    "Battle of Wits Quick Action: Mislead",
+    "Battle of Wits Standard Action: Fast Talk",
+    "Battle of Wits Standard Defense: Stand My Ground"
+  ]) {
+    const item = battleActions.find(candidate => candidate.name === name);
+    assert.ok(item, `${name} battle action`);
+    assert.equal(item.system.automation.roll.type, "battle-action");
+    assert.ok(["quick", "standard"].includes(item.system.activation));
+    assert.ok(["health", "psyche"].includes(item.system.automation.roll.damageResource));
+  }
+
+  assert.ok((counts.get("condition") ?? []).length >= 20);
+  assert.ok((counts.get("gearQuality") ?? []).length >= 42);
+  assert.ok((counts.get("armor") ?? []).length >= 14);
+  assert.ok((counts.get("weapon") ?? []).length >= 9);
+});
+
 function groupByType(documents) {
   const grouped = new Map();
   for (const document of documents) {
