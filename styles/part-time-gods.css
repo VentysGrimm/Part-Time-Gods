@@ -421,6 +421,9 @@
 
 .ptg-editor-section prose-mirror,
 .ptg-editor-section .editor {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
   min-width: 0;
   max-width: 100%;
   min-height: 260px;
@@ -430,15 +433,26 @@
 .ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable="true"]),
 .ptg-item-details,
 .ptg-item-details > div {
+  box-sizing: border-box;
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
   word-break: normal;
 }
 
-.ptg-editor-section :where(p, ul, ol, blockquote, table, img),
-.ptg-item-details :where(p, ul, ol, blockquote, table, img) {
+.ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable="true"]) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ptg-editor-section :where(p, ul, ol, blockquote, table, img, pre, code),
+.ptg-item-details :where(p, ul, ol, blockquote, table, img, pre, code) {
   max-width: 100%;
+}
+
+.ptg-editor-section :where(pre, code),
+.ptg-item-details :where(pre, code) {
+  white-space: pre-wrap;
 }
 
 .ptg-editor-section :where(table),
@@ -3378,12 +3392,15 @@
 }
 
 .ptg-character-sheet .ptg-print-page .ptg-item-details {
+  min-height: 0;
   max-height: 132px;
+  overscroll-behavior: contain;
   overflow: auto;
   padding-right: 2px;
 }
 
 .ptg-character-sheet .ptg-print-page .ptg-item-details > div {
+  min-height: 0;
   max-height: 118px;
   overflow: auto;
 }
@@ -3397,6 +3414,7 @@
 }
 
 .ptg-character-sheet .ptg-print-page .ptg-editor-section {
+  flex: 0 1 auto;
   min-height: 0;
   max-height: 220px;
   overflow: hidden;
@@ -3404,15 +3422,25 @@
 
 .ptg-character-sheet .ptg-print-page .ptg-editor-section prose-mirror,
 .ptg-character-sheet .ptg-print-page .ptg-editor-section .editor {
+  flex: 1 1 auto;
+  width: 100%;
   min-height: 96px;
   max-height: 176px;
+  overscroll-behavior: contain;
   overflow: auto;
 }
 
 .ptg-character-sheet .ptg-print-page .ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable="true"]) {
+  width: 100%;
   min-height: 88px;
   max-height: 168px;
+  overscroll-behavior: contain;
   overflow: auto;
+}
+
+.ptg-character-sheet .ptg-print-page .ptg-editor-section :where(p, ul, ol, blockquote, table, img, pre, code),
+.ptg-character-sheet .ptg-print-page .ptg-item-details :where(p, ul, ol, blockquote, table, img, pre, code) {
+  max-width: 100%;
 }
 
 .ptg-print-attachment-table {
