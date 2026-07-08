@@ -131,7 +131,7 @@ export async function rollPTGInitiative(combat = game.combat) {
 
   const updates = [];
 
-  for (const combatant of combat.combatants) {
+  for (const combatant of combatantsFor(combat)) {
     const actor = combatant.actor;
     const initiative = actorInitiative(actor);
     const roll = await new Roll("1d10 + @initiative", { initiative }).evaluate();
@@ -143,13 +143,14 @@ export async function rollPTGInitiative(combat = game.combat) {
 }
 
 async function selectCombatAction(combat) {
-  const combatantOptions = combat.combatants
+  const combatants = combatantsFor(combat);
+  const combatantOptions = combatants
     .map(combatant => `<option value="${escapeHTML(combatant.id)}">${escapeHTML(combatant.name)}</option>`)
     .join("");
-  const targetOptions = combat.combatants
+  const targetOptions = combatants
     .map(combatant => `<option value="${escapeHTML(combatant.id)}">${escapeHTML(combatant.name)}</option>`)
     .join("");
-  const weaponOptions = combat.combatants
+  const weaponOptions = combatants
     .flatMap(combatant => actorWeapons(combatant.actor).map(item => ({
       combatant,
       item
@@ -326,12 +327,19 @@ function actorInitiative(actor) {
 }
 
 async function resetCombatRoundActions(combat) {
-  const updates = combat.combatants.map(combatant => ({
+  const updates = combatantsFor(combat).map(combatant => ({
     _id: combatant.id,
     [`flags.${SYSTEM_ID}.combat`]: emptyActionState(combat.round)
   }));
 
   if (updates.length) await combat.updateEmbeddedDocuments("Combatant", updates);
+}
+
+function combatantsFor(combat) {
+  const combatants = combat?.combatants;
+  if (!combatants) return [];
+  if (typeof combatants.values === "function") return Array.from(combatants.values());
+  return Array.from(combatants);
 }
 
 async function setCombatantActionState(combatant, state) {

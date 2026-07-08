@@ -69,7 +69,7 @@ Foundry target: v14 only
 | Apply Conditions | Pass | Chat card added custom condition `QA Smoke Strain`, category physical, severity 1, to `QA Character`. |
 | Recover/reduce Conditions | Pass | `Reduce` removed `QA Smoke Strain`. Explicit `Recover` on `QA Recover Check` rolled Medicine + Empathy and posted `Severity: 1 -> 0`, Outcome Removed. |
 | Apply healing | Pass | Character sheet resource restore increased Health from 6/8 to 7/8. Combat-control healing remains untested until an active encounter exists. |
-| Use `/ptg-combat` or GM panel replacement | Partial | GM setup panel `Combat Controls` action fired and correctly warned `Start or open a Combat encounter before using PTG combat controls.` Active-combat workflow still needs coverage. |
+| Use `/ptg-combat` or GM panel replacement | Partial | GM setup panel `Combat Controls` correctly warned before an encounter existed. In the active encounter retest, Combat Controls initially failed because v14 collection-backed `combat.combatants` was treated as an array; this was fixed in `module/combat/ptg-combat.mjs`, Foundry was reloaded, and Combat Controls opened and posted a `Round and Turn Sequence` card. Combatant-specific initiative, action markers, and combat-control healing still need coverage after adding actors to the encounter. |
 | Use `/ptg-territory` or GM panel replacement | Pass | GM setup and scene control paths opened Territory Grid tooling and the God Territory Grid scene. |
 | Use `/ptg-balance` or GM panel replacement | Pass | GM setup opened Mortal-Divine Balance tracker with `QA Character - Balanced (0)`. |
 | Use `/ptg-antagonist-builder` or GM panel replacement | Pass | GM setup opened PTG Opposition Builder and created `QA Builder Antagonist`; the created antagonist sheet rendered with builder notes. |
@@ -85,6 +85,7 @@ Foundry target: v14 only
 - Manifestation Measures posted `Aegis Measures` with 3 successes available, 1 measure spent on Damage, 2 unspent successes, and QA notes.
 - Condition recovery posted both a recovery roll card and a condition recovery summary card.
 - Opposition Builder generated a real world Actor instead of only opening the dialog.
+- Active-combat retest created and started Combat encounter 1, then verified the GM panel `Combat Controls` dialog opened after the v14 combatants collection fix and posted `Round and Turn Sequence` to chat.
 
 ## Unresolved Coverage Gaps
 
@@ -93,13 +94,13 @@ Foundry target: v14 only
 | Foundry install-by-manifest UI has not been run in a clean install target. | Public URL fetchability is proven, but the Foundry installer path itself is not. | Use a separate Foundry data path or temporarily remove the local system, install from the GitHub Release manifest URL, then open a world. |
 | Drag/drop item matrix is untested. | Owned Item drop behavior across the main player-facing item types is not proven. | Drag/drop Occupation, Archetype, Dominion, Theology, Blessing, Curse, Truth, Relic, Bond, Worshipper, Vassal, Condition, Weapon, and Armor onto a character and record the resulting owned Items. |
 | Equipped armor reduction is untested. | The armor toggle exists, but actual armor mitigation is not proven. | Add or equip armor on `QA Character`, apply Health damage with armor enabled, and verify reduced Applied damage. |
-| Active combat helper flow is untested. | Combat Controls guard works, but initiative, active combat healing, and combat action cards are not proven. | Create a Combat encounter with QA actors, then run initiative, damage/healing, and action-state posts through Combat Controls. |
+| Active combat helper flow is partially tested. | Combat Controls now opens and posts an encounter helper card in an active encounter, but actor combatants, initiative, action-state markers, and combat-control healing are not proven. | Add QA Character and QA Antagonist to the Combat encounter, then run initiative, damage/healing, and action-state posts through Combat Controls. |
 | Permission boundaries are untested. | GM-only/player-safe behavior is not proven for owner, observer, and non-owner roles. | Join with test users or configure role ownership states, then verify visible controls and denied actions. |
 | Existing-world migration is untested. | Migration support is not proven against an older or populated world. | Run v14 with an existing PTG world snapshot and confirm embedded item migration behavior. |
 
 ## Production Blockers / Defects
 
-No product defect was observed in the runtime paths completed in this pass. No new blocker issue was filed from the completed coverage. Issue #131 cannot close until the unresolved coverage gaps above are completed or explicitly deferred.
+One product defect was observed and fixed during this pass: active `Combat Controls` could fail in Foundry v14 because `combat.combatants` is collection-backed and was treated as an array in `module/combat/ptg-combat.mjs`. The fix normalizes combatants before dialog rendering, initiative iteration, and round reset updates; the live retest posted the Round and Turn Sequence card. No separate blocker issue was filed because the defect was fixed in this pass. Issue #131 cannot close until the unresolved coverage gaps above are completed or explicitly deferred.
 
 ## Release Gate
 
