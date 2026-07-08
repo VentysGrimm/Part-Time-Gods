@@ -8,11 +8,11 @@ Use the live main-branch manifest URL:
 https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/main/system.json
 ```
 
-This manifest points Foundry to the versioned GitHub Release ZIP declared in `system.json`.
+This manifest points Foundry to the live main-branch archive declared in `system.json`.
 
 ## Manual Install
 
-1. Download the versioned release ZIP, for example `part-time-gods-0.0.2.zip`, from GitHub Releases.
+1. Download the main-branch ZIP from GitHub, or a versioned release ZIP if one has been published for the version you want.
 2. Unzip it into Foundry's data folder at `Data/systems/part-time-gods`.
 3. Confirm `Data/systems/part-time-gods/system.json` exists.
 4. Restart Foundry VTT.
@@ -33,4 +33,4 @@ From the system root, run:
 npm.cmd run release
 ```
 
-This creates `dist/part-time-gods-0.0.2.zip` and `dist/system.json`. Upload the ZIP to the matching GitHub Release tag when publishing a new version, then open a Foundry VTT v14 world and smoke test the character sheet, item sheets, compendia, roll dialogs, chat card actions, Conditions, Manifestation Measures, and rules journals.
+This creates `dist/part-time-gods-0.0.2.zip` and `dist/system.json` for manual release packaging. The live install manifest follows the pushed `main` branch, so open a Foundry VTT v14 world after pushing and smoke test the character sheet, item sheets, compendia, roll dialogs, chat card actions, Conditions, Manifestation Measures, and rules journals.

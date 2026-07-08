@@ -245,12 +245,8 @@ function assertReleaseUrls(manifest) {
   if (!/^https:\/\/raw\.githubusercontent\.com\/VentysGrimm\/Part-Time-Gods\/main\/system\.json$/.test(String(manifest.manifest ?? ""))) {
     errors.push(`Manifest URL should point at the live main-branch system.json: ${manifest.manifest}`);
   }
-  if (/main\.zip|archive\/refs\/heads\/main/i.test(String(manifest.download ?? ""))) {
-    errors.push(`Download URL must not point at the main branch archive: ${manifest.download}`);
-  }
-  const expectedZip = `${manifest.id}-${manifest.version}.zip`;
-  if (!String(manifest.download ?? "").includes(`/releases/download/v${manifest.version}/`) || !String(manifest.download ?? "").endsWith(expectedZip)) {
-    errors.push(`Download URL should point at the versioned GitHub Release ZIP ${expectedZip}: ${manifest.download}`);
+  if (!/^https:\/\/github\.com\/VentysGrimm\/Part-Time-Gods\/archive\/refs\/heads\/main\.zip$/.test(String(manifest.download ?? ""))) {
+    errors.push(`Download URL should point at the live main-branch archive: ${manifest.download}`);
   }
 }
 
