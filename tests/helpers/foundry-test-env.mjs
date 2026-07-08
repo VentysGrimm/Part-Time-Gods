@@ -59,6 +59,27 @@ export function installFoundryTestEnvironment() {
       getProperty(source, key) {
         return String(key ?? "").split(".").reduce((value, part) => value?.[part], source);
       },
+      deepClone(source) {
+        return source == null ? source : JSON.parse(JSON.stringify(source));
+      },
+      mergeObject(original = {}, other = {}, { inplace = true } = {}) {
+        const target = inplace ? original : foundry.utils.deepClone(original);
+        for (const [key, value] of Object.entries(other ?? {})) {
+          if (
+            value
+            && typeof value === "object"
+            && !Array.isArray(value)
+            && target[key]
+            && typeof target[key] === "object"
+            && !Array.isArray(target[key])
+          ) {
+            target[key] = foundry.utils.mergeObject(target[key], value, { inplace: true });
+          } else {
+            target[key] = value;
+          }
+        }
+        return target;
+      },
       getRoute(route) {
         const routePrefix = "systems/part-time-gods/";
         const relative = String(route).startsWith(routePrefix)
