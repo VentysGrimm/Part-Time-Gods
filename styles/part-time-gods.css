@@ -1270,6 +1270,8 @@
 
 .ptg-sheet-dialog .dialog-buttons button,
 .ptg-sheet-dialog .dialog-button,
+.ptg-sheet-dialog .form-footer button,
+.ptg-sheet-dialog [data-application-part="footer"] button,
 .ptg-dialog-body button {
   min-height: 2.25rem;
   height: auto;
@@ -1284,6 +1286,20 @@
   overflow-wrap: anywhere;
 }
 
+.ptg-character-creator-window .window-content > footer,
+.ptg-character-creator-window [data-application-part="footer"] {
+  padding: 0 12px 12px;
+  background: #f4f0e8;
+}
+
+.ptg-character-creator-window .window-content > footer button,
+.ptg-character-creator-window [data-application-part="footer"] button {
+  border-color: #3d1f5d;
+  background: #5b2c83;
+  color: #ffffff;
+  font-weight: 800;
+}
+
 :is(.application, .app, .window-app):has(.ptg-territory-dialog) .window-content,
 :is(.application, .app, .window-app):has(.ptg-combat-dialog) .window-content,
 :is(.application, .app, .window-app):has(.ptg-roll-dialog) .window-content,
@@ -1293,8 +1309,15 @@
 :is(.application, .app, .window-app):has(.ptg-damage-apply-dialog) .window-content,
 :is(.application, .app, .window-app):has(.ptg-condition-create-dialog) .window-content,
 :is(.application, .app, .window-app):has(.ptg-condition-duplicate-dialog) .window-content,
+:is(.application, .app, .window-app):has(.ptg-creator-dialog) .window-content,
 :is(.application, .app, .window-app):has(.ptg-creator-apply-preview) .window-content {
   overflow: hidden;
+}
+
+:is(.application, .app, .window-app):has(.ptg-creator-dialog) .window-content,
+:is(.application, .app, .window-app):has(.ptg-creator-apply-preview) .window-content {
+  background: #f4f0e8;
+  color: #1f1a24;
 }
 
 :is(.application, .app, .window-app):has(.ptg-territory-dialog) .window-content > form,
@@ -1306,6 +1329,7 @@
 :is(.application, .app, .window-app):has(.ptg-damage-apply-dialog) .window-content > form,
 :is(.application, .app, .window-app):has(.ptg-condition-create-dialog) .window-content > form,
 :is(.application, .app, .window-app):has(.ptg-condition-duplicate-dialog) .window-content > form,
+:is(.application, .app, .window-app):has(.ptg-creator-dialog) .window-content > form,
 :is(.application, .app, .window-app):has(.ptg-creator-apply-preview) .window-content > form {
   display: flex;
   flex: 1 1 auto;
@@ -1330,6 +1354,27 @@
   overflow-y: auto;
   padding-right: 6px;
   resize: none;
+}
+
+.ptg-creator-apply-preview {
+  padding: 12px;
+  background: #f4f0e8;
+  color: #1f1a24;
+}
+
+.ptg-creator-apply-preview section {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgba(91, 44, 131, 0.35);
+  border-radius: 4px;
+  background: #fffdf8;
+}
+
+.ptg-creator-apply-preview h3,
+.ptg-creator-apply-preview p,
+.ptg-creator-apply-preview ul {
+  margin-top: 0;
 }
 
 .ptg-territory-dialog,
@@ -1908,6 +1953,8 @@
   width: 100%;
   min-height: 0;
   overflow: hidden;
+  background: #f4f0e8;
+  color: #1f1a24;
 }
 
 .ptg-creator-dialog {
@@ -1919,7 +1966,9 @@
   max-width: 100%;
   max-height: 100%;
   min-height: 0;
-  color: #000000;
+  padding: 12px;
+  background: #f4f0e8;
+  color: #1f1a24;
   overflow: hidden;
   resize: none;
 }
@@ -1996,7 +2045,9 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
+  border: 1px solid rgba(141, 116, 184, 0.35);
   border-bottom: 1px solid #cbb9e2;
+  background: #fffdf8;
 }
 
 .ptg-creator-toolbar span {

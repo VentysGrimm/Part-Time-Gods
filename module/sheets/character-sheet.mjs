@@ -1350,7 +1350,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         title: `${this.actor.name}: Character Creator`,
         resizable: true
       },
-      classes: ["part-time-gods", "ptg-character-creator-window"],
+      classes: ptgDialogClasses("ptg-character-creator-window"),
       position: fitDialogPosition(760, 720, { minWidth: 360, minHeight: 360 }),
       content,
       rejectClose: false,
@@ -1697,7 +1697,9 @@ function validateCharacterCreationBudget(selections, actor) {
 
 async function confirmCharacterCreatorApplication(actor, selections, choices, selectedTypes) {
   return DialogV2.confirm({
-    window: { title: `${actor.name}: Apply Character Creator` },
+    window: { title: `${actor.name}: Apply Character Creator`, resizable: true },
+    classes: ptgDialogClasses("ptg-character-creator-confirm-window"),
+    position: fitDialogPosition(560, 480, { minWidth: 320, minHeight: 280 }),
     content: characterCreatorPreviewHTML(actor, selections, choices, selectedTypes),
     rejectClose: false,
     modal: true
@@ -1798,9 +1800,11 @@ function resourceWorkflowDefaultReason(action) {
 
 async function showCharacterCreationValidation(errors) {
   await DialogV2.prompt({
-    window: { title: "Character Creator Validation" },
+    window: { title: "Character Creator Validation", resizable: true },
+    classes: ptgDialogClasses("ptg-character-creator-validation-window"),
+    position: fitDialogPosition(560, 360, { minWidth: 320, minHeight: 240 }),
     content: `
-      <div class="ptg-advancement-dialog">
+      <div class="ptg-dialog-body ptg-advancement-dialog">
         <p class="ptg-sheet-note">Fix these starting character budgets before applying the creator.</p>
         <ul>
           ${errors.map(error => `<li>${escapeHTML(error)}</li>`).join("")}
