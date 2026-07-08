@@ -13,6 +13,8 @@ const { ClassicLevel } = await loadClassicLevel();
 
 installFoundrySourceMocks();
 
+const selectedPackNames = new Set(process.argv.slice(2).map(name => String(name).trim()).filter(Boolean));
+
 const [
   actors,
   items,
@@ -122,7 +124,16 @@ const packBuilds = [
   }
 ];
 
-for (const build of packBuilds) {
+const unknownPackNames = Array.from(selectedPackNames).filter(name => !packBuilds.some(build => build.name === name));
+if (unknownPackNames.length) {
+  throw new Error(`Unknown pack filter(s): ${unknownPackNames.join(", ")}`);
+}
+
+const buildsToRun = selectedPackNames.size
+  ? packBuilds.filter(build => selectedPackNames.has(build.name))
+  : packBuilds;
+
+for (const build of buildsToRun) {
   const result = await buildPack(build);
   console.log(`${build.name}: ${result.documents} ${build.documentName} documents, ${result.embedded} embedded documents, ${result.folders} folders`);
 }
@@ -359,7 +370,7 @@ function installFoundrySourceMocks() {
       api: { DialogV2: class {} }
     },
     data: {
-      ShapeData: { TYPES: { RECTANGLE: "rectangle" } }
+      ShapeData: { TYPES: { RECTANGLE: "r" } }
     },
     utils: {
       getRoute(route) {

@@ -56,7 +56,7 @@ export function installFoundryTestEnvironment() {
     },
     data: {
       ShapeData: {
-        TYPES: { RECTANGLE: "rectangle" }
+        TYPES: { RECTANGLE: "r" }
       }
     },
     utils: {

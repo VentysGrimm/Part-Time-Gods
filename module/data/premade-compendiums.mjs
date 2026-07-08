@@ -76,7 +76,7 @@ async function populatePack(packId, documents, folderLabels, documentName, { rem
   }
 
   let packDocuments = await pack.getDocuments();
-  const updated = ["Actor", "Item", "JournalEntry", "Macro", "RollTable"].includes(documentName)
+  const updated = ["Actor", "Item", "JournalEntry", "Macro", "RollTable", "Scene"].includes(documentName)
     ? await updateExistingPremadeDocuments(packDocuments, documents, folders, documentName)
     : 0;
   const removed = removeStale
@@ -157,12 +157,105 @@ async function updateExistingPremadeDocuments(documents, sourceDocuments, folder
       ...foundry.utils.deepClone(source),
       folder: folder?.id ?? document.folder?.id ?? null
     };
+    if (documentName === "Scene") delete updateData.drawings;
+
     const diff = foundry.utils.diffObject(document.toObject(), updateData);
-    if (Object.keys(diff).length) updates.push(document.update(updateData));
+    updates.push(updateExistingPremadeDocument(document, source, updateData, diff, documentName));
   }
 
-  await Promise.all(updates);
-  return updates.length;
+  const results = await Promise.all(updates);
+  return results.filter(Boolean).length;
+}
+
+async function updateExistingPremadeDocument(document, source, updateData, diff, documentName) {
+  let changed = false;
+
+  if (Object.keys(diff).length) {
+    await document.update(updateData);
+    changed = true;
+  }
+
+  if (documentName === "Scene") {
+    changed = await refreshPremadeSceneDrawings(document, source) || changed;
+  }
+
+  return changed;
+}
+
+export async function refreshPremadeSceneDrawings(document, source) {
+  const sourceDrawings = (source.drawings ?? [])
+    .filter(isManagedSceneDrawing)
+    .map(drawing => foundry.utils.deepClone(drawing));
+
+  if (!sourceDrawings.length || typeof document.createEmbeddedDocuments !== "function") return false;
+
+  const existingManagedDrawings = embeddedCollectionDocuments(document.drawings)
+    .filter(isManagedSceneDrawing);
+
+  if (sameManagedDrawingSet(existingManagedDrawings, sourceDrawings)) return false;
+  if (existingManagedDrawings.length && typeof document.deleteEmbeddedDocuments !== "function") return false;
+
+  const drawingIds = existingManagedDrawings.map(embeddedDocumentId).filter(Boolean);
+  if (drawingIds.length) await document.deleteEmbeddedDocuments("Drawing", drawingIds);
+  await document.createEmbeddedDocuments("Drawing", sourceDrawings);
+
+  return true;
+}
+
+function embeddedCollectionDocuments(collection) {
+  if (!collection) return [];
+  if (Array.isArray(collection)) return collection;
+  if (collection.contents) return Array.from(collection.contents);
+  if (typeof collection.values === "function") return Array.from(collection.values());
+  if (typeof collection[Symbol.iterator] === "function") return Array.from(collection);
+
+  return Object.values(collection);
+}
+
+function embeddedDocumentId(document) {
+  return document.id ?? document._id ?? document.toObject?.()._id ?? null;
+}
+
+function isManagedSceneDrawing(drawing) {
+  const source = drawingSource(drawing);
+  const flags = source.flags?.[SYSTEM_ID] ?? {};
+  return Boolean(
+    drawing.getFlag?.(SYSTEM_ID, "territoryZone")
+    || drawing.getFlag?.(SYSTEM_ID, "territorySheetElement")
+    || flags.territoryZone
+    || flags.territorySheetElement
+    || String(source.name ?? drawing.name ?? "").startsWith("Territory Grid:")
+  );
+}
+
+function sameManagedDrawingSet(existingDrawings, sourceDrawings) {
+  if (existingDrawings.length !== sourceDrawings.length) return false;
+
+  const existing = existingDrawings.map(normalizedSceneDrawing).sort();
+  const source = sourceDrawings.map(normalizedSceneDrawing).sort();
+  return existing.every((entry, index) => entry === source[index]);
+}
+
+function normalizedSceneDrawing(drawing) {
+  const source = foundry.utils.deepClone(drawingSource(drawing));
+  delete source._id;
+  delete source.id;
+  delete source._stats;
+
+  return stableStringify(source);
+}
+
+function drawingSource(drawing) {
+  return drawing?.toObject?.() ?? drawing?._source ?? drawing ?? {};
+}
+
+function stableStringify(value) {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+  }
+
+  return JSON.stringify(value);
 }
 
 function getPackFolders(pack) {

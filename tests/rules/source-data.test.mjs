@@ -12,6 +12,7 @@ const rollTables = await import("../../module/data/premade-roll-tables.mjs");
 const scenes = await import("../../module/data/premade-scenes.mjs");
 const macros = await import("../../module/data/premade-macros.mjs");
 const skills = await import("../../module/config/skills.mjs");
+const compendiums = await import("../../module/data/premade-compendiums.mjs");
 
 test("Premade compendium source documents have stable slug and sourceId flags", async () => {
   const documents = [
@@ -132,6 +133,91 @@ test("Chapter 5 battle data covers actions, defenses, gear, and conditions", () 
   assert.ok((counts.get("gearQuality") ?? []).length >= 42);
   assert.ok((counts.get("armor") ?? []).length >= 14);
   assert.ok((counts.get("weapon") ?? []).length >= 9);
+});
+
+test("Premade territory scene drawings use Foundry v14 drawing schema", () => {
+  const [scene] = scenes.getPremadeScenes();
+
+  assert.equal(scene.drawings.length, 24);
+  for (const drawing of scene.drawings) {
+    assert.match(drawing.author, /^[A-Za-z0-9]{16}$/, `${drawing.name} has a non-null author id`);
+    assert.equal(drawing.shape?.type, "r", `${drawing.name} uses v14 rectangle shape code`);
+    assert.equal(typeof drawing.shape?.width, "number", `${drawing.name} shape width`);
+    assert.equal(typeof drawing.shape?.height, "number", `${drawing.name} shape height`);
+  }
+});
+
+test("Premade scene refresh replaces stale managed drawing rows", async () => {
+  const [scene] = scenes.getPremadeScenes();
+  const sourceDrawing = scene.drawings[0];
+  const staleDrawing = {
+    id: "oldDrawing000001",
+    name: sourceDrawing.name,
+    flags: sourceDrawing.flags,
+    getFlag(system, key) {
+      return this.flags?.[system]?.[key];
+    },
+    toObject() {
+      return {
+        ...foundry.utils.deepClone(sourceDrawing),
+        _id: this.id,
+        author: "",
+        shape: {
+          ...sourceDrawing.shape,
+          type: "rectangle"
+        }
+      };
+    }
+  };
+  const document = {
+    drawings: [staleDrawing],
+    deleted: [],
+    created: [],
+    async deleteEmbeddedDocuments(documentType, ids) {
+      this.deleted.push({ documentType, ids });
+    },
+    async createEmbeddedDocuments(documentType, drawings) {
+      this.created.push({ documentType, drawings });
+    }
+  };
+
+  const changed = await compendiums.refreshPremadeSceneDrawings(document, { drawings: [sourceDrawing] });
+
+  assert.equal(changed, true);
+  assert.deepEqual(document.deleted, [{ documentType: "Drawing", ids: ["oldDrawing000001"] }]);
+  assert.equal(document.created.length, 1);
+  assert.equal(document.created[0].documentType, "Drawing");
+  assert.equal(document.created[0].drawings[0].author, "0000000000000000");
+  assert.equal(document.created[0].drawings[0].shape.type, "r");
+});
+
+test("Premade scene refresh skips already-current managed drawing rows", async () => {
+  const [scene] = scenes.getPremadeScenes();
+  const sourceDrawing = scene.drawings[0];
+  const document = {
+    drawings: [{
+      id: "currentDrawing01",
+      name: sourceDrawing.name,
+      flags: sourceDrawing.flags,
+      getFlag(system, key) {
+        return this.flags?.[system]?.[key];
+      },
+      toObject() {
+        return {
+          ...foundry.utils.deepClone(sourceDrawing),
+          _id: this.id
+        };
+      }
+    }],
+    async deleteEmbeddedDocuments() {
+      throw new Error("deleteEmbeddedDocuments should not be called");
+    },
+    async createEmbeddedDocuments() {
+      throw new Error("createEmbeddedDocuments should not be called");
+    }
+  };
+
+  assert.equal(await compendiums.refreshPremadeSceneDrawings(document, { drawings: [sourceDrawing] }), false);
 });
 
 function groupByType(documents) {

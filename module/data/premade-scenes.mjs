@@ -11,6 +11,7 @@ const ROWS = PLAY_GRID_SIZE + LABEL_BAND_SIZE;
 const WIDTH = COLUMNS * GRID_SIZE;
 const HEIGHT = ROWS * GRID_SIZE;
 const TERRITORY_DATA_VERSION = 1;
+const SYSTEM_AUTHOR_ID = "0000000000000000";
 
 const SHEET_BACKGROUND = "#f4f0e8";
 const SHEET_INK = "#000000";
@@ -664,7 +665,7 @@ function baseDrawing(key, x, y, width, height, authorId, sort, options) {
 }
 
 function getAuthorId() {
-  return globalThis.game?.user?.id ?? "";
+  return globalThis.game?.user?.id || SYSTEM_AUTHOR_ID;
 }
 
 function squareGridType() {
@@ -676,5 +677,5 @@ function solidFillType() {
 }
 
 function rectangleShapeType() {
-  return globalThis.foundry?.data?.ShapeData?.TYPES?.RECTANGLE ?? "rectangle";
+  return globalThis.foundry?.data?.ShapeData?.TYPES?.RECTANGLE ?? "r";
 }

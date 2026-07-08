@@ -312,6 +312,11 @@ async function validatePremadeSourceData() {
   const weakItems = weakItemExplanations(documents.items);
   if (weakItems.length) errors.push(`Weak premade Item explanations:\n${weakItems.map(key => `- ${key}`).join("\n")}`);
 
+  const invalidSceneDrawings = sceneDrawingSchemaAudit(sceneDocuments);
+  if (invalidSceneDrawings.length) {
+    errors.push(`Premade Scene drawings are not Foundry v14-ready:\n${invalidSceneDrawings.map(key => `- ${key}`).join("\n")}`);
+  }
+
   const rulesAudit = rulesJournalTextAudit(journalDocuments);
   if (rulesAudit.missingSafeSummary.length) {
     errors.push(`Rules reference pages missing safeSummary flags:\n${rulesAudit.missingSafeSummary.map(key => `- ${key}`).join("\n")}`);
@@ -558,6 +563,15 @@ function weakItemExplanations(documents) {
     .map(entry => `${entry.type}:${entry.name}:${entry.length}`);
 }
 
+function sceneDrawingSchemaAudit(scenes) {
+  return scenes.flatMap(scene => (scene.drawings ?? [])
+    .filter(drawing =>
+      !/^[A-Za-z0-9]{16}$/.test(String(drawing.author ?? "")) ||
+      drawing.shape?.type !== "r"
+    )
+    .map(drawing => `${scene.name}:${drawing.name}:author=${drawing.author ?? "missing"}:shape=${drawing.shape?.type ?? "missing"}`));
+}
+
 function plainTextLength(...values) {
   return values
     .filter(Boolean)
@@ -650,7 +664,7 @@ function installFoundrySourceMocks() {
     },
     data: {
       ShapeData: {
-        TYPES: { RECTANGLE: "rectangle" }
+        TYPES: { RECTANGLE: "r" }
       }
     },
     utils: {
