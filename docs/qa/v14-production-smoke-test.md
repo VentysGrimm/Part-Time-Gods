@@ -73,8 +73,8 @@ Foundry target: v14 only
 | Open Territory Grid from GM panel or scene controls | Pass | GM setup and scene control paths opened Territory Grid tooling and the God Territory Grid scene. |
 | Open Mortal-Divine Balance from GM panel | Pass | GM setup opened Mortal-Divine Balance tracker with `QA Character - Balanced (0)`. |
 | Open Opposition Builder from GM panel | Pass | GM setup opened PTG Opposition Builder and created `QA Builder Antagonist`; the created antagonist sheet rendered with builder notes. |
-| Test GM permission boundary | Pending | Current session is GM; explicit role boundary matrix not yet run. |
-| Test owner permission boundary | Pending | Non-GM owner account/path not yet tested. |
+| Test GM permission boundary | Pending live matrix | Current session is GM; explicit live role boundary matrix not yet run. Automated coverage verifies non-GM users cannot open Combat Controls. |
+| Test owner permission boundary | Pending live matrix | Non-GM owner account/path not yet tested live. Automated coverage verifies non-owner, non-GM users cannot apply Health damage to an actor. |
 | Test observer permission boundary | Pending | Observer account/path not yet tested. |
 | Test non-owner permission boundary | Pending | Non-owner account/path not yet tested. |
 | Test migration against existing world | Pending | Existing-world migration path not yet run. |
@@ -88,6 +88,7 @@ Foundry target: v14 only
 - Active-combat retest created and started Combat encounter 1, then verified the GM panel `Combat Controls` dialog opened after the v14 combatants collection fix and posted `Round and Turn Sequence` to chat.
 - Shared drop-data resolver coverage verifies Item drops from UUID, compendium pack, world Item, and embedded data payloads, which supports the actor-sheet drag/drop matrix but does not replace the required live sheet drop pass.
 - Combat-control coverage verifies dialog option rendering, initiative updates, selected-combatant action markers, and combat-control healing for Foundry v14 collection-backed combatants.
+- Permission-boundary coverage now verifies non-GM Combat Controls denial and non-owner damage denial in automated tests; owner, observer, and non-owner role behavior still need live Foundry verification.
 - 2026-07-08 desktop continuation: Foundry v14.364 reported active world `ptg-v14-qa-smoke-test`, system `part-time-gods` 0.0.2, and one connected user. GM Setup opened from the Part-Time Gods scene controls, and `Combat Controls` opened the `PTG Combat Controls` dialog. GM panel controls are the supported runtime path for this pass; chat-command aliases are intentionally out of scope.
 - The live `PTG Combat Controls` Actor/Attacker selector exposed only `Encounter helper only` during this continuation. The God Territory Grid scene was viewed and its 10x10 grid was visible, but actor-sidebar token placement did not create tokens under automation, so action marker and combat-control healing proof still require adding actual actor combatants to the encounter.
 
@@ -99,7 +100,7 @@ Foundry target: v14 only
 | Drag/drop item matrix is untested live. | Shared drop-data resolution is covered for Foundry Item source shapes, but owned Item sheet drop behavior across the main player-facing item types is not proven in the browser. | Drag/drop Occupation, Archetype, Dominion, Theology, Blessing, Curse, Truth, Relic, Bond, Worshipper, Vassal, Condition, Weapon, and Armor onto a character and record the resulting owned Items. |
 | Equipped armor reduction has automated coverage but still needs live UI proof. | The armor toggle exists and `applyDamageToActor()` is covered for equipped armor plus matching proof quality, but the live actor sheet/dialog path is not proven with equipped armor on `QA Character`. | Add or equip armor on `QA Character`, apply Health damage with armor enabled, and verify reduced Applied damage in Foundry chat. |
 | Active combat helper flow is partially tested. | Combat Controls now opens from GM Setup and posts an encounter helper card in an active encounter, and automated tests cover collection-backed dialog rendering, initiative updates, selected-combatant action markers, and combat-control healing. The live Actor/Attacker selector had no actor combatants available in the 2026-07-08 desktop continuation, so action-state markers and combat-control healing are not live-proven. | Add QA Character and QA Antagonist tokens to the Combat encounter, confirm they appear in the Combat Controls Actor/Attacker selector, then run initiative, damage/healing, and action-state posts through Combat Controls from the GM panel path. |
-| Permission boundaries are untested. | GM-only/player-safe behavior is not proven for owner, observer, and non-owner roles. | Join with test users or configure role ownership states, then verify visible controls and denied actions. |
+| Permission boundaries have automated coverage but no live role matrix. | Automated tests verify non-GM Combat Controls denial and non-owner damage denial, but GM/player role behavior is not proven live for owner, observer, and non-owner accounts. | Join with test users or configure role ownership states, then verify visible controls and denied actions. |
 | Existing-world migration is untested. | Migration support is not proven against an older or populated world. | Run v14 with an existing PTG world snapshot and confirm embedded item migration behavior. |
 
 ## Production Blockers / Defects
@@ -110,4 +111,4 @@ The 2026-07-08 desktop continuation found no new product defect: chat-command al
 
 ## Release Gate
 
-Do not tag a production release from this QA pass yet. Automated checks are green and many runtime paths pass, but #131 still has unverified install, drag/drop, equipped armor, active combat, permission, and migration coverage.
+Do not tag a production release from this QA pass yet. Automated checks are green and many runtime paths pass, but #131 still has unverified install, drag/drop, equipped armor, active-combat live, permission live, and migration coverage.

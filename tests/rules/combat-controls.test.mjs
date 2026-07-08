@@ -188,3 +188,29 @@ test("PTG combat controls applies healing to a selected combatant actor", async 
   assert.match(createdMessages[0].content, /Health 5 -&gt; 7/);
   assert.match(createdMessages[0].content, /QA combat healing/);
 });
+
+test("PTG combat controls are blocked for non-GM users", async () => {
+  installFoundryTestEnvironment();
+
+  let prompted = false;
+  foundry.applications.api.DialogV2.prompt = async () => {
+    prompted = true;
+    return null;
+  };
+  const warnings = [];
+  ui.notifications.warn = message => warnings.push(message);
+  game.user = { isGM: false };
+
+  const { openPTGCombatControls } = await import("../../module/combat/ptg-combat.mjs?non-gm");
+  const result = await openPTGCombatControls({
+    combat: {
+      name: "QA Combat",
+      round: 1,
+      combatants: new Map()
+    }
+  });
+
+  assert.equal(result, null);
+  assert.equal(prompted, false);
+  assert.deepEqual(warnings, ["Only a GM can update PTG combat state."]);
+});

@@ -68,3 +68,44 @@ test("Health damage applies equipped armor and matching proof qualities", async 
   assert.match(createdMessages[0].content, /Armor/);
   assert.match(createdMessages[0].content, /(Tag Armor|PTG\.Damage\.TagArmor)/);
 });
+
+test("Health damage is blocked for non-GM non-owner actors", async () => {
+  installFoundryTestEnvironment();
+
+  const warnings = [];
+  ui.notifications.warn = message => warnings.push(message);
+  game.user = { isGM: false };
+
+  let updated = false;
+  ChatMessage.create = async () => {
+    throw new Error("damage denial should not create chat cards");
+  };
+
+  const actor = {
+    documentName: "Actor",
+    uuid: "Actor.qa-character",
+    name: "QA Character",
+    isOwner: false,
+    system: {
+      resources: {
+        health: { value: 8, max: 8 },
+        psyche: { value: 8, max: 8 }
+      }
+    },
+    items: [],
+    async update() {
+      updated = true;
+    }
+  };
+
+  const { applyDamageToActor } = await import("../../module/workflows/damage-workflow.mjs?non-owner");
+  const result = await applyDamageToActor(actor, {
+    resource: "health",
+    amount: 2,
+    reason: "QA permission boundary"
+  });
+
+  assert.equal(result, null);
+  assert.equal(updated, false);
+  assert.deepEqual(warnings, ["PTG.Damage.NoPermission"]);
+});
