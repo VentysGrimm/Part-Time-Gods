@@ -28,7 +28,7 @@ Foundry target: v14 only
 | Automated tests | Pass | 10/10 tests passed during `npm.cmd run release`. |
 | Release ZIP build | Pass | `dist\part-time-gods-0.0.2.zip` and `dist\system.json` were generated with the live manifest values. |
 | GitHub Actions | Pass | Main branch run for commit `ab25d4a3d22af6c62578d805551be5a366371b2a` succeeded: `https://github.com/VentysGrimm/Part-Time-Gods/actions/runs/28914026814`. |
-| Public manifest install path | Pass for fetchability | `https://github.com/VentysGrimm/Part-Time-Gods/raw/main/system.json` returned HTTP 200 and advertises itself as the manifest URL. |
+| Public manifest install path | Pass for fetchability | `https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/refs/heads/main/system.json?live=20260708-0325` returned HTTP 200 and advertises itself as the manifest URL. |
 | Public ZIP install path | Pass for fetchability | `https://github.com/VentysGrimm/Part-Time-Gods/archive/refs/heads/main.zip` returned HTTP 200 as `application/zip`. |
 
 ## Required Runtime Flow
@@ -90,7 +90,7 @@ Foundry target: v14 only
 
 | Gap | Impact | Next Action |
 | --- | --- | --- |
-| Foundry install-by-manifest UI has not been run in a clean install target. | Public URL fetchability is proven, but the Foundry installer path itself is not. | Use a separate Foundry data path or temporarily remove the local system, install from the GitHub web raw manifest URL, then open a world. |
+| Foundry install-by-manifest UI has not been run in a clean install target. | Public URL fetchability is proven, but the Foundry installer path itself is not. | Use a separate Foundry data path or temporarily remove the local system, install from the cache-busted GitHub raw manifest URL, then open a world. |
 | Drag/drop item matrix is untested. | Owned Item drop behavior across the main player-facing item types is not proven. | Drag/drop Occupation, Archetype, Dominion, Theology, Blessing, Curse, Truth, Relic, Bond, Worshipper, Vassal, Condition, Weapon, and Armor onto a character and record the resulting owned Items. |
 | Equipped armor reduction is untested. | The armor toggle exists, but actual armor mitigation is not proven. | Add or equip armor on `QA Character`, apply Health damage with armor enabled, and verify reduced Applied damage. |
 | Active combat helper flow is untested. | Combat Controls guard works, but initiative, active combat healing, and combat action cards are not proven. | Create a Combat encounter with QA actors, then run initiative, damage/healing, and action-state posts through Combat Controls. |
