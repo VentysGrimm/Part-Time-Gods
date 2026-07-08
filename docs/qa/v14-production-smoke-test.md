@@ -65,7 +65,7 @@ Foundry target: v14 only
 | Roll extended check | Pass | `QA Character: Athletics + Athletics`, Mode Extended, Base Pool 6d10, Successes 3, Extended Progress 5/6, In Progress, Success. |
 | Apply Health damage | Pass | Chat card posted `Health Damage`, Raw Damage 2, Applied 2, `Health: 8 -> 6`. |
 | Apply Psyche damage | Pass | Chat card posted `Psyche Damage`, Raw Damage 2, Applied 2, `Psyche: 10 -> 8`. |
-| Apply armor | Partial | Health damage dialog exposed and used the armor toggle, but `QA Character` had no equipped armor. Equipped-armor reduction still needs coverage. |
+| Apply armor | Partial | Health damage dialog exposed and used the armor toggle, but `QA Character` had no equipped armor in the live pass. Automated coverage now exercises `applyDamageToActor()` with equipped armor plus a matching proof quality; live equipped-armor reduction still needs coverage. |
 | Apply Conditions | Pass | Chat card added custom condition `QA Smoke Strain`, category physical, severity 1, to `QA Character`. |
 | Recover/reduce Conditions | Pass | `Reduce` removed `QA Smoke Strain`. Explicit `Recover` on `QA Recover Check` rolled Medicine + Empathy and posted `Severity: 1 -> 0`, Outcome Removed. |
 | Apply healing | Pass | Character sheet resource restore increased Health from 6/8 to 7/8. Combat-control healing remains untested until an active encounter exists. |
@@ -93,7 +93,7 @@ Foundry target: v14 only
 | --- | --- | --- |
 | Foundry install-by-manifest UI has not been run in a clean install target. | Public URL fetchability is proven, but the Foundry installer path itself is not. | Use a separate Foundry data path or temporarily remove the local system, install from the GitHub Release manifest URL, then open a world. |
 | Drag/drop item matrix is untested. | Owned Item drop behavior across the main player-facing item types is not proven. | Drag/drop Occupation, Archetype, Dominion, Theology, Blessing, Curse, Truth, Relic, Bond, Worshipper, Vassal, Condition, Weapon, and Armor onto a character and record the resulting owned Items. |
-| Equipped armor reduction is untested. | The armor toggle exists, but actual armor mitigation is not proven. | Add or equip armor on `QA Character`, apply Health damage with armor enabled, and verify reduced Applied damage. |
+| Equipped armor reduction has automated coverage but still needs live UI proof. | The armor toggle exists and `applyDamageToActor()` is covered for equipped armor plus matching proof quality, but the live actor sheet/dialog path is not proven with equipped armor on `QA Character`. | Add or equip armor on `QA Character`, apply Health damage with armor enabled, and verify reduced Applied damage in Foundry chat. |
 | Active combat helper flow is partially tested. | Combat Controls now opens and posts an encounter helper card in an active encounter, but actor combatants, initiative, action-state markers, and combat-control healing are not proven. | Add QA Character and QA Antagonist to the Combat encounter, then run initiative, damage/healing, and action-state posts through Combat Controls. |
 | Permission boundaries are untested. | GM-only/player-safe behavior is not proven for owner, observer, and non-owner roles. | Join with test users or configure role ownership states, then verify visible controls and denied actions. |
 | Existing-world migration is untested. | Migration support is not proven against an older or populated world. | Run v14 with an existing PTG world snapshot and confirm embedded item migration behavior. |
