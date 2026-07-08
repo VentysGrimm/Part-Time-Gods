@@ -25,9 +25,9 @@ Foundry target: v14 only
 | --- | --- | --- |
 | JavaScript syntax check | Pass | `npm.cmd run release` reported 56 files checked. |
 | Release validation | Pass | 62 actors, 769 items, 40 choices, 9 journals, 91 roll tables, 1 scene, 8 macros, stable source keys. |
-| Automated tests | Pass | 10/10 tests passed during `npm.cmd run release`. |
+| Automated tests | Pass | GitHub Actions passed after adding the combat-controls collection regression test. Local `npm.cmd test` could not be rerun in the sandbox because Node path resolution required escalation and the environment usage limit rejected escalation. |
 | Release ZIP build | Pass | `dist\part-time-gods-0.0.2.zip` and `dist\system.json` were generated with the live manifest values. |
-| GitHub Actions | Pass | Main branch run for commit `ab25d4a3d22af6c62578d805551be5a366371b2a` succeeded: `https://github.com/VentysGrimm/Part-Time-Gods/actions/runs/28914026814`. |
+| GitHub Actions | Pass | Main branch run for commit `7db3ba010c0ba0063793cde4525d2d03a071d579` succeeded: `https://github.com/VentysGrimm/Part-Time-Gods/actions/runs/28915687893`. |
 | Public manifest install path | Pass for fetchability | `https://github.com/VentysGrimm/Part-Time-Gods/releases/latest/download/system.json` returned HTTP 200 and advertises itself as the manifest URL. |
 | Public ZIP install path | Pass for fetchability | `https://github.com/VentysGrimm/Part-Time-Gods/releases/download/v0.0.2/part-time-gods-0.0.2.zip` returned HTTP 200 as a release asset. |
 
