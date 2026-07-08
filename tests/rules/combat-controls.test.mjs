@@ -23,7 +23,7 @@ test("PTG combat controls builds its dialog from collection-backed combatants", 
     }
   };
 
-  const { openPTGCombatControls } = await import("../../module/combat/ptg-combat.mjs");
+  const { openPTGCombatControls } = await import("../../module/combat/ptg-combat.mjs?dialog-render");
   await openPTGCombatControls({
     combat: {
       name: "QA Combat",
@@ -67,7 +67,7 @@ test("PTG initiative updates collection-backed combatants", async () => {
     }
   };
 
-  const { rollPTGInitiative } = await import("../../module/combat/ptg-combat.mjs");
+  const { rollPTGInitiative } = await import("../../module/combat/ptg-combat.mjs?initiative");
   const updates = await rollPTGInitiative(combat);
 
   assert.deepEqual(updates, [{ _id: "qa-combatant", initiative: 7 }]);
@@ -75,4 +75,116 @@ test("PTG initiative updates collection-backed combatants", async () => {
     documentType: "Combatant",
     updates: [{ _id: "qa-combatant", initiative: 7 }]
   }]);
+});
+
+test("PTG combat controls records action markers for a selected combatant", async () => {
+  installFoundryTestEnvironment();
+
+  foundry.applications.api.DialogV2.prompt = async () => ({
+    combatantId: "qa-combatant",
+    action: "quickAction",
+    notes: "QA quick action marker"
+  });
+  game.user = { isGM: true };
+
+  const createdMessages = [];
+  ChatMessage.create = async data => {
+    createdMessages.push(data);
+    return data;
+  };
+
+  const updateCalls = [];
+  const combatant = {
+    id: "qa-combatant",
+    name: "QA Character",
+    actor: {
+      name: "QA Character",
+      items: [],
+      system: { resources: { health: { value: 5, max: 8 } } }
+    },
+    getFlag: () => null,
+    update: async update => {
+      updateCalls.push(update);
+    }
+  };
+  const combat = {
+    name: "QA Combat",
+    round: 3,
+    combatants: new Map([[combatant.id, combatant]])
+  };
+  game.combat = combat;
+
+  const { openPTGCombatControls } = await import("../../module/combat/ptg-combat.mjs?action-marker");
+  const result = await openPTGCombatControls({ combat });
+
+  assert.equal(result, combatant);
+  assert.deepEqual(updateCalls, [{
+    "flags.part-time-gods.combat": {
+      round: 3,
+      quickAction: true,
+      standardAction: false,
+      quickDefense: false,
+      standardDefense: false,
+      notes: "QA quick action marker"
+    }
+  }]);
+  assert.match(createdMessages[0].content, /Quick Action/);
+  assert.match(createdMessages[0].content, /QA quick action marker/);
+});
+
+test("PTG combat controls applies healing to a selected combatant actor", async () => {
+  installFoundryTestEnvironment();
+
+  foundry.applications.api.DialogV2.prompt = async () => ({
+    combatantId: "qa-combatant",
+    action: "healing",
+    healingResource: "health",
+    healingAmount: 2,
+    notes: "QA combat healing"
+  });
+  game.user = { isGM: true };
+
+  const createdMessages = [];
+  ChatMessage.create = async data => {
+    createdMessages.push(data);
+    return data;
+  };
+
+  const updates = [];
+  const actor = {
+    name: "QA Character",
+    items: [],
+    system: {
+      resources: {
+        health: { value: 5, max: 8 },
+        psyche: { value: 8, max: 8 }
+      }
+    },
+    async update(update) {
+      updates.push(update);
+      if ("system.resources.health.value" in update) {
+        this.system.resources.health.value = update["system.resources.health.value"];
+      }
+    }
+  };
+  const combatant = {
+    id: "qa-combatant",
+    name: "QA Character",
+    actor
+  };
+  const combat = {
+    name: "QA Combat",
+    round: 3,
+    combatants: new Map([[combatant.id, combatant]])
+  };
+
+  const { openPTGCombatControls } = await import("../../module/combat/ptg-combat.mjs?healing");
+  const result = await openPTGCombatControls({ combat });
+
+  assert.equal(result, combatant);
+  assert.deepEqual(updates, [{ "system.resources.health.value": 7 }]);
+  assert.equal(actor.system.resources.health.value, 7);
+  assert.match(createdMessages[0].content, /Recover or Heal/);
+  assert.match(createdMessages[0].content, /Health 5 -&gt; 7/);
+  assert.match(createdMessages[0].content, /QA combat healing/);
 });
