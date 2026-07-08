@@ -242,8 +242,8 @@ async function assertChapterFiveCombatScaffold() {
 }
 
 function assertReleaseUrls(manifest) {
-  if (!/^https:\/\/raw\.githubusercontent\.com\/VentysGrimm\/Part-Time-Gods\/main\/system\.json$/.test(String(manifest.manifest ?? ""))) {
-    errors.push(`Manifest URL should point at the live main-branch system.json: ${manifest.manifest}`);
+  if (!/^https:\/\/cdn\.jsdelivr\.net\/gh\/VentysGrimm\/Part-Time-Gods@main\/system\.json$/.test(String(manifest.manifest ?? ""))) {
+    errors.push(`Manifest URL should point at the live jsDelivr main-branch system.json: ${manifest.manifest}`);
   }
   if (!/^https:\/\/github\.com\/VentysGrimm\/Part-Time-Gods\/archive\/refs\/heads\/main\.zip$/.test(String(manifest.download ?? ""))) {
     errors.push(`Download URL should point at the live main-branch archive: ${manifest.download}`);
