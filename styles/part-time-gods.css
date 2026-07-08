@@ -2767,9 +2767,9 @@
   display: grid;
   grid-template-columns: minmax(190px, 0.44fr) minmax(0, 1fr);
   gap: 18px;
-  align-items: center;
-  min-height: 96px;
-  padding: 10px 12px 14px;
+  align-items: stretch;
+  min-height: 126px;
+  padding: 12px;
   border-bottom: 5px solid #5b2879;
   background:
     linear-gradient(135deg, rgba(0, 0, 0, 0.24), rgba(255, 255, 255, 0.18)),
@@ -2811,52 +2811,55 @@
 
 .ptg-print-title-fields {
   display: grid;
-  gap: 12px;
+  align-content: center;
+  gap: 10px;
+  min-height: 100px;
 }
 
 .ptg-print-title-field {
   container-type: inline-size;
   display: grid !important;
-  grid-template-columns: minmax(92px, max-content) minmax(0, 1fr);
+  grid-template-columns: 118px minmax(0, 1fr);
   gap: 10px;
-  align-items: center;
+  align-items: stretch;
+  min-height: 44px;
   min-width: 0;
   color: #ffffff;
-  font-size: 18px;
   font-weight: 900;
 }
 
 .ptg-character-sheet .ptg-print-title-field span {
+  display: flex;
+  align-items: center;
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
   color: #ffffff;
-  font-size: 18px;
-  font-size: clamp(14px, 7cqw, 20px);
-  line-height: 1;
+  font-size: 17px;
+  line-height: 1.05;
   text-overflow: clip;
   text-transform: none;
   white-space: nowrap;
 }
 
 .ptg-print-title-field input {
+  box-sizing: border-box;
   min-width: 0;
-  min-height: 42px;
+  min-height: 44px;
+  padding: 4px 10px;
   border: 3px solid #111111 !important;
   border-radius: 0;
   background: #ffffff;
   color: #000000;
   font-size: 20px;
-  font-size: clamp(17px, 5cqw, 22px);
   font-weight: 900;
-  line-height: 1.05;
+  line-height: 1.1;
   text-overflow: ellipsis;
 }
 
 .ptg-print-title-field .ptg-name {
-  height: 42px;
+  height: 44px;
   font-size: 20px;
-  font-size: clamp(17px, 5cqw, 22px);
 }
 
 .ptg-print-tools {
