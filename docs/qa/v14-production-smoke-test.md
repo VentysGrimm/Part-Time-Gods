@@ -13,7 +13,7 @@ Foundry target: v14 only
 | Field | Result |
 | --- | --- |
 | Foundry version | Pass. Status API reports Foundry `14.364`. |
-| Browser | Pass. Codex in-app browser against `http://127.0.0.1:30000/game`. |
+| Browser | Pass. Codex in-app browser verified setup/join pages; live desktop Foundry window was used for the GM runtime continuation. |
 | QA world | Pass. Status API reports active world `ptg-v14-qa-smoke-test`, system `part-time-gods`, system version `0.0.2`. |
 | System install from local checkout | Pass. The running QA world is using this checkout at `C:\Users\Owner\AppData\Local\FoundryVTT\Data\systems\part-time-gods`. |
 | System install from public manifest/latest release | Pending Foundry installer UI test. Fetchability passes for the live manifest and archive URLs. |
@@ -69,7 +69,7 @@ Foundry target: v14 only
 | Apply Conditions | Pass | Chat card added custom condition `QA Smoke Strain`, category physical, severity 1, to `QA Character`. |
 | Recover/reduce Conditions | Pass | `Reduce` removed `QA Smoke Strain`. Explicit `Recover` on `QA Recover Check` rolled Medicine + Empathy and posted `Severity: 1 -> 0`, Outcome Removed. |
 | Apply healing | Pass | Character sheet resource restore increased Health from 6/8 to 7/8. Combat-control healing remains untested until an active encounter exists. |
-| Use `/ptg-combat` or GM panel replacement | Partial | GM setup panel `Combat Controls` correctly warned before an encounter existed. In the active encounter retest, Combat Controls initially failed because v14 collection-backed `combat.combatants` was treated as an array; this was fixed in `module/combat/ptg-combat.mjs`, Foundry was reloaded, and Combat Controls opened and posted a `Round and Turn Sequence` card. Automated coverage now verifies collection-backed combatants render in the dialog and `rollPTGInitiative()` updates collection-backed combatants. Combatant-specific action markers and combat-control healing still need live coverage after adding actors to the encounter. |
+| Use `/ptg-combat` or GM panel replacement | Partial | GM setup panel `Combat Controls` correctly warned before an encounter existed. In the active encounter retest, Combat Controls initially failed because v14 collection-backed `combat.combatants` was treated as an array; this was fixed in `module/combat/ptg-combat.mjs`, Foundry was reloaded, and Combat Controls opened and posted a `Round and Turn Sequence` card. 2026-07-08 desktop continuation verified `/ptg-combat` is not a valid chat command in this world, but the `PTG GM Setup` scene control replacement opens `PTG Combat Controls`. The live Actor/Attacker dropdown currently offers only `Encounter helper only`, so combatant-specific action markers and combat-control healing still need coverage after adding actors to the encounter. Automated coverage verifies collection-backed combatants render in the dialog and `rollPTGInitiative()` updates collection-backed combatants. |
 | Use `/ptg-territory` or GM panel replacement | Pass | GM setup and scene control paths opened Territory Grid tooling and the God Territory Grid scene. |
 | Use `/ptg-balance` or GM panel replacement | Pass | GM setup opened Mortal-Divine Balance tracker with `QA Character - Balanced (0)`. |
 | Use `/ptg-antagonist-builder` or GM panel replacement | Pass | GM setup opened PTG Opposition Builder and created `QA Builder Antagonist`; the created antagonist sheet rendered with builder notes. |
@@ -88,6 +88,8 @@ Foundry target: v14 only
 - Active-combat retest created and started Combat encounter 1, then verified the GM panel `Combat Controls` dialog opened after the v14 combatants collection fix and posted `Round and Turn Sequence` to chat.
 - Shared drop-data resolver coverage verifies Item drops from UUID, compendium pack, world Item, and embedded data payloads, which supports the actor-sheet drag/drop matrix but does not replace the required live sheet drop pass.
 - Combat-control coverage verifies both dialog option rendering and initiative updates for Foundry v14 collection-backed combatants.
+- 2026-07-08 desktop continuation: Foundry v14.364 reported active world `ptg-v14-qa-smoke-test`, system `part-time-gods` 0.0.2, and one connected user. GM Setup opened from the Part-Time Gods scene controls, and `Combat Controls` opened the `PTG Combat Controls` dialog. The chat command `/ptg-combat` produced Foundry's invalid-command notice, confirming the GM panel replacement is the supported runtime path for this pass.
+- The live `PTG Combat Controls` Actor/Attacker selector exposed only `Encounter helper only` during this continuation, so action marker and combat-control healing proof still require adding actual actor combatants to the encounter.
 
 ## Unresolved Coverage Gaps
 
@@ -96,13 +98,15 @@ Foundry target: v14 only
 | Foundry install-by-manifest UI has not been run in a clean install target. | Public URL fetchability is proven, but the Foundry installer path itself is not. | Use a separate Foundry data path or temporarily remove the local system, install from the GitHub Release manifest URL, then open a world. |
 | Drag/drop item matrix is untested live. | Shared drop-data resolution is covered for Foundry Item source shapes, but owned Item sheet drop behavior across the main player-facing item types is not proven in the browser. | Drag/drop Occupation, Archetype, Dominion, Theology, Blessing, Curse, Truth, Relic, Bond, Worshipper, Vassal, Condition, Weapon, and Armor onto a character and record the resulting owned Items. |
 | Equipped armor reduction has automated coverage but still needs live UI proof. | The armor toggle exists and `applyDamageToActor()` is covered for equipped armor plus matching proof quality, but the live actor sheet/dialog path is not proven with equipped armor on `QA Character`. | Add or equip armor on `QA Character`, apply Health damage with armor enabled, and verify reduced Applied damage in Foundry chat. |
-| Active combat helper flow is partially tested. | Combat Controls now opens and posts an encounter helper card in an active encounter, and automated tests cover collection-backed dialog rendering plus initiative updates. Action-state markers and combat-control healing are not live-proven. | Add QA Character and QA Antagonist to the Combat encounter, then run initiative, damage/healing, and action-state posts through Combat Controls. |
+| Active combat helper flow is partially tested. | Combat Controls now opens from GM Setup and posts an encounter helper card in an active encounter, and automated tests cover collection-backed dialog rendering plus initiative updates. The live Actor/Attacker selector had no actor combatants available in the 2026-07-08 desktop continuation, so action-state markers and combat-control healing are not live-proven. | Add QA Character and QA Antagonist tokens to the Combat encounter, confirm they appear in the Combat Controls Actor/Attacker selector, then run initiative, damage/healing, and action-state posts through Combat Controls. |
 | Permission boundaries are untested. | GM-only/player-safe behavior is not proven for owner, observer, and non-owner roles. | Join with test users or configure role ownership states, then verify visible controls and denied actions. |
 | Existing-world migration is untested. | Migration support is not proven against an older or populated world. | Run v14 with an existing PTG world snapshot and confirm embedded item migration behavior. |
 
 ## Production Blockers / Defects
 
-One product defect was observed and fixed during this pass: active `Combat Controls` could fail in Foundry v14 because `combat.combatants` is collection-backed and was treated as an array in `module/combat/ptg-combat.mjs`. The fix normalizes combatants before dialog rendering, initiative iteration, and round reset updates; the live retest posted the Round and Turn Sequence card. No separate blocker issue was filed because the defect was fixed in this pass. Issue #131 cannot close until the unresolved coverage gaps above are completed or explicitly deferred.
+One product defect was observed and fixed during this pass: active `Combat Controls` could fail in Foundry v14 because `combat.combatants` is collection-backed and was treated as an array in `module/combat/ptg-combat.mjs`. The fix normalizes combatants before dialog rendering, initiative iteration, and round reset updates; the live retest posted the Round and Turn Sequence card. No separate blocker issue was filed because the defect was fixed in this pass.
+
+The 2026-07-08 desktop continuation found no new product defect: `/ptg-combat` is not registered as a chat command, but issue #131 explicitly allows GM panel replacements, and `PTG GM Setup -> Combat Controls` opens the supported dialog. Issue #131 cannot close until the unresolved coverage gaps above are completed or explicitly deferred.
 
 ## Release Gate
 
