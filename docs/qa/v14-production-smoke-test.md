@@ -28,7 +28,7 @@ Foundry target: v14 only
 | Automated tests | Pass | 10/10 tests passed during `npm.cmd run release`. |
 | Release ZIP build | Pass | `dist\part-time-gods-0.0.2.zip` and `dist\system.json` were generated with the live manifest values. |
 | GitHub Actions | Pass | Main branch run for commit `ab25d4a3d22af6c62578d805551be5a366371b2a` succeeded: `https://github.com/VentysGrimm/Part-Time-Gods/actions/runs/28914026814`. |
-| Public manifest install path | Pass for fetchability | `https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/main/system.json` returned HTTP 200 and advertises itself as the manifest URL. |
+| Public manifest install path | Pass for fetchability | `https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/refs/heads/main/system.json` returned HTTP 200 and advertises itself as the manifest URL. |
 | Public ZIP install path | Pass for fetchability | `https://github.com/VentysGrimm/Part-Time-Gods/archive/refs/heads/main.zip` returned HTTP 200 as `application/zip`. |
 
 ## Required Runtime Flow
