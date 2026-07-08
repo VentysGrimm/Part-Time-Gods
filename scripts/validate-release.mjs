@@ -242,11 +242,11 @@ async function assertChapterFiveCombatScaffold() {
 }
 
 function assertReleaseUrls(manifest) {
-  if (!/^https:\/\/raw\.githubusercontent\.com\/VentysGrimm\/Part-Time-Gods\/refs\/heads\/main\/system\.json\?live=20260708-0325$/.test(String(manifest.manifest ?? ""))) {
-    errors.push(`Manifest URL should point at the live GitHub raw main-branch system.json: ${manifest.manifest}`);
+  if (!/^https:\/\/github\.com\/VentysGrimm\/Part-Time-Gods\/releases\/latest\/download\/system\.json$/.test(String(manifest.manifest ?? ""))) {
+    errors.push(`Manifest URL should point at the live GitHub Release system.json: ${manifest.manifest}`);
   }
-  if (!/^https:\/\/github\.com\/VentysGrimm\/Part-Time-Gods\/archive\/refs\/heads\/main\.zip$/.test(String(manifest.download ?? ""))) {
-    errors.push(`Download URL should point at the live main-branch archive: ${manifest.download}`);
+  if (!/^https:\/\/github\.com\/VentysGrimm\/Part-Time-Gods\/releases\/download\/v0\.0\.2\/part-time-gods-0\.0\.2\.zip$/.test(String(manifest.download ?? ""))) {
+    errors.push(`Download URL should point at the v0.0.2 GitHub Release ZIP: ${manifest.download}`);
   }
 }
 

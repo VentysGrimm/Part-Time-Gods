@@ -5,10 +5,10 @@
 Use the live main-branch manifest URL:
 
 ```text
-https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/refs/heads/main/system.json?live=20260708-0325
+https://github.com/VentysGrimm/Part-Time-Gods/releases/latest/download/system.json
 ```
 
-This manifest points Foundry to the live main-branch archive declared in `system.json`.
+This manifest points Foundry to the versioned release ZIP declared in `system.json`.
 
 ## Manual Install
 
