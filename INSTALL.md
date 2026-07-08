@@ -5,7 +5,7 @@
 Use the live main-branch manifest URL:
 
 ```text
-https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/refs/heads/main/system.json
+https://github.com/VentysGrimm/Part-Time-Gods/raw/main/system.json
 ```
 
 This manifest points Foundry to the live main-branch archive declared in `system.json`.
