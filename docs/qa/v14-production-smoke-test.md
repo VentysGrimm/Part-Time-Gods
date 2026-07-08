@@ -16,7 +16,7 @@ Foundry target: v14 only
 | Browser | Not tested. Foundry was not launched. |
 | System install from local checkout | Not run in Foundry UI. Checkout is present at `C:\Users\Owner\AppData\Local\FoundryVTT\Data\systems\part-time-gods`. |
 | System install from local release ZIP | Not run in Foundry UI. Local release ZIP exists after `npm.cmd run release`: `dist\part-time-gods-0.0.2.zip`. |
-| System install from public manifest/latest release | Pending runtime test. The release manifest and ZIP URLs returned HTTP 200 after publishing the `v0.0.2` release assets. |
+| System install from public manifest/latest release | Pending runtime test. The live main-branch manifest and release ZIP URLs returned HTTP 200 after publishing the `v0.0.2` release assets. |
 | Screenshots | None. No Foundry UI session was available. |
 
 ## Preflight Evidence
@@ -29,7 +29,7 @@ Foundry target: v14 only
 | Release ZIP build | Pass | `dist\part-time-gods-0.0.2.zip` and `dist\system.json` were generated. |
 | GitHub Actions | Pass | Main branch run for commit `9d6b4d9348a6e1d1f6d10034d9c7e4136e29cfff` succeeded. |
 | Foundry v14 launch | Blocked | No installed Foundry executable was found. Attempting to run the v14.363 installer was canceled. |
-| Public manifest install path | Pass for fetchability | `https://github.com/VentysGrimm/Part-Time-Gods/releases/latest/download/system.json` returned HTTP 200. |
+| Public manifest install path | Pass for fetchability | `https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/main/system.json` returned HTTP 200. |
 | Public ZIP install path | Pass for fetchability | `https://github.com/VentysGrimm/Part-Time-Gods/releases/download/v0.0.2/part-time-gods-0.0.2.zip` returned HTTP 200. |
 
 ## Required Runtime Flow

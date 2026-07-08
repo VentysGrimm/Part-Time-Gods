@@ -242,8 +242,8 @@ async function assertChapterFiveCombatScaffold() {
 }
 
 function assertReleaseUrls(manifest) {
-  if (!/\/releases\/latest\/download\/system\.json$/.test(String(manifest.manifest ?? ""))) {
-    errors.push(`Manifest URL should point at the latest GitHub Release system.json asset: ${manifest.manifest}`);
+  if (!/^https:\/\/raw\.githubusercontent\.com\/VentysGrimm\/Part-Time-Gods\/main\/system\.json$/.test(String(manifest.manifest ?? ""))) {
+    errors.push(`Manifest URL should point at the live main-branch system.json: ${manifest.manifest}`);
   }
   if (/main\.zip|archive\/refs\/heads\/main/i.test(String(manifest.download ?? ""))) {
     errors.push(`Download URL must not point at the main branch archive: ${manifest.download}`);

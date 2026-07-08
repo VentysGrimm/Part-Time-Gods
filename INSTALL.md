@@ -2,10 +2,10 @@
 
 ## Foundry Manifest
 
-Use the latest-release manifest URL:
+Use the live main-branch manifest URL:
 
 ```text
-https://github.com/VentysGrimm/Part-Time-Gods/releases/latest/download/system.json
+https://raw.githubusercontent.com/VentysGrimm/Part-Time-Gods/main/system.json
 ```
 
 This manifest points Foundry to the versioned GitHub Release ZIP declared in `system.json`.
@@ -33,4 +33,4 @@ From the system root, run:
 npm.cmd run release
 ```
 
-This creates `dist/part-time-gods-0.0.2.zip` and `dist/system.json`. Upload both files to the matching GitHub Release tag, then open a Foundry VTT v14 world and smoke test the character sheet, item sheets, compendia, roll dialogs, chat card actions, Conditions, Manifestation Measures, and rules journals.
+This creates `dist/part-time-gods-0.0.2.zip` and `dist/system.json`. Upload the ZIP to the matching GitHub Release tag when publishing a new version, then open a Foundry VTT v14 world and smoke test the character sheet, item sheets, compendia, roll dialogs, chat card actions, Conditions, Manifestation Measures, and rules journals.
