@@ -41,6 +41,10 @@ export function installFoundryTestEnvironment() {
         DialogV2: class {},
         HandlebarsApplicationMixin: Base => Base
       },
+      sheets: {
+        ActorSheetV2: class {},
+        ItemSheetV2: class {}
+      },
       ux: {
         TextEditor: {
           getDragEventData(event) {
