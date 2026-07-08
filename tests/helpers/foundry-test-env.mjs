@@ -40,6 +40,14 @@ export function installFoundryTestEnvironment() {
         ApplicationV2: class {},
         DialogV2: class {},
         HandlebarsApplicationMixin: Base => Base
+      },
+      ux: {
+        TextEditor: {
+          getDragEventData(event) {
+            const raw = event?.dataTransfer?.getData?.("text/plain");
+            return raw ? JSON.parse(raw) : {};
+          }
+        }
       }
     },
     data: {

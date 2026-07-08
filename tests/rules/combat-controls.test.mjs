@@ -35,3 +35,44 @@ test("PTG combat controls builds its dialog from collection-backed combatants", 
   assert.match(promptConfig.content, /QA Character/);
   assert.match(promptConfig.content, /Post Round and Turn Sequence/);
 });
+
+test("PTG initiative updates collection-backed combatants", async () => {
+  installFoundryTestEnvironment();
+
+  globalThis.Roll = class {
+    constructor(formula, data) {
+      this.formula = formula;
+      this.data = data;
+      this.total = Number(data.initiative ?? 0) + 5;
+    }
+
+    async evaluate() {
+      return this;
+    }
+  };
+
+  const combatant = {
+    id: "qa-combatant",
+    actor: {
+      type: "character",
+      system: { derived: { initiative: 2 } },
+      conditionRollEffects: () => ({ modifiers: [] })
+    }
+  };
+  const updateCalls = [];
+  const combat = {
+    combatants: new Map([[combatant.id, combatant]]),
+    updateEmbeddedDocuments: async (documentType, updates) => {
+      updateCalls.push({ documentType, updates });
+    }
+  };
+
+  const { rollPTGInitiative } = await import("../../module/combat/ptg-combat.mjs");
+  const updates = await rollPTGInitiative(combat);
+
+  assert.deepEqual(updates, [{ _id: "qa-combatant", initiative: 7 }]);
+  assert.deepEqual(updateCalls, [{
+    documentType: "Combatant",
+    updates: [{ _id: "qa-combatant", initiative: 7 }]
+  }]);
+});
