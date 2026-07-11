@@ -3,7 +3,7 @@ import { populatePremadeCompendiums } from "../data/premade-compendiums.mjs";
 import { openPTGCombatControls } from "../combat/ptg-combat.mjs";
 import { openPantheonPoolDialog } from "../workflows/pantheon-pool-workflow.mjs";
 import { openMortalDivineBalanceTracker } from "./mortal-divine-tracker.mjs";
-import { createOrOpenTerritoryGridScene, openTerritoryGridApp } from "./territory-grid-app.mjs";
+import { createOrOpenTerritoryGridScene, openTerritoryInterface } from "./territory-grid-app.mjs";
 import { SYSTEM_ID, localize, localizeFallback } from "../util/localization.mjs";
 
 const RULES_PACK_ID = "part-time-gods.rules-reference";
@@ -248,7 +248,7 @@ function setupActions() {
       hintKey: "PTG.Setup.Actions.TerritoryGrid.Hint",
       icon: "fas fa-crosshairs",
       gmOnly: true,
-      handler: () => openTerritoryGridApp()
+      handler: () => openTerritoryInterface()
     },
     "combat-controls": {
       key: "combat-controls",

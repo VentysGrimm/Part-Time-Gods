@@ -42,6 +42,7 @@ import {
   clearTerritoryGrid,
   createOrOpenTerritoryGridScene,
   getTerritoryGrid,
+  openTerritoryInterface,
   openTerritoryGridApp,
   registerTerritoryGridControls,
   setTerritoryGrid
@@ -79,6 +80,7 @@ Hooks.once("init", async () => {
     getGodTerritorySceneData,
     importGodTerritoryScene,
     openTerritoryControls,
+    openTerritoryInterface,
     openTerritoryGridApp,
     createOrOpenTerritoryGridScene,
     getTerritoryGrid,
@@ -101,7 +103,8 @@ Hooks.once("init", async () => {
   };
   game.ptg ??= {};
   game.ptg.territory = {
-    open: openTerritoryGridApp,
+    open: openTerritoryInterface,
+    openInterface: openTerritoryInterface,
     createScene: createOrOpenTerritoryGridScene,
     getGrid: getTerritoryGrid,
     setGrid: setTerritoryGrid,

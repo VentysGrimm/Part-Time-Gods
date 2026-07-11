@@ -5,8 +5,8 @@ Part-Time Gods workflows should be discoverable from native Foundry or system su
 | Workflow macro | Native home | Compatibility role |
 | --- | --- | --- |
 | `PTG: Table Tools` | Pantheon actor sheet `Table Tools` section. | Opens a visible Pantheon sheet so the table tools hub is available. |
-| `PTG: Create Territory Scene` | GM Setup panel `Create/Open Territory Scene`. | Calls the territory scene import helper for older hotbars. |
-| `PTG: Territory Controls` | God Territory Grid scene controls; Pantheon actor sheet `Table Tools -> Territory Controls`; GM Setup panel. | Opens the Territory Grid app through the same API as the native buttons. |
+| `PTG: Create Territory Scene` | Unified Territory interface `Create/Open Territory Scene`; GM Setup panel. | Opens the same unified Territory interface with scene setup enabled. |
+| `PTG: Territory Controls` | Unified Territory interface; God Territory Grid scene controls; Pantheon actor sheet `Table Tools -> Territory Controls`; GM Setup panel. | Opens the same unified Territory interface as the native buttons. |
 | `PTG: Combat Controls` | GM Setup panel; Pantheon actor sheet `Table Tools -> Combat Controls`. | Opens the PTG Combat Controls dialog through the native API. |
 | `PTG: Mortal-Divine Tracker` | GM Setup panel; Pantheon actor sheet member `Balance` buttons; Pantheon actor sheet `Table Tools -> Mortal-Divine Balance`. | Opens the party-style Mortal-Divine Balance sheet. |
 | `PTG: Pantheon Pool` | Pantheon actor sheet `Pool Workflow`; Pantheon actor sheet `Table Tools -> Pantheon Pool`; GM Setup panel. | Opens the shared Pantheon Pool workflow with selected token/user context when available. |

@@ -21,10 +21,21 @@ for (const directory of ["lang", "module", "styles", "templates"]) await addDire
 for (const pack of system.packs ?? []) await addDirectoryIfExists(pack.path);
 
 await fs.mkdir(distDir, { recursive: true });
+await removeStaleReleaseZips();
 await fs.writeFile(outPath, createZip(files));
 await fs.copyFile(path.join(root, "system.json"), manifestOutPath);
 console.log(`Created ${path.relative(root, outPath)} with ${files.size} files.`);
 console.log(`Created ${path.relative(root, manifestOutPath)}.`);
+
+async function removeStaleReleaseZips() {
+  const entries = await fs.readdir(distDir, { withFileTypes: true });
+  const currentName = path.basename(outPath);
+  const releaseZipPattern = new RegExp(`^${escapeRegExp(system.id)}-\\d+\\.\\d+\\.\\d+\\.zip$`);
+
+  await Promise.all(entries
+    .filter(entry => entry.isFile() && entry.name !== currentName && releaseZipPattern.test(entry.name))
+    .map(entry => fs.rm(path.join(distDir, entry.name))));
+}
 
 async function addDirectoryIfExists(relativePath) {
   if (!await pathExists(relativePath)) return;
@@ -66,6 +77,10 @@ function shouldExclude(relativePath) {
   return /(^|\/)(LOCK|LOG|LOG\.old)$/.test(normalized)
     || /(^|\/)lost(\/|$)/.test(normalized)
     || /(^|\/)(tmp|temp|node_modules|dist|source-material)(\/|$)/.test(normalized);
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function createZip(fileMap) {

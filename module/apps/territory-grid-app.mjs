@@ -29,11 +29,11 @@ export function registerTerritoryGridControls() {
   Hooks.on("getSceneControlButtons", controls => {
     const tool = {
       name: "ptg-territory-grid",
-      title: "PTG Territory Grid",
+      title: "PTG Territory Interface",
       icon: "fas fa-map",
       button: true,
       visible: Boolean(game.user?.isGM),
-      onClick: () => openTerritoryGridApp()
+      onClick: () => openTerritoryInterface()
     };
 
     if (Array.isArray(controls)) {
@@ -88,6 +88,22 @@ export async function createOrOpenTerritoryGridScene({ activate = false, notify 
   await ensureStoredTerritoryGrid(scene);
   openTerritoryGridApp({ scene });
   return scene;
+}
+
+export async function openTerritoryInterface({ scene = getTerritoryScene(), ensureScene = false, activate = false, notify = true } = {}) {
+  let targetScene = scene;
+
+  if (ensureScene) {
+    if (!game.user?.isGM) {
+      ui.notifications.warn("Only a GM can create the God Territory Grid scene.");
+      return openTerritoryGridApp({ scene: targetScene });
+    }
+
+    targetScene = await importGodTerritoryScene({ activate, notify });
+    if (targetScene) await ensureStoredTerritoryGrid(targetScene);
+  }
+
+  return openTerritoryGridApp({ scene: targetScene });
 }
 
 export function openTerritoryGridApp({ scene = getTerritoryScene() } = {}) {

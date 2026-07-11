@@ -146,6 +146,12 @@ test("Workflow macros are compatibility launchers with native UI homes", () => {
     assert.ok(flags.nativeHome, `${macro.name} native UI home`);
     assert.doesNotMatch(flags.nativeHome, /macro/i, `${macro.name} native home should not be macro-first`);
   }
+
+  for (const macroName of ["PTG: Create Territory Scene", "PTG: Territory Controls"]) {
+    const macro = workflowMacros.find(candidate => candidate.name === macroName);
+    assert.ok(macro, `${macroName} exists`);
+    assert.match(macro.command, /openTerritoryInterface/, `${macroName} uses unified Territory interface`);
+  }
 });
 
 test("Premade territory scene drawings use Foundry v14 drawing schema", () => {

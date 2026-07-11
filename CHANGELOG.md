@@ -4,6 +4,8 @@
 
 - Aligned the 0.1.0 system manifest, package metadata, release validation, and generated compendium metadata version source.
 - Added a party-style Mortal-Divine Balance roster and documented workflow macros as compatibility launchers for native sheet, scene, and GM setup entry points.
+- Began unifying Territory scene setup and controls behind one native Territory interface API.
+- Enforced `package.json`/`system.json` version parity and made release ZIP builds clear stale versioned artifacts from `dist/`.
 
 ## 0.0.2 - 2026-06-30
 

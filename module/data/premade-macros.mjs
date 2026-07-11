@@ -20,29 +20,29 @@ pantheon.sheet?.render(true);
     name: "PTG: Create Territory Scene",
     slug: "create-territory-scene",
     img: "icons/svg/direction.svg",
-    summary: "Compatibility launcher for the GM setup panel territory-scene action.",
-    nativeHome: "GM Setup panel -> Create/Open Territory Scene",
+    summary: "Compatibility launcher for the unified Territory interface scene setup action.",
+    nativeHome: "Unified Territory interface -> Create/Open Territory Scene",
     command: `
 const api = game.partTimeGods;
-if (!api?.importGodTerritoryScene) {
-  ui.notifications.error("Part-Time Gods territory scene API is not available.");
+const open = api?.openTerritoryInterface ?? game.ptg?.territory?.openInterface ?? api?.createOrOpenTerritoryGridScene;
+if (!open) {
+  ui.notifications.error("Part-Time Gods unified Territory interface API is not available.");
   return;
 }
-await api.importGodTerritoryScene({ activate: false });
+await open({ ensureScene: true, activate: false });
 `
   }),
   toolMacro({
     name: "PTG: Territory Controls",
     slug: "territory-controls",
     img: "icons/svg/target.svg",
-    summary: "Compatibility launcher for the God Territory Grid scene controls and Pantheon sheet territory controls.",
-    nativeHome: "God Territory Grid scene controls; Pantheon actor sheet -> Table Tools -> Territory Controls",
+    summary: "Compatibility launcher for the unified Territory interface.",
+    nativeHome: "Unified Territory interface; God Territory Grid scene controls; Pantheon actor sheet -> Table Tools -> Territory Controls",
     command: `
-const territory = game.ptg?.territory;
 const api = game.partTimeGods;
-const open = territory?.open ?? api?.openTerritoryGridApp ?? api?.openTerritoryControls;
+const open = api?.openTerritoryInterface ?? game.ptg?.territory?.openInterface ?? game.ptg?.territory?.open ?? api?.openTerritoryGridApp;
 if (!open) {
-  ui.notifications.error("Part-Time Gods Territory Grid API is not available.");
+  ui.notifications.error("Part-Time Gods unified Territory interface API is not available.");
   return;
 }
 await open();

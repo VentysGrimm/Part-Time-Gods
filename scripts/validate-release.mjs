@@ -97,9 +97,11 @@ const EXPECTED_CHAPTER_FIVE_BATTLE_ACTIONS = {
 installFoundrySourceMocks();
 
 const system = await readJson("system.json");
+const packageManifest = await readJson("package.json");
 const errors = [];
 
 assertEqual(system.id, SYSTEM_ID, "system id");
+assertPackageVersion(system, packageManifest);
 assertReleaseUrls(system);
 await assertFile("part-time-gods.js", "Main system entry point");
 await assertManifestAssets(system);
@@ -163,7 +165,7 @@ async function assertProductionUxScaffold() {
   }
 
   const entryPoint = await readText("part-time-gods.js");
-  for (const token of ["registerGMSetupSettings()", "registerGMSetupControls()", "maybeOpenFirstRunGMSetup()"]) {
+  for (const token of ["registerGMSetupSettings()", "registerGMSetupControls()", "maybeOpenFirstRunGMSetup()", "openTerritoryInterface"]) {
     if (!entryPoint.includes(token)) errors.push(`Main entry point missing ${token}`);
   }
 
@@ -248,6 +250,12 @@ function assertReleaseUrls(manifest) {
   const expectedDownload = `https://github.com/VentysGrimm/Part-Time-Gods/releases/download/v${manifest.version}/${manifest.id}-${manifest.version}.zip`;
   if (String(manifest.download ?? "") !== expectedDownload) {
     errors.push(`Download URL should point at the v${manifest.version} GitHub Release ZIP: ${manifest.download}`);
+  }
+}
+
+function assertPackageVersion(manifest, packageData) {
+  if (String(packageData.version ?? "") !== String(manifest.version ?? "")) {
+    errors.push(`package.json version must match system.json version ${manifest.version}: ${packageData.version}`);
   }
 }
 
@@ -385,6 +393,12 @@ async function validatePremadeSourceData() {
     })
     .map(macro => macro.name);
   if (primaryMacros.length) errors.push(`Workflow macros must declare compatibility launcher metadata and a native UI home:\n${primaryMacros.map(name => `- ${name}`).join("\n")}`);
+
+  const territoryMacroDrift = documents.macros
+    .filter(macro => ["PTG: Create Territory Scene", "PTG: Territory Controls"].includes(macro.name))
+    .filter(macro => !String(macro.command ?? "").includes("openTerritoryInterface"))
+    .map(macro => macro.name);
+  if (territoryMacroDrift.length) errors.push(`Territory workflow macros must launch the unified Territory interface:\n${territoryMacroDrift.map(name => `- ${name}`).join("\n")}`);
 
   return { summary };
 }
