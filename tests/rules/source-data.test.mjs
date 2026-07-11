@@ -13,6 +13,7 @@ const scenes = await import("../../module/data/premade-scenes.mjs");
 const macros = await import("../../module/data/premade-macros.mjs");
 const skills = await import("../../module/config/skills.mjs");
 const compendiums = await import("../../module/data/premade-compendiums.mjs");
+const territory = await import("../../module/apps/territory-grid-app.mjs");
 
 test("Premade compendium source documents have stable slug and sourceId flags", async () => {
   const documents = [
@@ -164,6 +165,146 @@ test("Premade territory scene drawings use Foundry v14 drawing schema", () => {
     assert.equal(typeof drawing.shape?.width, "number", `${drawing.name} shape width`);
     assert.equal(typeof drawing.shape?.height, "number", `${drawing.name} shape height`);
   }
+});
+
+test("Territory point model separates GM secrets from player-facing scene data", () => {
+  const grid = territory.normalizeTerritoryGrid({
+    points: [
+      {
+        id: "public-point",
+        name: "Secret True Name",
+        publicName: "Known Landmark",
+        x: 3,
+        y: 4,
+        category: "landmark",
+        locationType: "mixed",
+        controlType: "pantheon",
+        status: "contested",
+        discoveryState: "known",
+        owner: "QA Pantheon",
+        footprint: { width: 2, height: 1 },
+        dominionTags: ["Smoke"],
+        theologyTags: ["Saints"],
+        publicNotes: "Player-safe landmark notes.",
+        gmNotes: "Hidden crawl secret.",
+        sourceActorUuid: "Actor.secret0000001",
+        ritualEvents: [{ type: "challenge", clock: "Week 2", notes: "Public challenge clock.", public: true }]
+      },
+      {
+        id: "hidden-point",
+        name: "Hidden Rival",
+        x: 5,
+        y: 6,
+        category: "rival",
+        discoveryState: "hidden",
+        gmNotes: "Do not reveal."
+      }
+    ]
+  });
+
+  assert.equal(grid.points.length, 2);
+  assert.equal(grid.points[0].locationType, "mixed");
+  assert.equal(grid.points[0].controlType, "pantheon");
+  assert.equal(grid.points[0].status, "contested");
+  assert.equal(grid.points[0].footprintLabel, "2 x 1 points");
+  assert.equal(grid.points[0].ritualEvents[0].type, "challenge");
+
+  const playerCells = territory.buildTerritoryGridCells(grid, { canEditTerritory: false });
+  const playerPoints = playerCells.rows.flatMap(row => row.cells.flatMap(cell => cell.points));
+
+  assert.equal(playerPoints.length, 1);
+  assert.equal(playerPoints[0].name, "Known Landmark");
+  assert.equal(playerPoints[0].controlLabel, "Pantheon");
+  assert.equal(playerPoints[0].statusLabel, "Contested / Disputed");
+  assert.equal(playerPoints[0].gmNotes, "");
+  assert.equal(playerPoints[0].sourceActorUuid, "");
+  assert.equal(playerPoints[0].eventLabel, "Challenge");
+});
+
+test("Territory character import turns player attachments into scene points", async () => {
+  const actor = {
+    name: "QA Character",
+    type: "character",
+    uuid: "Actor.qaCharacter",
+    items: [
+      {
+        name: "Old Temple",
+        type: "bond",
+        uuid: "Item.oldTemple",
+        system: {
+          kind: "landmark",
+          territoryGrid: "7-8",
+          level: 2,
+          description: "<p>A known landmark Bond.</p>"
+        }
+      },
+      {
+        name: "Street Choir",
+        type: "worshipper",
+        uuid: "Item.streetChoir",
+        system: {
+          territoryCoordinate: "2-3",
+          rank: 1,
+          summary: "Public worshipper group."
+        }
+      }
+    ]
+  };
+
+  const imported = await territory.territoryPointsFromActor(actor, {
+    promptForMissingCoordinates: false
+  });
+
+  assert.equal(imported.points.length, 2);
+  assert.equal(imported.skipped, 0);
+
+  const landmark = imported.points.find(point => point.sourceItemUuid === "Item.oldTemple");
+  assert.equal(landmark.category, "landmark");
+  assert.equal(landmark.x, 7);
+  assert.equal(landmark.y, 8);
+  assert.equal(landmark.owner, "QA Character");
+  assert.equal(landmark.linkedActorUuid, "Actor.qaCharacter");
+  assert.equal(landmark.linkedBondUuid, "Item.oldTemple");
+
+  const duplicateAware = await territory.territoryPointsFromActor(actor, {
+    existingPoints: [landmark],
+    promptForMissingCoordinates: false
+  });
+
+  assert.equal(duplicateAware.points.length, 1);
+  assert.equal(duplicateAware.skipped, 1);
+  assert.equal(duplicateAware.points[0].sourceItemUuid, "Item.streetChoir");
+});
+
+test("Territory scene view fits the overlay to the canvas viewport", () => {
+  const pan = territory.territorySceneFitPan(
+    { width: 1100, height: 1100 },
+    { width: 900, height: 700 },
+    { padding: 50 }
+  );
+
+  assert.equal(pan.x, 550);
+  assert.equal(pan.y, 550);
+  assert.equal(Number(pan.scale.toFixed(3)), 0.545);
+});
+
+test("Territory scene background update preserves grid overlay fields", () => {
+  const update = territory.territorySceneBackgroundUpdateData({
+    backgroundSrc: "worlds/ptg/territory.jpg",
+    backgroundColor: "#112233"
+  });
+
+  assert.equal(update["background.src"], "worlds/ptg/territory.jpg");
+  assert.equal(update.backgroundColor, "#112233");
+
+  const cleared = territory.territorySceneBackgroundUpdateData({
+    backgroundSrc: "worlds/ptg/old.jpg",
+    backgroundColor: "not-a-color",
+    clearImage: true
+  });
+
+  assert.equal(cleared["background.src"], "");
+  assert.equal(cleared.backgroundColor, "#f4f0e8");
 });
 
 test("Premade scene refresh replaces stale managed drawing rows", async () => {

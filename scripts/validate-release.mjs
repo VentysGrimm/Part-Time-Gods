@@ -172,13 +172,13 @@ async function assertProductionUxScaffold() {
   }
 
   const territoryModule = await readText("module/apps/territory-grid-app.mjs");
-  for (const token of ["registerTerritoryGridSettings", "maybeOpenTerritoryInterfaceOnReady", "autoOpenTerritoryInterface", "canEditTerritory", "view-point", "findTerritoryScene"]) {
+  for (const token of ["registerTerritoryGridSettings", "maybeOpenTerritoryInterfaceOnReady", "autoOpenTerritoryInterface", "openTerritoryScene", "fitTerritorySceneToCanvas", "territorySceneFitPan", "setTerritorySceneBackground", "territorySceneBackgroundUpdateData", "ensureTerritoryGridOverlayForeground", "openTerritoryControls", "territoryPointsFromActor", "dropEventData", "canEditTerritory", "findTerritoryScene", "LOCATION_TYPES", "CONTROL_TYPES", "TERRITORY_STATUSES", "DISCOVERY_STATES", "RITUAL_EVENT_TYPES", "gmNotes", "publicNotes", "footprint", "ritualEvents"]) {
     if (!territoryModule.includes(token)) errors.push(`Integrated Territory interface missing ${token}`);
   }
 
   const territoryTemplate = await readText("templates/apps/territory-grid-app.hbs");
-  for (const token of ["{{#unless canEditTerritory}}", "ptg-territory-overlay-note", "view-point"]) {
-    if (!territoryTemplate.includes(token)) errors.push(`Territory overlay template missing ${token}`);
+  for (const token of ["data-action=\"view-scene\"", "data-action=\"territory-controls\"", "data-action=\"background\"", "can-drop-actors", "data-territory-drop-root", "controlLabel", "statusLabel", "discoveryLabel", "eventLabel"]) {
+    if (!territoryTemplate.includes(token)) errors.push(`Territory GM interface template missing ${token}`);
   }
 
   const setupTemplate = await readText("templates/apps/gm-setup-panel.hbs");
@@ -211,7 +211,12 @@ async function assertProductionUxScaffold() {
     ".ptg-print-title-field input",
     ".ptg-territory-overlay-note",
     ".ptg-territory-grid-app.is-readonly",
-    ".ptg-territory-point-details"
+    ".ptg-territory-grid-app.can-drop-actors",
+    "scrollbar-gutter: stable",
+    "min-height: 360px",
+    ".ptg-territory-point-details",
+    ".ptg-territory-status-contested",
+    ".ptg-territory-control-pantheon"
   ];
   for (const token of readableSurfaceTokens) {
     if (!stylesheet.includes(token)) errors.push(`Readable sheet/dialog stylesheet guard missing ${token}`);

@@ -677,6 +677,21 @@
   overflow: hidden;
 }
 
+.ptg-territory-grid-app.can-drop-actors {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.ptg-territory-grid-app.can-drop-actors .ptg-territory-grid-wrap {
+  box-shadow: inset 0 0 0 2px rgba(61, 31, 93, 0.32);
+}
+
+.ptg-territory-grid-app.can-drop-actors .ptg-territory-grid-body {
+  min-height: 360px;
+  overflow: visible;
+}
+
 .ptg-territory-grid-app *,
 .ptg-territory-grid-app *::before,
 .ptg-territory-grid-app *::after {
@@ -979,6 +994,29 @@
 
 .ptg-territory-point-custom {
   border-left-color: #2f6f73;
+}
+
+.ptg-territory-control-pantheon,
+.ptg-territory-control-shared,
+.ptg-territory-control-merged {
+  background: #f3f0ff;
+}
+
+.ptg-territory-control-outsider,
+.ptg-territory-status-hostile {
+  background: #fff0eb;
+}
+
+.ptg-territory-status-contested {
+  outline: 2px solid #8c2f39;
+  outline-offset: -2px;
+}
+
+.ptg-territory-status-bolstered,
+.ptg-territory-status-visitor-admitted,
+.ptg-territory-status-converged {
+  outline: 2px solid #2f6f45;
+  outline-offset: -2px;
 }
 
 .ptg-territory-point-list {

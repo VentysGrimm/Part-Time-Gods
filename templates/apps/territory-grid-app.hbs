@@ -1,4 +1,4 @@
-<section class="ptg-territory-grid-app {{#unless canEditTerritory}}is-readonly{{/unless}}">
+<section class="ptg-territory-grid-app {{#if canEditTerritory}}can-drop-actors{{else}}is-readonly{{/if}}" data-territory-drop-root>
   <header class="ptg-territory-grid-header">
     <label class="ptg-territory-scene-picker">
       <span>Scene</span>
@@ -14,6 +14,18 @@
         <button type="button" data-action="create-scene" title="Create or update the God Territory Grid scene">
           <i class="fas fa-map"></i>
           <span>Scene</span>
+        </button>
+        <button type="button" data-action="view-scene" title="View the player-facing Territory scene" {{#unless hasScene}}disabled{{/unless}}>
+          <i class="fas fa-eye"></i>
+          <span>View</span>
+        </button>
+        <button type="button" data-action="territory-controls" title="Update movement, influence, positions, and scene flags" {{#unless hasScene}}disabled{{/unless}}>
+          <i class="fas fa-route"></i>
+          <span>Move</span>
+        </button>
+        <button type="button" data-action="background" title="Change the Territory scene background while keeping the grid overlay in front" {{#unless hasScene}}disabled{{/unless}}>
+          <i class="fas fa-image"></i>
+          <span>Background</span>
         </button>
         <button type="button" data-action="import-attachments" title="Import character attachments into the grid" {{#unless hasScene}}disabled{{/unless}}>
           <i class="fas fa-file-import"></i>
@@ -67,10 +79,11 @@
 
                 <div class="ptg-territory-cell-points">
                   {{#each cell.points as |point|}}
-                    <article class="ptg-territory-point {{point.categoryClass}}">
+                    <article class="ptg-territory-point {{point.categoryClass}} {{point.controlClass}} {{point.statusClass}}">
                       <button type="button" class="ptg-territory-point-main" data-action="{{#if @root.canEditTerritory}}edit-point{{else}}view-point{{/if}}" data-point-id="{{point.id}}" title="{{#if @root.canEditTerritory}}Edit{{else}}View{{/if}} {{point.name}}">
                         <strong>{{point.name}}</strong>
                         <small>{{point.categoryLabel}}{{#if point.level}} L{{point.level}}{{/if}}</small>
+                        <small>{{point.controlLabel}} - {{point.statusLabel}}</small>
                       </button>
                       {{#if @root.canEditTerritory}}
                         <button type="button" class="ptg-territory-point-delete" data-action="delete-point" data-point-id="{{point.id}}" title="Delete {{point.name}}">
@@ -103,6 +116,9 @@
                 <button type="button" data-action="{{#if @root.canEditTerritory}}edit-point{{else}}view-point{{/if}}" data-point-id="{{point.id}}" title="{{#if @root.canEditTerritory}}Edit{{else}}View{{/if}} {{point.name}}">
                   <strong>{{point.name}}</strong>
                   <span>{{point.x}}-{{point.y}} - {{point.categoryLabel}}{{#if point.level}} - L{{point.level}}{{/if}}</span>
+                  <small>{{point.locationLabel}} - {{point.controlLabel}} - {{point.statusLabel}}</small>
+                  <small>{{point.discoveryLabel}}{{#if point.footprintLabel}} - {{point.footprintLabel}}{{/if}}</small>
+                  {{#if point.eventLabel}}<small>{{point.eventLabel}}</small>{{/if}}
                   {{#if point.owner}}<small>{{point.owner}}</small>{{/if}}
                 </button>
               </li>

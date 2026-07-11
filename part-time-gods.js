@@ -45,6 +45,7 @@ import {
   maybeOpenTerritoryInterfaceOnReady,
   openTerritoryInterface,
   openTerritoryGridApp,
+  openTerritoryScene,
   registerTerritoryGridControls,
   registerTerritoryGridSettings,
   setTerritoryGrid
@@ -85,6 +86,7 @@ Hooks.once("init", async () => {
     openTerritoryInterface,
     maybeOpenTerritoryInterfaceOnReady,
     openTerritoryGridApp,
+    openTerritoryScene,
     createOrOpenTerritoryGridScene,
     getTerritoryGrid,
     setTerritoryGrid,
@@ -108,6 +110,8 @@ Hooks.once("init", async () => {
   game.ptg.territory = {
     open: openTerritoryInterface,
     openInterface: openTerritoryInterface,
+    openScene: openTerritoryScene,
+    viewScene: openTerritoryScene,
     autoOpen: maybeOpenTerritoryInterfaceOnReady,
     createScene: createOrOpenTerritoryGridScene,
     getGrid: getTerritoryGrid,

@@ -1,4 +1,4 @@
-import { importGodTerritoryScene } from "../data/premade-scenes.mjs";
+import { importGodTerritoryScene, openTerritoryControls } from "../data/premade-scenes.mjs";
 import { SYSTEM_ID, localize } from "../util/localization.mjs";
 
 const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -9,6 +9,8 @@ const TERRITORY_SCENE_KIND = "god-territory-grid";
 const TERRITORY_SCENE_NAME = "God Territory Grid";
 const GRID_VERSION = 1;
 const GRID_SIZE = 10;
+const TERRITORY_CANVAS_FIT_PADDING = 48;
+const DEFAULT_TERRITORY_BACKGROUND_COLOR = "#f4f0e8";
 
 const POINT_CATEGORIES = [
   { value: "individual", label: "Individual Bond", grantsBonus: true },
@@ -20,8 +22,65 @@ const POINT_CATEGORIES = [
   { value: "custom", label: "Custom", grantsBonus: false }
 ];
 
+const LOCATION_TYPES = [
+  { value: "mortal", label: "Mortal" },
+  { value: "divine", label: "Divine" },
+  { value: "mixed", label: "Mixed" },
+  { value: "unknown", label: "Unknown" },
+  { value: "custom", label: "Custom" }
+];
+
+const CONTROL_TYPES = [
+  { value: "god", label: "God" },
+  { value: "pantheon", label: "Pantheon" },
+  { value: "npc-god", label: "NPC God" },
+  { value: "outsider", label: "Outsider" },
+  { value: "faction", label: "Faction" },
+  { value: "neutral", label: "Neutral" },
+  { value: "shared", label: "Shared Territory" },
+  { value: "merged", label: "Merged Pantheon" },
+  { value: "unclaimed", label: "Unclaimed" },
+  { value: "custom", label: "Custom" }
+];
+
+const TERRITORY_STATUSES = [
+  { value: "friendly", label: "Friendly" },
+  { value: "separate", label: "Separate / No Trespass" },
+  { value: "hostile", label: "Hostile" },
+  { value: "contested", label: "Contested / Disputed" },
+  { value: "bolstered", label: "Bolstered" },
+  { value: "visitor-admitted", label: "Visitor Admitted" },
+  { value: "converged", label: "Temporarily Converged" },
+  { value: "converted", label: "Converted" },
+  { value: "ceded", label: "Ceded" },
+  { value: "unknown", label: "Unknown" }
+];
+
+const DISCOVERY_STATES = [
+  { value: "public", label: "Public" },
+  { value: "known", label: "Known" },
+  { value: "rumored", label: "Rumored" },
+  { value: "hidden", label: "Hidden from Players" }
+];
+
+const RITUAL_EVENT_TYPES = [
+  { value: "", label: "No Active Event" },
+  { value: "admittance", label: "Admittance" },
+  { value: "bolster", label: "Bolster" },
+  { value: "challenge", label: "Challenge" },
+  { value: "dowsing", label: "Dowsing" },
+  { value: "divination", label: "Divination" },
+  { value: "temporary-convergence", label: "Temporary Convergence" },
+  { value: "pocket-realm", label: "Pocket Realm Portal" }
+];
+
 const BONUS_CATEGORIES = new Set(POINT_CATEGORIES.filter(category => category.grantsBonus).map(category => category.value));
 const CATEGORY_LABELS = Object.fromEntries(POINT_CATEGORIES.map(category => [category.value, category.label]));
+const LOCATION_LABELS = Object.fromEntries(LOCATION_TYPES.map(type => [type.value, type.label]));
+const CONTROL_LABELS = Object.fromEntries(CONTROL_TYPES.map(type => [type.value, type.label]));
+const STATUS_LABELS = Object.fromEntries(TERRITORY_STATUSES.map(status => [status.value, status.label]));
+const DISCOVERY_LABELS = Object.fromEntries(DISCOVERY_STATES.map(state => [state.value, state.label]));
+const RITUAL_EVENT_LABELS = Object.fromEntries(RITUAL_EVENT_TYPES.map(event => [event.value, event.label]));
 
 let territoryGridApp = null;
 
@@ -40,11 +99,15 @@ export async function maybeOpenTerritoryInterfaceOnReady() {
   if (!game.settings.get(SYSTEM_ID, "autoOpenTerritoryInterface")) return false;
 
   const scene = findTerritoryScene();
-  if (!scene && !game.user?.isGM) return false;
+  if (!game.user?.isGM) {
+    if (!scene) return false;
+    await openTerritoryScene({ scene, notify: false });
+    return true;
+  }
 
   await openTerritoryInterface({
     scene,
-    ensureScene: Boolean(game.user?.isGM && !scene),
+    ensureScene: !scene,
     activate: false,
     notify: false
   });
@@ -55,11 +118,11 @@ export function registerTerritoryGridControls() {
   Hooks.on("getSceneControlButtons", controls => {
     const tool = {
       name: "ptg-territory-grid",
-      title: game.user?.isGM ? "PTG Territory Interface" : "PTG Territory Overlay",
+      title: game.user?.isGM ? "PTG Territory GM Interface" : "PTG Territory Scene",
       icon: "fas fa-map",
       button: true,
       visible: Boolean(game.user?.isGM || findTerritoryScene()),
-      onClick: () => openTerritoryInterface()
+      onClick: () => game.user?.isGM ? openTerritoryInterface() : openTerritoryScene()
     };
 
     if (Array.isArray(controls)) {
@@ -112,19 +175,19 @@ export async function createOrOpenTerritoryGridScene({ activate = false, notify 
   if (!scene) return null;
 
   await ensureStoredTerritoryGrid(scene);
-  openTerritoryGridApp({ scene });
+  await openTerritoryGridApp({ scene });
   return scene;
 }
 
 export async function openTerritoryInterface({ scene = getTerritoryScene({ allowFallback: Boolean(game.user?.isGM) }), ensureScene = false, activate = false, notify = true } = {}) {
   let targetScene = scene;
 
-  if (ensureScene) {
-    if (!game.user?.isGM) {
-      ui.notifications.warn("Only a GM can create the God Territory Grid scene.");
-      return openTerritoryGridApp({ scene: targetScene });
-    }
+  if (!game.user?.isGM) {
+    if (ensureScene && notify) ui.notifications.warn("Only a GM can create the God Territory Grid scene.");
+    return openTerritoryScene({ scene: targetScene ?? findTerritoryScene(), notify });
+  }
 
+  if (ensureScene) {
     targetScene = await importGodTerritoryScene({ activate, notify });
     if (targetScene) await ensureStoredTerritoryGrid(targetScene);
   }
@@ -132,7 +195,96 @@ export async function openTerritoryInterface({ scene = getTerritoryScene({ allow
   return openTerritoryGridApp({ scene: targetScene });
 }
 
-export function openTerritoryGridApp({ scene = getTerritoryScene({ allowFallback: Boolean(game.user?.isGM) }) } = {}) {
+export async function openTerritoryScene({ scene = findTerritoryScene(), notify = true } = {}) {
+  const targetScene = scene ?? findTerritoryScene();
+  if (!targetScene) {
+    if (notify) ui.notifications.warn("No God Territory Grid scene is available yet.");
+    return null;
+  }
+
+  try {
+    if (globalThis.canvas?.scene?.uuid !== targetScene.uuid) {
+      if (typeof targetScene.view === "function") await targetScene.view();
+      else if (game.user?.isGM && typeof targetScene.activate === "function") await targetScene.activate();
+    }
+    await fitTerritorySceneToCanvas(targetScene);
+  } catch (error) {
+    console.warn("Part-Time Gods 2E | Unable to view Territory scene.", targetScene, error);
+    if (notify) ui.notifications.warn("Unable to open the Territory scene. See the console for details.");
+    return null;
+  }
+
+  return targetScene;
+}
+
+export async function fitTerritorySceneToCanvas(scene = findTerritoryScene(), { duration = 250 } = {}) {
+  const targetScene = scene ?? findTerritoryScene();
+  const canvas = globalThis.canvas;
+  if (!targetScene || typeof canvas?.animatePan !== "function") return false;
+
+  await waitForCanvasScene(targetScene);
+  if (canvas.scene?.uuid && targetScene.uuid && canvas.scene.uuid !== targetScene.uuid) return false;
+
+  const pan = territorySceneFitPan(targetScene);
+  if (!pan) return false;
+
+  await canvas.animatePan({ ...pan, duration });
+  return true;
+}
+
+export function territorySceneFitPan(scene, viewport = currentCanvasViewport(), { padding = TERRITORY_CANVAS_FIT_PADDING, minScale = 0.2, maxScale = 1.25 } = {}) {
+  const dimensions = sceneDimensionsForFit(scene);
+  const viewWidth = numericValue(viewport?.width, 0);
+  const viewHeight = numericValue(viewport?.height, 0);
+  if (!dimensions || viewWidth <= 0 || viewHeight <= 0) return null;
+
+  const usableWidth = Math.max(1, viewWidth - (padding * 2));
+  const usableHeight = Math.max(1, viewHeight - (padding * 2));
+  const scale = clamp(Math.min(usableWidth / dimensions.width, usableHeight / dimensions.height), minScale, maxScale);
+
+  return {
+    x: dimensions.x + (dimensions.width / 2),
+    y: dimensions.y + (dimensions.height / 2),
+    scale
+  };
+}
+
+async function waitForCanvasScene(scene) {
+  const targetUuid = scene?.uuid;
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    if (!targetUuid || globalThis.canvas?.scene?.uuid === targetUuid) return true;
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  return !targetUuid || globalThis.canvas?.scene?.uuid === targetUuid;
+}
+
+function currentCanvasViewport() {
+  const rendererScreen = globalThis.canvas?.app?.renderer?.screen;
+  const dimensions = globalThis.canvas?.dimensions;
+  const board = globalThis.document?.getElementById?.("board");
+  return {
+    width: numericValue(rendererScreen?.width ?? dimensions?.widthPixels ?? board?.clientWidth ?? globalThis.innerWidth, 0),
+    height: numericValue(rendererScreen?.height ?? dimensions?.heightPixels ?? board?.clientHeight ?? globalThis.innerHeight, 0)
+  };
+}
+
+function sceneDimensionsForFit(scene) {
+  const dimensions = scene?.dimensions ?? {};
+  const width = numericValue(dimensions.sceneWidth ?? dimensions.width ?? scene?.width, 0);
+  const height = numericValue(dimensions.sceneHeight ?? dimensions.height ?? scene?.height, 0);
+  if (width <= 0 || height <= 0) return null;
+
+  return {
+    x: numericValue(dimensions.sceneX ?? dimensions.x, 0),
+    y: numericValue(dimensions.sceneY ?? dimensions.y, 0),
+    width,
+    height
+  };
+}
+
+export async function openTerritoryGridApp({ scene = getTerritoryScene({ allowFallback: Boolean(game.user?.isGM) }) } = {}) {
+  if (!game.user?.isGM) return openTerritoryScene({ scene });
+
   if (!territoryGridApp) territoryGridApp = new TerritoryGridApp();
   if (scene) territoryGridApp.setScene(scene);
   territoryGridApp.render({ force: true });
@@ -173,6 +325,33 @@ export async function clearTerritoryGrid(scene = getTerritoryScene()) {
   return grid;
 }
 
+export async function setTerritorySceneBackground(scene, options = {}) {
+  if (!scene) return null;
+  if (!game.user?.isGM) {
+    ui.notifications.warn("Only a GM can change the Territory scene background.");
+    return null;
+  }
+
+  const updateData = territorySceneBackgroundUpdateData(options);
+  await scene.update(updateData);
+  if (typeof scene.setFlag === "function") {
+    await scene.setFlag(SYSTEM_ID, "territoryBackground", {
+      src: updateData["background.src"] ?? "",
+      color: updateData.backgroundColor,
+      updatedAt: new Date().toISOString()
+    });
+  }
+  await ensureTerritoryGridOverlayForeground(scene);
+  return updateData;
+}
+
+export function territorySceneBackgroundUpdateData({ src = "", backgroundSrc = src, color = "", backgroundColor = color, clearImage = false } = {}) {
+  return {
+    "background.src": clearImage ? "" : String(backgroundSrc ?? "").trim(),
+    backgroundColor: normalizeColor(backgroundColor, DEFAULT_TERRITORY_BACKGROUND_COLOR)
+  };
+}
+
 export function normalizeTerritoryGrid(value, legacyTerritory = null) {
   const grid = createEmptyTerritoryGrid();
   const sourcePoints = Array.isArray(value?.points) ? value.points : [];
@@ -208,28 +387,72 @@ export function validateTerritoryPoint(point) {
 
   const category = normalizeCategory(point.category ?? point.kind ?? point.type);
   const name = String(point.name ?? point.label ?? "").trim() || `${CATEGORY_LABELS[category]} ${coordinate.x}-${coordinate.y}`;
+  const publicName = String(point.publicName ?? point.knownName ?? point.playerName ?? name).trim() || name;
   const level = finiteNumber(point.level, 0, 0);
+  const owner = String(point.owner ?? point.actorName ?? "").trim();
+  const eventSource = point.ritualEvents ?? point.events ?? (point.event ? [point.event] : []);
+  const ritualEvents = normalizeRitualEvents(eventSource);
+  const footprint = normalizeFootprint(point);
 
   return {
     id: String(point.id || point.slug || slugify(`${category}-${name}-${coordinate.x}-${coordinate.y}`) || randomId()).slice(0, 80),
     name,
+    publicName,
     x: coordinate.x,
     y: coordinate.y,
     category,
-    owner: String(point.owner ?? point.actorName ?? "").trim(),
+    locationType: normalizeOption(point.locationType ?? point.locationKind ?? point.territoryType, LOCATION_TYPES, "unknown", {
+      mundane: "mortal",
+      supernatural: "divine",
+      hybrid: "mixed"
+    }),
+    controlType: normalizeOption(point.controlType ?? point.ownerType ?? point.controlKind, CONTROL_TYPES, owner ? "god" : "unclaimed", {
+      npc: "npc-god",
+      "npc god": "npc-god",
+      group: "faction",
+      none: "unclaimed",
+      sharedterritory: "shared",
+      mergedpantheon: "merged"
+    }),
+    status: normalizeOption(point.status ?? point.boundaryStatus ?? point.controlStatus, TERRITORY_STATUSES, "friendly", {
+      disputed: "contested",
+      "no trespass": "separate",
+      notrespass: "separate",
+      temporary: "converged",
+      converged: "converged",
+      admitted: "visitor-admitted"
+    }),
+    discoveryState: normalizeOption(point.discoveryState ?? point.discovery ?? point.visibility, DISCOVERY_STATES, "known", {
+      secret: "hidden",
+      private: "hidden",
+      discovered: "known",
+      visible: "public"
+    }),
+    owner,
     sourceActorUuid: String(point.sourceActorUuid ?? point.actorUuid ?? "").trim(),
     sourceItemUuid: String(point.sourceItemUuid ?? point.itemUuid ?? "").trim(),
+    linkedBondUuid: String(point.linkedBondUuid ?? point.bondUuid ?? "").trim(),
+    linkedActorUuid: String(point.linkedActorUuid ?? point.actorUuid ?? point.sourceActorUuid ?? "").trim(),
+    linkedItemUuid: String(point.linkedItemUuid ?? point.itemUuid ?? point.sourceItemUuid ?? "").trim(),
     level,
-    notes: String(point.notes ?? point.description ?? "").trim(),
+    footprint,
+    footprintLabel: footprint.width === 1 && footprint.height === 1 ? "1 point" : `${footprint.width} x ${footprint.height} points`,
+    dominionTags: normalizeTagList(point.dominionTags ?? point.dominions ?? point.flavorTags),
+    theologyTags: normalizeTagList(point.theologyTags ?? point.theologies),
+    publicNotes: String(point.publicNotes ?? point.playerNotes ?? point.knownInfo ?? point.notes ?? point.description ?? "").trim(),
+    gmNotes: String(point.gmNotes ?? point.secretNotes ?? point.gmSecret ?? point.hiddenNotes ?? "").trim(),
+    notes: String(point.notes ?? point.description ?? point.publicNotes ?? "").trim(),
+    ritualEvents,
+    history: normalizeHistory(point.history ?? point.changeHistory),
     createdAt: String(point.createdAt ?? "").trim(),
     updatedAt: String(point.updatedAt ?? "").trim()
   };
 }
 
-export function calculateTerritoryInfluence(points = []) {
+export function calculateTerritoryInfluence(points = [], { canEditTerritory = true } = {}) {
   const influence = {};
 
-  for (const point of points.map(validateTerritoryPoint).filter(Boolean)) {
+  for (const point of visibleTerritoryPoints(points.map(validateTerritoryPoint).filter(Boolean), { canEditTerritory })) {
     if (!BONUS_CATEGORIES.has(point.category)) continue;
 
     for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
@@ -242,9 +465,13 @@ export function calculateTerritoryInfluence(points = []) {
       influence[key].total += 1;
       influence[key].sources.push({
         id: point.id,
-        name: point.name,
+        name: canEditTerritory ? point.name : point.publicName,
         category: point.category,
         categoryLabel: CATEGORY_LABELS[point.category] ?? point.category,
+        controlType: point.controlType,
+        controlLabel: CONTROL_LABELS[point.controlType] ?? point.controlType,
+        status: point.status,
+        statusLabel: STATUS_LABELS[point.status] ?? point.status,
         owner: point.owner
       });
     }
@@ -253,15 +480,15 @@ export function calculateTerritoryInfluence(points = []) {
   return influence;
 }
 
-export function buildTerritoryGridCells(grid) {
+export function buildTerritoryGridCells(grid, { canEditTerritory = true } = {}) {
   const normalized = normalizeTerritoryGrid(grid);
-  const influence = calculateTerritoryInfluence(normalized.points);
+  const influence = calculateTerritoryInfluence(normalized.points, { canEditTerritory });
   const pointsByCoordinate = new Map();
 
-  for (const point of normalized.points) {
+  for (const point of visibleTerritoryPoints(normalized.points, { canEditTerritory })) {
     const key = coordinateKey(point.x, point.y);
     if (!pointsByCoordinate.has(key)) pointsByCoordinate.set(key, []);
-    pointsByCoordinate.get(key).push(pointContext(point));
+    pointsByCoordinate.get(key).push(pointContext(point, { canEditTerritory }));
   }
 
   const rows = [];
@@ -324,27 +551,35 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const context = await super._prepareContext(options);
     const scene = await this.#selectedScene();
     const grid = scene ? await this.#gridForScene(scene) : createEmptyTerritoryGrid();
-    const gridCells = buildTerritoryGridCells(grid);
-    const influence = calculateTerritoryInfluence(grid.points);
     const canEditTerritory = Boolean(game.user?.isGM);
+    const publicPoints = visibleTerritoryPoints(grid.points, { canEditTerritory });
+    const gridCells = buildTerritoryGridCells(grid, { canEditTerritory });
+    const influence = calculateTerritoryInfluence(grid.points, { canEditTerritory });
 
     return {
       ...context,
       isGM: canEditTerritory,
       canEditTerritory,
-      modeLabel: canEditTerritory ? "GM Controls" : "Player Overlay",
+      modeLabel: canEditTerritory ? "GM Controls" : "Territory Scene",
       modeHint: canEditTerritory
         ? "Create, import, edit, and clear Territory Grid points."
-        : "Read-only Territory Grid overlay. Open a point to view its details.",
+        : "Open the Territory scene to view the table-facing grid.",
       scene: scene ? { uuid: scene.uuid, id: scene.id, name: scene.name } : null,
       sceneOptions: territorySceneOptions(scene),
       grid,
       columns: gridCells.columns,
       rows: gridCells.rows,
-      points: grid.points.map(pointContext).sort(sortPointContext),
-      pointCount: grid.points.length,
+      points: publicPoints.map(point => pointContext(point, { canEditTerritory })).sort(sortPointContext),
+      pointCount: publicPoints.length,
+      totalPointCount: grid.points.length,
+      hiddenPointCount: Math.max(0, grid.points.length - publicPoints.length),
       bonusCellCount: Object.values(influence).filter(entry => Number(entry.total ?? 0) > 0).length,
       categories: POINT_CATEGORIES,
+      locationTypes: LOCATION_TYPES,
+      controlTypes: CONTROL_TYPES,
+      territoryStatuses: TERRITORY_STATUSES,
+      discoveryStates: DISCOVERY_STATES,
+      ritualEventTypes: RITUAL_EVENT_TYPES,
       hasScene: Boolean(scene)
     };
   }
@@ -361,6 +596,11 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     for (const button of root.querySelectorAll("[data-action]")) {
       button.addEventListener("click", event => this.#onAction(event.currentTarget));
     }
+
+    if (game.user?.isGM) {
+      root.addEventListener("dragover", event => this.#onDragOver(event));
+      root.addEventListener("drop", event => this.#onDrop(event));
+    }
   }
 
   async #onAction(button) {
@@ -372,6 +612,20 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
       if (scene) this.#sceneUuid = scene.uuid;
       return this.render({ force: true });
     }
+
+    if (action === "view-scene") {
+      const scene = await this.#selectedScene();
+      return openTerritoryScene({ scene });
+    }
+
+    if (action === "territory-controls") {
+      const scene = await this.#requireEditableScene();
+      if (!scene) return null;
+      await openTerritoryControls({ scene });
+      return this.render({ force: true });
+    }
+
+    if (action === "background") return this.#editBackground();
 
     if (action === "refresh-grid") return this.render({ force: true });
 
@@ -386,6 +640,36 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (action === "delete-point") return this.#deletePoint(button.dataset.pointId);
 
     return null;
+  }
+
+  #onDragOver(event) {
+    const types = Array.from(event.dataTransfer?.types ?? []);
+    if (!types.some(type => ["text/plain", "application/json"].includes(type))) return;
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  }
+
+  async #onDrop(event) {
+    if (!game.user?.isGM) return null;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const data = dropEventData(event);
+    if (data?.type !== "Actor") {
+      ui.notifications.warn("Drop a player Character actor onto the Territory GM interface.");
+      return null;
+    }
+
+    const actor = await actorFromDropData(data);
+    if (actor?.type !== "character") {
+      ui.notifications.warn("Only Character actors can be imported into the Territory Grid.");
+      return null;
+    }
+
+    const fallbackCoordinate = coordinateFromElement(event.target);
+    return this.#importActorTerritory(actor, { fallbackCoordinate });
   }
 
   async #selectedScene() {
@@ -463,7 +747,7 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const point = grid.points.find(candidate => candidate.id === pointId);
     if (!point) return null;
 
-    return promptTerritoryPointDetails(point);
+    return promptTerritoryPointDetails(point, { canEditTerritory: Boolean(game.user?.isGM) });
   }
 
   async #deletePoint(pointId) {
@@ -505,6 +789,20 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     return true;
   }
 
+  async #editBackground() {
+    const scene = await this.#requireEditableScene();
+    if (!scene) return null;
+
+    const selection = await promptTerritorySceneBackground(scene);
+    if (!selection) return null;
+
+    await setTerritorySceneBackground(scene, selection);
+    await ensureStoredTerritoryGrid(scene);
+    await fitTerritorySceneToCanvas(scene);
+    this.render({ force: true });
+    return scene;
+  }
+
   async #importAttachments() {
     const scene = await this.#requireEditableScene();
     if (!scene) return null;
@@ -519,46 +817,46 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     const grid = getTerritoryGrid(scene);
-    const existingSourceItemUuids = new Set(grid.points.map(point => point.sourceItemUuid).filter(Boolean));
     const points = [...grid.points];
     let added = 0;
     let skipped = 0;
 
     for (const actor of actors) {
-      for (const item of importableAttachmentItems(actor)) {
-        if (existingSourceItemUuids.has(item.uuid)) {
-          skipped += 1;
-          continue;
-        }
-
-        const importPoint = await pointFromAttachment(actor, item);
-        if (!importPoint) {
-          skipped += 1;
-          continue;
-        }
-
-        const point = validateTerritoryPoint({
-          ...importPoint,
-          id: uniquePointId(slugify(`${actor.name}-${item.name}`), new Set(points.map(existing => existing.id))),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-
-        if (!point) {
-          skipped += 1;
-          continue;
-        }
-
-        points.push(point);
-        existingSourceItemUuids.add(item.uuid);
-        added += 1;
-      }
+      const result = await territoryPointsFromActor(actor, {
+        existingPoints: points,
+        promptForMissingCoordinates: true
+      });
+      points.push(...result.points);
+      added += result.points.length;
+      skipped += result.skipped;
     }
 
     await setTerritoryGrid(scene, { ...grid, points });
     ui.notifications.info(`Imported ${added} Territory Grid attachment${added === 1 ? "" : "s"}${skipped ? `; skipped ${skipped}` : ""}.`);
     this.render({ force: true });
     return { added, skipped };
+  }
+
+  async #importActorTerritory(actor, { fallbackCoordinate = null } = {}) {
+    const scene = await this.#requireEditableScene();
+    if (!scene) return null;
+
+    const grid = getTerritoryGrid(scene);
+    const result = await territoryPointsFromActor(actor, {
+      existingPoints: grid.points,
+      fallbackCoordinate,
+      promptForMissingCoordinates: true
+    });
+
+    if (!result.points.length) {
+      ui.notifications.warn(`${actor.name} has no new territory-ready Individual Bonds, Landmark Bonds, Worshippers, or Attachments to import.`);
+      return result;
+    }
+
+    await setTerritoryGrid(scene, { ...grid, points: [...grid.points, ...result.points] });
+    ui.notifications.info(`Imported ${result.points.length} Territory Grid point${result.points.length === 1 ? "" : "s"} from ${actor.name}${result.skipped ? `; skipped ${result.skipped}` : ""}.`);
+    this.render({ force: true });
+    return result;
   }
 }
 
@@ -567,6 +865,46 @@ async function ensureStoredTerritoryGrid(scene) {
   const grid = getTerritoryGrid(scene);
   if (!scene.getFlag(SYSTEM_ID, FLAG_KEY)) await setTerritoryGrid(scene, grid);
   return grid;
+}
+
+async function ensureTerritoryGridOverlayForeground(scene) {
+  const drawings = Array.from(scene?.drawings?.contents ?? scene?.drawings ?? []);
+  const managedDrawings = drawings
+    .filter(drawing => isManagedTerritoryDrawing(drawing))
+    .sort((a, b) => Number(a.sort ?? drawingSource(a).sort ?? 0) - Number(b.sort ?? drawingSource(b).sort ?? 0));
+  if (!managedDrawings.length || typeof scene.updateEmbeddedDocuments !== "function") return managedDrawings.length;
+
+  const updates = managedDrawings
+    .map((drawing, index) => {
+      const id = drawing.id ?? drawing._id ?? drawingSource(drawing)._id;
+      if (!id) return null;
+      return {
+        _id: id,
+        hidden: false,
+        locked: true,
+        sort: 5000 + index
+      };
+    })
+    .filter(Boolean);
+
+  if (updates.length) await scene.updateEmbeddedDocuments("Drawing", updates);
+  return updates.length;
+}
+
+function isManagedTerritoryDrawing(drawing) {
+  const source = drawingSource(drawing);
+  const flags = source.flags?.[SYSTEM_ID] ?? {};
+  return Boolean(
+    drawing?.getFlag?.(SYSTEM_ID, "territoryZone")
+    || drawing?.getFlag?.(SYSTEM_ID, "territorySheetElement")
+    || flags.territoryZone
+    || flags.territorySheetElement
+    || String(source.name ?? drawing?.name ?? "").startsWith("Territory Grid:")
+  );
+}
+
+function drawingSource(drawing) {
+  return drawing?.toObject?.() ?? drawing?._source ?? drawing ?? {};
 }
 
 function findTerritoryScene() {
@@ -688,15 +1026,135 @@ function normalizeCategory(category) {
   return POINT_CATEGORIES.some(candidate => candidate.value === normalized) ? normalized : "custom";
 }
 
-function pointContext(point) {
-  const categoryLabel = CATEGORY_LABELS[point.category] ?? point.category;
+function normalizeOption(value, options, fallback, aliases = {}) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (!normalized) return fallback;
+
+  const compact = normalized.replace(/[^a-z0-9]+/g, "");
+  const alias = aliases[normalized] ?? aliases[compact];
+  if (alias && options.some(option => option.value === alias)) return alias;
+
+  const exact = options.find(option => option.value === normalized || option.label.toLowerCase() === normalized);
+  if (exact) return exact.value;
+
+  const loose = options.find(option => normalized.includes(option.value) || normalized.includes(option.label.toLowerCase()));
+  return loose?.value ?? fallback;
+}
+
+function normalizeTagList(value) {
+  const source = Array.isArray(value) ? value : String(value ?? "").split(/[,;|]/);
+  return source
+    .map(entry => String(entry ?? "").trim())
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+function normalizeFootprint(point) {
+  const footprint = point.footprint && typeof point.footprint === "object" ? point.footprint : {};
   return {
-    ...point,
+    width: Math.min(GRID_SIZE, finiteNumber(footprint.width ?? point.footprintWidth ?? point.width, 1, 1)),
+    height: Math.min(GRID_SIZE, finiteNumber(footprint.height ?? point.footprintHeight ?? point.height, 1, 1))
+  };
+}
+
+function normalizeRitualEvents(value) {
+  const source = Array.isArray(value) ? value : value ? [value] : [];
+  return source
+    .map(event => {
+      const type = normalizeOption(event?.type ?? event?.kind ?? event?.ritual, RITUAL_EVENT_TYPES, "", {
+        convergence: "temporary-convergence",
+        portal: "pocket-realm"
+      });
+      if (!type) return null;
+
+      return {
+        type,
+        label: RITUAL_EVENT_LABELS[type] ?? type,
+        status: String(event?.status ?? event?.state ?? "active").trim() || "active",
+        clock: String(event?.clock ?? event?.timer ?? event?.duration ?? "").trim(),
+        expiresAt: String(event?.expiresAt ?? event?.expiry ?? "").trim(),
+        notes: String(event?.notes ?? event?.description ?? "").trim(),
+        public: event?.public !== false
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function normalizeHistory(value) {
+  const source = Array.isArray(value) ? value : [];
+  return source
+    .map(entry => ({
+      at: String(entry?.at ?? entry?.date ?? "").trim(),
+      summary: String(entry?.summary ?? entry?.text ?? entry?.notes ?? "").trim(),
+      public: entry?.public === true
+    }))
+    .filter(entry => entry.summary)
+    .slice(0, 20);
+}
+
+function visibleTerritoryPoints(points = [], { canEditTerritory = true } = {}) {
+  const normalized = points.map(validateTerritoryPoint).filter(Boolean);
+  return canEditTerritory
+    ? normalized
+    : normalized.filter(point => point.discoveryState !== "hidden");
+}
+
+function publicPointName(point) {
+  if (point.discoveryState === "rumored") return point.publicName || "Rumored Territory";
+  return point.publicName || point.name;
+}
+
+function publicRitualEvents(point, { canEditTerritory = true } = {}) {
+  return canEditTerritory ? point.ritualEvents : point.ritualEvents.filter(event => event.public);
+}
+
+function pointContext(point, { canEditTerritory = true } = {}) {
+  const safeName = canEditTerritory ? point.name : publicPointName(point);
+  const categoryLabel = CATEGORY_LABELS[point.category] ?? point.category;
+  const visibleEvents = publicRitualEvents(point, { canEditTerritory });
+  const tagLabels = [...point.dominionTags, ...point.theologyTags].slice(0, 4);
+  return {
+    id: point.id,
+    name: safeName,
+    publicName: point.publicName,
+    x: point.x,
+    y: point.y,
+    category: point.category,
     categoryLabel,
     categoryClass: `ptg-territory-point-${point.category}`,
+    locationType: point.locationType,
+    locationLabel: LOCATION_LABELS[point.locationType] ?? point.locationType,
+    controlType: point.controlType,
+    controlLabel: CONTROL_LABELS[point.controlType] ?? point.controlType,
+    controlClass: `ptg-territory-control-${point.controlType}`,
+    status: point.status,
+    statusLabel: STATUS_LABELS[point.status] ?? point.status,
+    statusClass: `ptg-territory-status-${point.status}`,
+    discoveryState: point.discoveryState,
+    discoveryLabel: DISCOVERY_LABELS[point.discoveryState] ?? point.discoveryState,
+    owner: point.owner,
     levelLabel: point.level ? `Level ${point.level}` : "",
     ownerLabel: point.owner ? `${point.owner}` : "",
-    sourceLabel: [point.owner, point.level ? `Level ${point.level}` : ""].filter(Boolean).join(" - ")
+    sourceLabel: [point.owner, point.level ? `Level ${point.level}` : ""].filter(Boolean).join(" - "),
+    level: point.level,
+    footprint: point.footprint,
+    footprintLabel: point.footprintLabel,
+    dominionTags: point.dominionTags,
+    theologyTags: point.theologyTags,
+    tagLabels,
+    tagSummary: tagLabels.join(", "),
+    publicNotes: point.publicNotes,
+    notes: canEditTerritory ? point.notes : point.publicNotes,
+    gmNotes: canEditTerritory ? point.gmNotes : "",
+    sourceActorUuid: canEditTerritory ? point.sourceActorUuid : "",
+    sourceItemUuid: canEditTerritory ? point.sourceItemUuid : "",
+    linkedBondUuid: canEditTerritory ? point.linkedBondUuid : "",
+    linkedActorUuid: canEditTerritory ? point.linkedActorUuid : "",
+    linkedItemUuid: canEditTerritory ? point.linkedItemUuid : "",
+    ritualEvents: visibleEvents,
+    eventLabel: visibleEvents.map(event => event.label).join(", "),
+    history: canEditTerritory ? point.history : point.history.filter(entry => entry.public)
   };
 }
 
@@ -704,12 +1162,54 @@ function sortPointContext(a, b) {
   return (a.y - b.y) || (a.x - b.x) || a.name.localeCompare(b.name);
 }
 
+async function promptTerritorySceneBackground(scene) {
+  const existingSrc = String(scene?.background?.src ?? scene?.backgroundSrc ?? "").trim();
+  const existingColor = normalizeColor(scene?.backgroundColor, DEFAULT_TERRITORY_BACKGROUND_COLOR);
+  const content = `
+    <div class="ptg-dialog-body ptg-territory-background-dialog">
+      <p class="ptg-dialog-help">Set a scene background image or color. The Territory Grid overlay remains locked in the foreground.</p>
+      <label class="ptg-dialog-label">
+        <span>Background Image Path or URL</span>
+        <input type="text" name="backgroundSrc" value="${escapeHTML(existingSrc)}" placeholder="worlds/.../territory.png or https://...">
+      </label>
+      <label class="ptg-dialog-label">
+        <span>Background Color</span>
+        <input type="color" name="backgroundColor" value="${escapeHTML(existingColor)}">
+      </label>
+      <label class="ptg-dialog-check">
+        <input type="checkbox" name="clearImage">
+        <span>Clear background image and use color only</span>
+      </label>
+    </div>
+  `;
+
+  return DialogV2.prompt({
+    window: { title: "Territory Scene Background", resizable: true },
+    classes: ["part-time-gods", "ptg-sheet-dialog", "ptg-territory-background-window"],
+    content,
+    rejectClose: false,
+    modal: true,
+    ok: {
+      label: "Update Background",
+      callback: (event, button) => ({
+        backgroundSrc: button.form.elements.backgroundSrc?.value?.trim() ?? "",
+        backgroundColor: button.form.elements.backgroundColor?.value ?? DEFAULT_TERRITORY_BACKGROUND_COLOR,
+        clearImage: Boolean(button.form.elements.clearImage?.checked)
+      })
+    }
+  });
+}
+
 async function promptTerritoryPoint(point = null, defaults = {}) {
   const existing = point ?? {};
   const coordinate = normalizeCoordinate({ ...defaults, ...existing }) ?? { x: defaults.x ?? 1, y: defaults.y ?? 1 };
-  const categoryOptions = POINT_CATEGORIES
-    .map(category => `<option value="${category.value}" ${category.value === (existing.category ?? "custom") ? "selected" : ""}>${escapeHTML(category.label)}</option>`)
-    .join("");
+  const firstEvent = existing.ritualEvents?.[0] ?? {};
+  const categoryOptions = selectOptions(POINT_CATEGORIES, existing.category ?? "custom");
+  const locationOptions = selectOptions(LOCATION_TYPES, existing.locationType ?? "unknown");
+  const controlOptions = selectOptions(CONTROL_TYPES, existing.controlType ?? (existing.owner ? "god" : "unclaimed"));
+  const statusOptions = selectOptions(TERRITORY_STATUSES, existing.status ?? "friendly");
+  const discoveryOptions = selectOptions(DISCOVERY_STATES, existing.discoveryState ?? "known");
+  const ritualOptions = selectOptions(RITUAL_EVENT_TYPES, firstEvent.type ?? "");
   const content = `
     <div class="ptg-dialog-body ptg-territory-point-dialog">
       <div class="ptg-dialog-row">
@@ -718,8 +1218,18 @@ async function promptTerritoryPoint(point = null, defaults = {}) {
           <input type="text" name="name" value="${escapeHTML(existing.name ?? "")}" placeholder="Bond, landmark, worshippers, or threat" required>
         </label>
         <label>
+          <span>Public Name</span>
+          <input type="text" name="publicName" value="${escapeHTML(existing.publicName ?? existing.name ?? "")}" placeholder="Name shown to players">
+        </label>
+      </div>
+      <div class="ptg-dialog-row">
+        <label>
           <span>Category</span>
           <select name="category">${categoryOptions}</select>
+        </label>
+        <label>
+          <span>Location Type</span>
+          <select name="locationType">${locationOptions}</select>
         </label>
       </div>
       <div class="ptg-dialog-row">
@@ -735,14 +1245,74 @@ async function promptTerritoryPoint(point = null, defaults = {}) {
           <span>Level</span>
           <input type="number" name="level" value="${finiteNumber(existing.level, 0, 0)}" min="0" max="10">
         </label>
+        <label>
+          <span>Footprint W</span>
+          <input type="number" name="footprintWidth" value="${finiteNumber(existing.footprint?.width ?? existing.footprintWidth, 1, 1)}" min="1" max="10">
+        </label>
+        <label>
+          <span>Footprint H</span>
+          <input type="number" name="footprintHeight" value="${finiteNumber(existing.footprint?.height ?? existing.footprintHeight, 1, 1)}" min="1" max="10">
+        </label>
       </div>
       <label class="ptg-dialog-label">
         <span>Owner</span>
         <input type="text" name="owner" value="${escapeHTML(existing.owner ?? "")}" placeholder="Character, pantheon, faction, or none">
       </label>
+      <div class="ptg-dialog-row">
+        <label>
+          <span>Control Source</span>
+          <select name="controlType">${controlOptions}</select>
+        </label>
+        <label>
+          <span>Boundary / Status</span>
+          <select name="status">${statusOptions}</select>
+        </label>
+        <label>
+          <span>Discovery</span>
+          <select name="discoveryState">${discoveryOptions}</select>
+        </label>
+      </div>
+      <div class="ptg-dialog-row">
+        <label>
+          <span>Dominion Tags</span>
+          <input type="text" name="dominionTags" value="${escapeHTML((existing.dominionTags ?? []).join(", "))}" placeholder="Smoke, Cities, Ruin">
+        </label>
+        <label>
+          <span>Theology Tags</span>
+          <input type="text" name="theologyTags" value="${escapeHTML((existing.theologyTags ?? []).join(", "))}" placeholder="Saints, Ancestors">
+        </label>
+      </div>
+      <div class="ptg-dialog-row">
+        <label>
+          <span>Linked Bond UUID</span>
+          <input type="text" name="linkedBondUuid" value="${escapeHTML(existing.linkedBondUuid ?? "")}" placeholder="Optional Bond/Attachment UUID">
+        </label>
+        <label>
+          <span>Linked Actor UUID</span>
+          <input type="text" name="linkedActorUuid" value="${escapeHTML(existing.linkedActorUuid ?? existing.sourceActorUuid ?? "")}" placeholder="Optional actor UUID">
+        </label>
+      </div>
+      <div class="ptg-dialog-row">
+        <label>
+          <span>Territory Event</span>
+          <select name="ritualEventType">${ritualOptions}</select>
+        </label>
+        <label>
+          <span>Event Clock / Expiry</span>
+          <input type="text" name="ritualEventClock" value="${escapeHTML(firstEvent.clock || firstEvent.expiresAt || "")}" placeholder="Week 2, expires after scene, etc.">
+        </label>
+      </div>
       <label class="ptg-dialog-label">
-        <span>Notes</span>
-        <textarea name="notes" rows="4">${escapeHTML(existing.notes ?? "")}</textarea>
+        <span>Public Notes</span>
+        <textarea name="publicNotes" rows="3">${escapeHTML(existing.publicNotes ?? existing.notes ?? "")}</textarea>
+      </label>
+      <label class="ptg-dialog-label">
+        <span>GM Secrets / Hidden Notes</span>
+        <textarea name="gmNotes" rows="3">${escapeHTML(existing.gmNotes ?? "")}</textarea>
+      </label>
+      <label class="ptg-dialog-label">
+        <span>Event Notes</span>
+        <textarea name="ritualEventNotes" rows="2">${escapeHTML(firstEvent.notes ?? "")}</textarea>
       </label>
     </div>
   `;
@@ -757,42 +1327,85 @@ async function promptTerritoryPoint(point = null, defaults = {}) {
       label: point ? "Save Point" : "Add Point",
       callback: (event, button) => ({
         name: button.form.elements.name?.value?.trim() ?? "",
+        publicName: button.form.elements.publicName?.value?.trim() ?? "",
         category: button.form.elements.category?.value ?? "custom",
+        locationType: button.form.elements.locationType?.value ?? "unknown",
+        controlType: button.form.elements.controlType?.value ?? "unclaimed",
+        status: button.form.elements.status?.value ?? "friendly",
+        discoveryState: button.form.elements.discoveryState?.value ?? "known",
         x: Number(button.form.elements.x?.value ?? 0),
         y: Number(button.form.elements.y?.value ?? 0),
         level: Number(button.form.elements.level?.value ?? 0),
+        footprint: {
+          width: Number(button.form.elements.footprintWidth?.value ?? 1),
+          height: Number(button.form.elements.footprintHeight?.value ?? 1)
+        },
         owner: button.form.elements.owner?.value?.trim() ?? "",
-        notes: button.form.elements.notes?.value?.trim() ?? ""
+        dominionTags: normalizeTagList(button.form.elements.dominionTags?.value ?? ""),
+        theologyTags: normalizeTagList(button.form.elements.theologyTags?.value ?? ""),
+        linkedBondUuid: button.form.elements.linkedBondUuid?.value?.trim() ?? "",
+        linkedActorUuid: button.form.elements.linkedActorUuid?.value?.trim() ?? "",
+        publicNotes: button.form.elements.publicNotes?.value?.trim() ?? "",
+        gmNotes: button.form.elements.gmNotes?.value?.trim() ?? "",
+        ritualEvents: button.form.elements.ritualEventType?.value ? [{
+          type: button.form.elements.ritualEventType.value,
+          status: "active",
+          clock: button.form.elements.ritualEventClock?.value?.trim() ?? "",
+          notes: button.form.elements.ritualEventNotes?.value?.trim() ?? "",
+          public: true
+        }] : []
       })
     }
   });
 }
 
-async function promptTerritoryPointDetails(point) {
-  const categoryLabel = CATEGORY_LABELS[point.category] ?? point.category;
+function selectOptions(options, selectedValue) {
+  return options
+    .map(option => `<option value="${escapeHTML(option.value)}" ${option.value === selectedValue ? "selected" : ""}>${escapeHTML(option.label)}</option>`)
+    .join("");
+}
+
+async function promptTerritoryPointDetails(point, { canEditTerritory = true } = {}) {
+  const context = pointContext(point, { canEditTerritory });
   const detailRows = [
-    ["Coordinate", coordinateKey(point.x, point.y)],
-    ["Category", categoryLabel],
-    point.owner ? ["Owner", point.owner] : null,
-    point.level ? ["Level", String(point.level)] : null,
-    point.sourceActorUuid ? ["Actor", point.sourceActorUuid] : null,
-    point.sourceItemUuid ? ["Source Item", point.sourceItemUuid] : null
+    ["Coordinate", coordinateKey(context.x, context.y)],
+    ["Category", context.categoryLabel],
+    ["Location", context.locationLabel],
+    ["Control", context.controlLabel],
+    ["Status", context.statusLabel],
+    ["Discovery", context.discoveryLabel],
+    context.owner ? ["Owner", context.owner] : null,
+    context.level ? ["Level", String(context.level)] : null,
+    context.footprintLabel ? ["Footprint", context.footprintLabel] : null,
+    context.tagSummary ? ["Flavor Tags", context.tagSummary] : null,
+    context.eventLabel ? ["Territory Event", context.eventLabel] : null,
+    context.sourceActorUuid ? ["Actor", context.sourceActorUuid] : null,
+    context.sourceItemUuid ? ["Source Item", context.sourceItemUuid] : null,
+    context.linkedBondUuid ? ["Linked Bond", context.linkedBondUuid] : null
   ].filter(Boolean);
   const rows = detailRows
     .map(([label, value]) => `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`)
     .join("");
-  const notes = point.notes
-    ? `<section class="ptg-territory-point-notes"><h3>Notes</h3><p>${escapeHTML(point.notes)}</p></section>`
+  const notes = context.publicNotes || context.notes
+    ? `<section class="ptg-territory-point-notes"><h3>Public Notes</h3><p>${escapeHTML(context.publicNotes || context.notes)}</p></section>`
+    : "";
+  const gmNotes = canEditTerritory && context.gmNotes
+    ? `<section class="ptg-territory-point-notes"><h3>GM Secrets</h3><p>${escapeHTML(context.gmNotes)}</p></section>`
+    : "";
+  const eventNotes = context.ritualEvents.length
+    ? `<section class="ptg-territory-point-notes"><h3>Events</h3><p>${escapeHTML(context.ritualEvents.map(event => [event.label, event.clock, event.notes].filter(Boolean).join(": ")).join("; "))}</p></section>`
     : "";
   const content = `
     <div class="ptg-dialog-body ptg-territory-point-dialog">
       <dl class="ptg-territory-point-details">${rows}</dl>
       ${notes}
+      ${gmNotes}
+      ${eventNotes}
     </div>
   `;
 
   return DialogV2.prompt({
-    window: { title: `Territory Point: ${point.name}`, resizable: true },
+    window: { title: `Territory Point: ${context.name}`, resizable: true },
     classes: ["part-time-gods", "ptg-sheet-dialog", "ptg-territory-point-window"],
     content,
     rejectClose: false,
@@ -860,6 +1473,53 @@ async function resolveImportActors(selection) {
   return Array.from(actors.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
+export async function territoryPointsFromActor(actor, {
+  existingPoints = [],
+  fallbackCoordinate = null,
+  promptForMissingCoordinates = false
+} = {}) {
+  if (actor?.type !== "character") return { actor, points: [], skipped: 0 };
+
+  const usedIds = new Set(existingPoints.map(point => point.id).filter(Boolean));
+  const existingSourceItemUuids = new Set(existingPoints.map(point => point.sourceItemUuid).filter(Boolean));
+  const points = [];
+  let skipped = 0;
+
+  for (const item of importableAttachmentItems(actor)) {
+    if (item.uuid && existingSourceItemUuids.has(item.uuid)) {
+      skipped += 1;
+      continue;
+    }
+
+    const importPoint = await pointFromAttachment(actor, item, {
+      fallbackCoordinate,
+      promptForMissingCoordinate: promptForMissingCoordinates
+    });
+    if (!importPoint) {
+      skipped += 1;
+      continue;
+    }
+
+    const point = validateTerritoryPoint({
+      ...importPoint,
+      id: uniquePointId(slugify(`${actor.name}-${item.name}`), usedIds),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    if (!point) {
+      skipped += 1;
+      continue;
+    }
+
+    points.push(point);
+    usedIds.add(point.id);
+    if (item.uuid) existingSourceItemUuids.add(item.uuid);
+  }
+
+  return { actor, points, skipped };
+}
+
 function addCharacterActor(actors, actor) {
   if (actor?.type === "character") actors.set(actor.uuid, actor);
 }
@@ -887,6 +1547,18 @@ function pantheonActors() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+async function actorFromDropData(data) {
+  if (!data || data.type !== "Actor") return null;
+  if (data.uuid) return actorFromUuid(data.uuid);
+
+  const id = data.id ?? data._id ?? data.data?._id;
+  if (!id) return null;
+
+  return game.actors?.get?.(id)
+    ?? Array.from(game.actors ?? []).find(actor => actor.id === id || actor._id === id)
+    ?? null;
+}
+
 function importableAttachmentItems(actor) {
   const items = actor.items?.contents ?? Array.from(actor.items ?? []);
   return items
@@ -894,24 +1566,61 @@ function importableAttachmentItems(actor) {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function pointFromAttachment(actor, item) {
+async function pointFromAttachment(actor, item, { fallbackCoordinate = null, promptForMissingCoordinate = true } = {}) {
   const category = attachmentCategory(item);
   if (!category) return null;
 
-  const coordinate = attachmentCoordinate(item) ?? await promptAttachmentCoordinate(actor, item);
+  const coordinate = attachmentCoordinate(item)
+    ?? normalizeCoordinate(fallbackCoordinate ?? {})
+    ?? (promptForMissingCoordinate ? await promptAttachmentCoordinate(actor, item) : null);
   if (!coordinate) return null;
 
   return {
     name: item.name,
+    publicName: item.name,
     x: coordinate.x,
     y: coordinate.y,
     category,
+    locationType: "mixed",
+    controlType: "god",
+    status: "friendly",
+    discoveryState: "known",
     owner: actor.name,
     sourceActorUuid: actor.uuid,
     sourceItemUuid: item.uuid,
+    linkedActorUuid: actor.uuid,
+    linkedItemUuid: item.uuid,
+    linkedBondUuid: item.type === "bond" ? item.uuid : "",
     level: finiteNumber(item.system?.level ?? item.system?.rank, 0, 0),
+    publicNotes: attachmentNotes(item),
     notes: attachmentNotes(item)
   };
+}
+
+function dropEventData(event) {
+  const helper = foundry.applications?.ux?.TextEditor?.getDragEventData ?? globalThis.TextEditor?.getDragEventData;
+  if (helper) {
+    try {
+      return helper(event) ?? {};
+    } catch (error) {
+      console.warn("Part-Time Gods 2E | Unable to parse dropped Territory actor data.", error);
+    }
+  }
+
+  const raw = event.dataTransfer?.getData?.("text/plain") || event.dataTransfer?.getData?.("application/json");
+  if (!raw) return {};
+
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn("Part-Time Gods 2E | Dropped Territory data was not valid JSON.", error);
+    return {};
+  }
+}
+
+function coordinateFromElement(element) {
+  const coordinate = element?.closest?.("[data-coordinate]")?.dataset?.coordinate;
+  return parseCoordinate(coordinate);
 }
 
 function attachmentCategory(item) {
@@ -1000,6 +1709,20 @@ function randomId() {
 function finiteNumber(value, fallback = 0, min = Number.NEGATIVE_INFINITY) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.max(min, Math.trunc(number)) : fallback;
+}
+
+function numericValue(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function normalizeColor(value, fallback = DEFAULT_TERRITORY_BACKGROUND_COLOR) {
+  const color = String(value ?? "").trim();
+  return /^#[0-9a-f]{6}$/i.test(color) ? color : fallback;
 }
 
 function slugify(value) {

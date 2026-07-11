@@ -53,7 +53,7 @@
       },
       "AutoOpenTerritoryInterface": {
         "Name": "Auto-open the Territory interface on world ready",
-        "Hint": "Starts the integrated Territory interface when the world loads. GMs can create/open the Territory scene; players see the read-only overlay when a Territory scene exists."
+        "Hint": "Starts the integrated Territory tools when the world loads. GMs get the control interface; players are taken to the Territory scene when it exists."
       },
       "GMSetupFirstRunComplete": {
         "Name": "GM setup first-run flow completed"

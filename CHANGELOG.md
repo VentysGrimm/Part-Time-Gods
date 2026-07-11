@@ -8,7 +8,10 @@
 - Enforced `package.json`/`system.json` version parity and made release ZIP builds clear stale versioned artifacts from `dist/`.
 - Tightened Character title rows, Item sheet fields, rich text editor boxes, and PTG dialog/popout input colors so plain Foundry dialogs stay readable.
 - Corrected release-install notes to require publishing the matching 0.1.0 GitHub Release manifest and ZIP assets before treating the live install path as current.
-- Added a world-ready Territory interface auto-start setting with GM edit controls and a player read-only overlay/details view.
+- Added a world-ready Territory startup setting with a resizable, scrollable GM control interface and a player-facing Territory Scene path.
+- Added GM Territory background controls for scene image/color changes while keeping the grid overlay foregrounded and fitted to canvas.
+- Added Character actor drag/drop import to the GM Territory interface so player territory attachments can seed scene point data.
+- Expanded Territory points with rulebook-facing public/GM metadata for control source, boundary status, discovery state, footprint, linked records, and ritual/event tracking.
 
 ## 0.0.2 - 2026-06-30
 
