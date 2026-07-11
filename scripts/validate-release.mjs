@@ -301,7 +301,7 @@ async function assertChapterFourRulesScaffold() {
 
 async function assertChapterFiveCombatScaffold() {
   const entryPoint = await readText("part-time-gods.js");
-  for (const token of ["registerPTGCombatHooks", "openPTGCombatControls", "quick: \"Quick Action\"", "standard: \"Standard Action\""]) {
+  for (const token of ["registerPTGCombatHooks", "openPTGCombatControls", "PartTimeGodsCombatant", "CONFIG.Combatant.documentClass", "CONFIG.Combat.initiative", "quick: \"Quick Action\"", "standard: \"Standard Action\""]) {
     if (!entryPoint.includes(token)) errors.push(`Main entry point/config missing Chapter 5 combat token ${token}`);
   }
 
@@ -311,8 +311,13 @@ async function assertChapterFiveCombatScaffold() {
   }
 
   const combat = await readText("module/combat/ptg-combat.mjs");
-  for (const token of ["quickAction", "standardAction", "quickDefense", "standardDefense", "battleFists", "battleWits", "physicalDamage", "mentalDamage", "healing", "rollPTGInitiative", "applyConditionToActor", "conditionCombatModifier"]) {
+  for (const token of ["PTG_INITIATIVE_FORMULA", "actorInitiative", "initiativeProcedureHTML", "quickAction", "standardAction", "quickDefense", "standardDefense", "battleFists", "battleWits", "physicalDamage", "mentalDamage", "healing", "rollPTGInitiative", "applyConditionToActor", "conditionCombatModifier"]) {
     if (!combat.includes(token)) errors.push(`Combat workflow missing Chapter 5 token ${token}`);
+  }
+
+  const combatant = await readText("module/combat/ptg-combatant.mjs");
+  for (const token of ["extends Combatant", "getInitiativeRoll", "PTG_INITIATIVE_FORMULA", "actorInitiative"]) {
+    if (!combatant.includes(token)) errors.push(`Combatant workflow missing Chapter 5 token ${token}`);
   }
 
   const damage = await readText("module/workflows/damage-workflow.mjs");

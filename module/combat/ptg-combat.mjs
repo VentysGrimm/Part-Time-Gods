@@ -2,6 +2,7 @@ import { applyConditionToActor, customConditionItem, openApplyConditionDialog } 
 
 const SYSTEM_ID = "part-time-gods";
 const { DialogV2 } = foundry.applications.api;
+export const PTG_INITIATIVE_FORMULA = "1d10 + @initiative";
 
 const ACTION_LABELS = {
   round: "Round and Turn Sequence",
@@ -45,7 +46,7 @@ export async function openPTGCombatControls({ combat = game.combat } = {}) {
     return postCombatCard({
       combat,
       title: ACTION_LABELS.initiative,
-      body: "Rolled 1d10 plus each combatant actor's PTG initiative value."
+      body: initiativeProcedureHTML()
     });
   }
 
@@ -134,7 +135,7 @@ export async function rollPTGInitiative(combat = game.combat) {
   for (const combatant of combatantsFor(combat)) {
     const actor = combatant.actor;
     const initiative = actorInitiative(actor);
-    const roll = await new Roll("1d10 + @initiative", { initiative }).evaluate();
+    const roll = await new Roll(PTG_INITIATIVE_FORMULA, { initiative }).evaluate();
     updates.push({ _id: combatant.id, initiative: roll.total });
   }
 
@@ -318,7 +319,7 @@ async function selectCombatAction(combat) {
   });
 }
 
-function actorInitiative(actor) {
+export function actorInitiative(actor) {
   if (!actor) return 0;
   const base = actor.type === "character"
     ? Number(actor.system.derived?.initiative ?? 0)
@@ -756,7 +757,7 @@ async function postCombatCard({ combat, combatant = null, title, body }) {
 function roundSequenceHTML() {
   return `
     <ol>
-      <li>Roll initiative for all combatants.</li>
+      <li>Roll initiative for all combatants: 1d10 plus Initiative. Characters use Intuition + Speed; Antagonists and other statblocks use their listed Initiative.</li>
       <li>At the start of each round, clear Quick/Standard action and defense markers.</li>
       <li>On a combatant's turn, choose one Quick Action and one Standard Action as appropriate.</li>
       <li>When reacting to threats, mark Quick Defense or Standard Defense prompts for the defending combatant.</li>
@@ -764,6 +765,17 @@ function roundSequenceHTML() {
       <li>Apply success margin plus weapon, Boost, and Condition modifiers; subtract armor for physical damage, then apply Health or Psyche loss.</li>
       <li>Apply or recover structured Condition Items from the battle card so their severity and roll metadata affect later checks.</li>
     </ol>
+  `;
+}
+
+function initiativeProcedureHTML() {
+  return `
+    <div>Rolled 1d10 plus Initiative for each combatant.</div>
+    <ul>
+      <li>Characters use Intuition + Speed, including active Initiative modifiers from Conditions.</li>
+      <li>Antagonists and other statblocks use their listed Initiative, including active Initiative modifiers from Conditions.</li>
+      <li>PTG2E normally rerolls Initiative each Round unless the table chooses a fixed order or alternate Skill basis for the scene.</li>
+    </ul>
   `;
 }
 

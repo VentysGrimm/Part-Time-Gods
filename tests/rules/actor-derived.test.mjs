@@ -12,7 +12,8 @@ test("Character derived resources follow Spark and skill formulas", () => {
       skills: {
         fortitude: 4,
         discipline: 2,
-        perception: 2,
+        intuition: 2,
+        perception: 6,
         speed: 3,
         might: 0
       },

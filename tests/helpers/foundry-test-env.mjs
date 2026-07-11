@@ -9,11 +9,16 @@ let queuedRolls = [];
 
 export function installFoundryTestEnvironment() {
   globalThis.CONFIG = {
+    Actor: {},
+    Combat: {},
+    Combatant: {},
+    Item: {},
     PTG: {
       skills: {
         athletics: "Athletics",
         discipline: "Discipline",
         fortitude: "Fortitude",
+        intuition: "Intuition",
         perception: "Perception",
         speed: "Speed",
         might: "Might",
@@ -100,6 +105,11 @@ export function installFoundryTestEnvironment() {
   globalThis.Actor = class {
     prepareDerivedData() {}
   };
+  globalThis.Combatant = class {
+    constructor(data = {}) {
+      Object.assign(this, data);
+    }
+  };
   globalThis.ChatMessage = {
     create: async data => data,
     getSpeaker: () => ({})
@@ -138,8 +148,9 @@ export function queueRolls(...rolls) {
 }
 
 class TestRoll {
-  constructor(formula) {
+  constructor(formula, data = {}) {
     this.formula = formula;
+    this.data = data;
     this.dice = [];
   }
 

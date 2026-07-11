@@ -2325,7 +2325,9 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
   `;
 
   return DialogV2.prompt({
-    window: { title: "Skill Combo Check" },
+    window: { title: "Skill Combo Check", resizable: true },
+    classes: ptgDialogClasses("ptg-skill-combo-dialog"),
+    position: fitDialogPosition(540, 720, { minWidth: 360, minHeight: 360 }),
     content,
     rejectClose: false,
     modal: true,

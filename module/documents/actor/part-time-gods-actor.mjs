@@ -24,7 +24,7 @@ export class PartTimeGodsActor extends Actor {
     system.resources.psyche.value = clamp(system.resources.psyche.value, 0, psycheMax);
     system.resources.fragments.value = clamp(system.resources.fragments.value, 0, system.resources.fragments.max);
 
-    system.derived.initiative = Number(skills.perception ?? 0) + Number(skills.speed ?? 0);
+    system.derived.initiative = Number(skills.intuition ?? 0) + Number(skills.speed ?? 0);
     system.derived.strength = Math.max(1, Number(skills.might ?? 0));
     system.derived.movement = Math.max(1, Number(skills.speed ?? 0));
     system.derived.armor = this.items

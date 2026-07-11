@@ -39,10 +39,12 @@ test("PTG combat controls builds its dialog from collection-backed combatants", 
 test("PTG initiative updates collection-backed combatants", async () => {
   installFoundryTestEnvironment();
 
+  const rollInputs = [];
   globalThis.Roll = class {
     constructor(formula, data) {
       this.formula = formula;
       this.data = data;
+      rollInputs.push({ formula, data });
       this.total = Number(data.initiative ?? 0) + 5;
     }
 
@@ -51,17 +53,28 @@ test("PTG initiative updates collection-backed combatants", async () => {
     }
   };
 
-  const combatant = {
-    id: "qa-combatant",
+  const characterCombatant = {
+    id: "qa-character",
     actor: {
       type: "character",
-      system: { derived: { initiative: 2 } },
-      conditionRollEffects: () => ({ modifiers: [] })
+      system: { derived: { initiative: 5 } },
+      conditionRollEffects: ({ mode }) => mode === "initiative" ? { modifiers: [{ value: 2 }] } : { modifiers: [] }
+    }
+  };
+  const antagonistCombatant = {
+    id: "qa-antagonist",
+    actor: {
+      type: "antagonist",
+      system: { initiative: 4 },
+      conditionRollEffects: ({ mode }) => mode === "initiative" ? { modifiers: [{ value: -1 }] } : { modifiers: [] }
     }
   };
   const updateCalls = [];
   const combat = {
-    combatants: new Map([[combatant.id, combatant]]),
+    combatants: new Map([
+      [characterCombatant.id, characterCombatant],
+      [antagonistCombatant.id, antagonistCombatant]
+    ]),
     updateEmbeddedDocuments: async (documentType, updates) => {
       updateCalls.push({ documentType, updates });
     }
@@ -70,10 +83,20 @@ test("PTG initiative updates collection-backed combatants", async () => {
   const { rollPTGInitiative } = await import("../../module/combat/ptg-combat.mjs?initiative");
   const updates = await rollPTGInitiative(combat);
 
-  assert.deepEqual(updates, [{ _id: "qa-combatant", initiative: 7 }]);
+  assert.deepEqual(rollInputs, [
+    { formula: "1d10 + @initiative", data: { initiative: 7 } },
+    { formula: "1d10 + @initiative", data: { initiative: 3 } }
+  ]);
+  assert.deepEqual(updates, [
+    { _id: "qa-character", initiative: 12 },
+    { _id: "qa-antagonist", initiative: 8 }
+  ]);
   assert.deepEqual(updateCalls, [{
     documentType: "Combatant",
-    updates: [{ _id: "qa-combatant", initiative: 7 }]
+    updates: [
+      { _id: "qa-character", initiative: 12 },
+      { _id: "qa-antagonist", initiative: 8 }
+    ]
   }]);
 });
 
