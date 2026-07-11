@@ -133,6 +133,8 @@ async function assertProductionUxScaffold() {
   const requiredLocalizationKeys = [
     "PTG.Settings.ShowGMSetupOnReady.Name",
     "PTG.Settings.ShowGMSetupOnReady.Hint",
+    "PTG.Settings.AutoOpenTerritoryInterface.Name",
+    "PTG.Settings.AutoOpenTerritoryInterface.Hint",
     "PTG.Settings.GMSetupFirstRunComplete.Name",
     "PTG.Setup.WindowTitle",
     "PTG.Setup.ControlTitle",
@@ -165,8 +167,18 @@ async function assertProductionUxScaffold() {
   }
 
   const entryPoint = await readText("part-time-gods.js");
-  for (const token of ["registerGMSetupSettings()", "registerGMSetupControls()", "maybeOpenFirstRunGMSetup()", "openTerritoryInterface"]) {
+  for (const token of ["registerGMSetupSettings()", "registerGMSetupControls()", "maybeOpenFirstRunGMSetup()", "registerTerritoryGridSettings()", "maybeOpenTerritoryInterfaceOnReady()", "openTerritoryInterface"]) {
     if (!entryPoint.includes(token)) errors.push(`Main entry point missing ${token}`);
+  }
+
+  const territoryModule = await readText("module/apps/territory-grid-app.mjs");
+  for (const token of ["registerTerritoryGridSettings", "maybeOpenTerritoryInterfaceOnReady", "autoOpenTerritoryInterface", "canEditTerritory", "view-point", "findTerritoryScene"]) {
+    if (!territoryModule.includes(token)) errors.push(`Integrated Territory interface missing ${token}`);
+  }
+
+  const territoryTemplate = await readText("templates/apps/territory-grid-app.hbs");
+  for (const token of ["{{#unless canEditTerritory}}", "ptg-territory-overlay-note", "view-point"]) {
+    if (!territoryTemplate.includes(token)) errors.push(`Territory overlay template missing ${token}`);
   }
 
   const setupTemplate = await readText("templates/apps/gm-setup-panel.hbs");
@@ -196,7 +208,10 @@ async function assertProductionUxScaffold() {
     ".ptg-career-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-attachment-definition-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-condition-recovery-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
-    ".ptg-print-title-field input"
+    ".ptg-print-title-field input",
+    ".ptg-territory-overlay-note",
+    ".ptg-territory-grid-app.is-readonly",
+    ".ptg-territory-point-details"
   ];
   for (const token of readableSurfaceTokens) {
     if (!stylesheet.includes(token)) errors.push(`Readable sheet/dialog stylesheet guard missing ${token}`);

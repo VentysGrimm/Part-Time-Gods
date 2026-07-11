@@ -1,4 +1,4 @@
-<section class="ptg-territory-grid-app">
+<section class="ptg-territory-grid-app {{#unless canEditTerritory}}is-readonly{{/unless}}">
   <header class="ptg-territory-grid-header">
     <label class="ptg-territory-scene-picker">
       <span>Scene</span>
@@ -10,7 +10,7 @@
       </select>
     </label>
     <div class="ptg-territory-grid-actions">
-      {{#if isGM}}
+      {{#if canEditTerritory}}
         <button type="button" data-action="create-scene" title="Create or update the God Territory Grid scene">
           <i class="fas fa-map"></i>
           <span>Scene</span>
@@ -32,8 +32,16 @@
   </header>
 
   {{#if scene}}
+    {{#unless canEditTerritory}}
+      <section class="ptg-territory-overlay-note">
+        <strong>{{modeLabel}}</strong>
+        <span>{{modeHint}}</span>
+      </section>
+    {{/unless}}
+
     <section class="ptg-territory-grid-summary">
       <strong>{{scene.name}}</strong>
+      <span>{{modeLabel}}</span>
       <span>{{pointCount}} points</span>
       <span>{{bonusCellCount}} influenced cells</span>
     </section>
@@ -60,11 +68,11 @@
                 <div class="ptg-territory-cell-points">
                   {{#each cell.points as |point|}}
                     <article class="ptg-territory-point {{point.categoryClass}}">
-                      <button type="button" class="ptg-territory-point-main" data-action="edit-point" data-point-id="{{point.id}}" title="Edit {{point.name}}" {{#unless @root.isGM}}disabled{{/unless}}>
+                      <button type="button" class="ptg-territory-point-main" data-action="{{#if @root.canEditTerritory}}edit-point{{else}}view-point{{/if}}" data-point-id="{{point.id}}" title="{{#if @root.canEditTerritory}}Edit{{else}}View{{/if}} {{point.name}}">
                         <strong>{{point.name}}</strong>
                         <small>{{point.categoryLabel}}{{#if point.level}} L{{point.level}}{{/if}}</small>
                       </button>
-                      {{#if @root.isGM}}
+                      {{#if @root.canEditTerritory}}
                         <button type="button" class="ptg-territory-point-delete" data-action="delete-point" data-point-id="{{point.id}}" title="Delete {{point.name}}">
                           <i class="fas fa-trash"></i>
                         </button>
@@ -73,7 +81,7 @@
                   {{/each}}
                 </div>
 
-                {{#if @root.isGM}}
+                {{#if @root.canEditTerritory}}
                   <button type="button" class="ptg-territory-cell-add" data-action="create-point" data-x="{{cell.x}}" data-y="{{cell.y}}" title="Add point at {{cell.label}}">
                     <i class="fas fa-plus"></i>
                   </button>
@@ -92,7 +100,7 @@
           <ol>
             {{#each points as |point|}}
               <li class="{{point.categoryClass}}">
-                <button type="button" data-action="edit-point" data-point-id="{{point.id}}" title="Edit {{point.name}}" {{#unless @root.isGM}}disabled{{/unless}}>
+                <button type="button" data-action="{{#if @root.canEditTerritory}}edit-point{{else}}view-point{{/if}}" data-point-id="{{point.id}}" title="{{#if @root.canEditTerritory}}Edit{{else}}View{{/if}} {{point.name}}">
                   <strong>{{point.name}}</strong>
                   <span>{{point.x}}-{{point.y}} - {{point.categoryLabel}}{{#if point.level}} - L{{point.level}}{{/if}}</span>
                   {{#if point.owner}}<small>{{point.owner}}</small>{{/if}}
@@ -108,12 +116,14 @@
   {{else}}
     <section class="ptg-territory-grid-empty">
       <h2>Territory Grid</h2>
-      <p>Create or select the God Territory Grid scene to begin storing points.</p>
-      {{#if isGM}}
+      {{#if canEditTerritory}}
+        <p>Create or select the God Territory Grid scene to begin storing points.</p>
         <button type="button" data-action="create-scene">
           <i class="fas fa-map"></i>
           <span>Create Scene</span>
         </button>
+      {{else}}
+        <p>No Territory scene is available yet.</p>
       {{/if}}
     </section>
   {{/if}}

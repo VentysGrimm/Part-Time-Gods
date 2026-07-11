@@ -51,6 +51,10 @@
         "Name": "Show the Part-Time Gods GM setup panel on first GM login",
         "Hint": "Opens the setup panel once in a fresh world so GMs can find compendium population, territory, combat, opposition, and rules tools without slash commands."
       },
+      "AutoOpenTerritoryInterface": {
+        "Name": "Auto-open the Territory interface on world ready",
+        "Hint": "Starts the integrated Territory interface when the world loads. GMs can create/open the Territory scene; players see the read-only overlay when a Territory scene exists."
+      },
       "GMSetupFirstRunComplete": {
         "Name": "GM setup first-run flow completed"
       },

@@ -684,7 +684,8 @@
 }
 
 .ptg-territory-grid-header,
-.ptg-territory-grid-summary {
+.ptg-territory-grid-summary,
+.ptg-territory-overlay-note {
   flex: 0 0 auto;
   display: grid;
   gap: 8px;
@@ -754,15 +755,29 @@
 }
 
 .ptg-territory-grid-summary {
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) repeat(3, auto);
   color: #000000;
   font-weight: 700;
 }
 
+.ptg-territory-overlay-note {
+  grid-template-columns: auto minmax(0, 1fr);
+  color: #000000;
+  font-weight: 700;
+}
+
+.ptg-territory-overlay-note strong,
 .ptg-territory-grid-summary span {
   padding: 3px 6px;
   border: 1px solid #826042;
   background: #ffffff;
+  color: #000000;
+  font-size: 12px;
+}
+
+.ptg-territory-overlay-note span {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: #000000;
   font-size: 12px;
 }
@@ -887,6 +902,17 @@
 .ptg-territory-point-main:disabled,
 .ptg-territory-point-list button:disabled {
   opacity: 1;
+}
+
+.ptg-territory-grid-app.is-readonly .ptg-territory-point-main,
+.ptg-territory-grid-app.is-readonly .ptg-territory-point-list button {
+  cursor: pointer;
+}
+
+.ptg-territory-grid-app.is-readonly .ptg-territory-point-main:hover,
+.ptg-territory-grid-app.is-readonly .ptg-territory-point-list button:hover {
+  border-color: #3d1f5d;
+  background: #f5effc;
 }
 
 .ptg-territory-point-main strong,
@@ -1015,6 +1041,45 @@
 
 .ptg-territory-import-dialog select[multiple] {
   min-height: 12rem;
+}
+
+.ptg-territory-point-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.ptg-territory-point-details div,
+.ptg-territory-point-notes {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #826042;
+  background: #ffffff;
+  color: #000000;
+}
+
+.ptg-territory-point-details dt {
+  margin: 0 0 3px;
+  color: #3d1f5d;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ptg-territory-point-details dd,
+.ptg-territory-point-notes p {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #000000;
+  font-weight: 700;
+}
+
+.ptg-territory-point-notes h3 {
+  margin: 0 0 4px;
+  color: #3d1f5d;
+  font-size: 13px;
 }
 
 .ptg-gm-setup-window .window-content,

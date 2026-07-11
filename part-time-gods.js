@@ -42,9 +42,11 @@ import {
   clearTerritoryGrid,
   createOrOpenTerritoryGridScene,
   getTerritoryGrid,
+  maybeOpenTerritoryInterfaceOnReady,
   openTerritoryInterface,
   openTerritoryGridApp,
   registerTerritoryGridControls,
+  registerTerritoryGridSettings,
   setTerritoryGrid
 } from "./module/apps/territory-grid-app.mjs";
 import {
@@ -81,6 +83,7 @@ Hooks.once("init", async () => {
     importGodTerritoryScene,
     openTerritoryControls,
     openTerritoryInterface,
+    maybeOpenTerritoryInterfaceOnReady,
     openTerritoryGridApp,
     createOrOpenTerritoryGridScene,
     getTerritoryGrid,
@@ -105,6 +108,7 @@ Hooks.once("init", async () => {
   game.ptg.territory = {
     open: openTerritoryInterface,
     openInterface: openTerritoryInterface,
+    autoOpen: maybeOpenTerritoryInterfaceOnReady,
     createScene: createOrOpenTerritoryGridScene,
     getGrid: getTerritoryGrid,
     setGrid: setTerritoryGrid,
@@ -119,6 +123,7 @@ Hooks.once("init", async () => {
   };
 
   registerPTGCombatHooks();
+  registerTerritoryGridSettings();
   registerTerritoryGridControls();
   registerGMSetupControls();
   registerPTGChatCardActions();
@@ -216,7 +221,10 @@ Hooks.once("init", async () => {
 Hooks.once("ready", async () => {
   console.log("Part-Time Gods 2E | Ready");
 
-  if (!game.user?.isGM) return;
+  if (!game.user?.isGM) {
+    await maybeOpenTerritoryInterfaceOnReady();
+    return;
+  }
 
   await runPTGMigrations({ notify: true });
   try {
@@ -242,6 +250,7 @@ Hooks.once("ready", async () => {
   }
 
   await maybeOpenFirstRunGMSetup();
+  await maybeOpenTerritoryInterfaceOnReady();
 });
 
 Hooks.on("dropCanvasData", async (canvas, data) => {

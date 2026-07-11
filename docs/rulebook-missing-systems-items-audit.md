@@ -25,8 +25,8 @@ The PDF pass covered 318 PDF pages, with 310 non-empty text pages. The PDF outli
 | Gear | 14 Armor Items and 9 Weapon Items from book pp. 210-212 | Covered |
 | Opposition and pregens | 62 premade Actors: 53 antagonist Actors covering animals, mortals, the Touched, other-god templates, Outsiders, and custom threat bands, plus 9 metadata-only Backers' Pregens character placeholders | Covered |
 | Roll tables | 86 RollTables covering random character creation, PDF p. 285 / book p. 283 archetype option rolls, random territory coordinates, and territory crawl helpers | Covered |
-| Workflow entry points | Native GM setup, Pantheon sheet, Antagonist sheet, unified Territory interface, and scene-control entry points cover territory, combat, balance, Pantheon Pool, opposition building, story workflow, and the table tools hub. The 8 Macro documents are compatibility launchers only. | Covered |
-| Territory grid | Premade Scene plus territory controls for movement, costs, influence, notes, and position flags | Partly automated |
+| Workflow entry points | Native GM setup, Pantheon sheet, Antagonist sheet, integrated auto-start Territory interface, and scene-control entry points cover territory, combat, balance, Pantheon Pool, opposition building, story workflow, and the table tools hub. The 8 Macro documents are compatibility launchers only. | Covered |
+| Territory grid | Premade Scene plus integrated Territory interface for GM editing, player read-only overlay viewing, movement, costs, influence, notes, and position flags | Partly automated |
 | Character sheet workflows | Sheet tabs, item controls, structured conditions, XP, Spark, resources, ritual/power item rolls, Worshipper prayer requests, Vassal tasks, and roll workflows | Automated for core play loops |
 
 ## Likely Missing Or Thin Systems

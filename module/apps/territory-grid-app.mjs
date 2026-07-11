@@ -1,5 +1,5 @@
 import { importGodTerritoryScene } from "../data/premade-scenes.mjs";
-import { SYSTEM_ID } from "../util/localization.mjs";
+import { SYSTEM_ID, localize } from "../util/localization.mjs";
 
 const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -25,14 +25,40 @@ const CATEGORY_LABELS = Object.fromEntries(POINT_CATEGORIES.map(category => [cat
 
 let territoryGridApp = null;
 
+export function registerTerritoryGridSettings() {
+  game.settings.register(SYSTEM_ID, "autoOpenTerritoryInterface", {
+    name: localize("PTG.Settings.AutoOpenTerritoryInterface.Name"),
+    hint: localize("PTG.Settings.AutoOpenTerritoryInterface.Hint"),
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true
+  });
+}
+
+export async function maybeOpenTerritoryInterfaceOnReady() {
+  if (!game.settings.get(SYSTEM_ID, "autoOpenTerritoryInterface")) return false;
+
+  const scene = findTerritoryScene();
+  if (!scene && !game.user?.isGM) return false;
+
+  await openTerritoryInterface({
+    scene,
+    ensureScene: Boolean(game.user?.isGM && !scene),
+    activate: false,
+    notify: false
+  });
+  return true;
+}
+
 export function registerTerritoryGridControls() {
   Hooks.on("getSceneControlButtons", controls => {
     const tool = {
       name: "ptg-territory-grid",
-      title: "PTG Territory Interface",
+      title: game.user?.isGM ? "PTG Territory Interface" : "PTG Territory Overlay",
       icon: "fas fa-map",
       button: true,
-      visible: Boolean(game.user?.isGM),
+      visible: Boolean(game.user?.isGM || findTerritoryScene()),
       onClick: () => openTerritoryInterface()
     };
 
@@ -90,7 +116,7 @@ export async function createOrOpenTerritoryGridScene({ activate = false, notify 
   return scene;
 }
 
-export async function openTerritoryInterface({ scene = getTerritoryScene(), ensureScene = false, activate = false, notify = true } = {}) {
+export async function openTerritoryInterface({ scene = getTerritoryScene({ allowFallback: Boolean(game.user?.isGM) }), ensureScene = false, activate = false, notify = true } = {}) {
   let targetScene = scene;
 
   if (ensureScene) {
@@ -106,7 +132,7 @@ export async function openTerritoryInterface({ scene = getTerritoryScene(), ensu
   return openTerritoryGridApp({ scene: targetScene });
 }
 
-export function openTerritoryGridApp({ scene = getTerritoryScene() } = {}) {
+export function openTerritoryGridApp({ scene = getTerritoryScene({ allowFallback: Boolean(game.user?.isGM) }) } = {}) {
   if (!territoryGridApp) territoryGridApp = new TerritoryGridApp();
   if (scene) territoryGridApp.setScene(scene);
   territoryGridApp.render({ force: true });
@@ -119,6 +145,11 @@ export function getTerritoryGrid(scene = getTerritoryScene()) {
 
 export async function setTerritoryGrid(scene, grid) {
   if (!scene) return null;
+  if (!game.user?.isGM) {
+    ui.notifications.warn("Only a GM can edit Territory Grid points.");
+    return null;
+  }
+
   const cleanGrid = {
     ...normalizeTerritoryGrid(grid, scene.getFlag?.(SYSTEM_ID, LEGACY_FLAG_KEY)),
     updatedAt: new Date().toISOString()
@@ -129,6 +160,11 @@ export async function setTerritoryGrid(scene, grid) {
 
 export async function clearTerritoryGrid(scene = getTerritoryScene()) {
   if (!scene) return null;
+  if (!game.user?.isGM) {
+    ui.notifications.warn("Only a GM can clear Territory Grid points.");
+    return null;
+  }
+
   const grid = createEmptyTerritoryGrid();
   await scene.setFlag(SYSTEM_ID, FLAG_KEY, {
     ...grid,
@@ -290,10 +326,16 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const grid = scene ? await this.#gridForScene(scene) : createEmptyTerritoryGrid();
     const gridCells = buildTerritoryGridCells(grid);
     const influence = calculateTerritoryInfluence(grid.points);
+    const canEditTerritory = Boolean(game.user?.isGM);
 
     return {
       ...context,
-      isGM: Boolean(game.user?.isGM),
+      isGM: canEditTerritory,
+      canEditTerritory,
+      modeLabel: canEditTerritory ? "GM Controls" : "Player Overlay",
+      modeHint: canEditTerritory
+        ? "Create, import, edit, and clear Territory Grid points."
+        : "Read-only Territory Grid overlay. Open a point to view its details.",
       scene: scene ? { uuid: scene.uuid, id: scene.id, name: scene.name } : null,
       sceneOptions: territorySceneOptions(scene),
       grid,
@@ -340,6 +382,7 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
       y: Number(button.dataset.y ?? 1)
     });
     if (action === "edit-point") return this.#editPoint(button.dataset.pointId);
+    if (action === "view-point") return this.#viewPoint(button.dataset.pointId);
     if (action === "delete-point") return this.#deletePoint(button.dataset.pointId);
 
     return null;
@@ -355,7 +398,7 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
       }
     }
 
-    const scene = getTerritoryScene();
+    const scene = getTerritoryScene({ allowFallback: Boolean(game.user?.isGM) });
     this.#sceneUuid = scene?.uuid ?? "";
     return scene;
   }
@@ -410,6 +453,17 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     await setTerritoryGrid(scene, { ...grid, points });
     this.render({ force: true });
     return point;
+  }
+
+  async #viewPoint(pointId) {
+    const scene = await this.#selectedScene();
+    if (!scene || !pointId) return null;
+
+    const grid = getTerritoryGrid(scene);
+    const point = grid.points.find(candidate => candidate.id === pointId);
+    if (!point) return null;
+
+    return promptTerritoryPointDetails(point);
   }
 
   async #deletePoint(pointId) {
@@ -515,11 +569,19 @@ async function ensureStoredTerritoryGrid(scene) {
   return grid;
 }
 
-function getTerritoryScene() {
+function findTerritoryScene() {
   const activeScene = globalThis.canvas?.scene ?? game.scenes?.active;
   if (isTerritoryScene(activeScene)) return activeScene;
 
-  return game.scenes?.find(scene => isTerritoryScene(scene)) ?? activeScene ?? null;
+  return game.scenes?.find(scene => isTerritoryScene(scene)) ?? null;
+}
+
+function getTerritoryScene({ allowFallback = true } = {}) {
+  const territoryScene = findTerritoryScene();
+  if (territoryScene) return territoryScene;
+
+  const activeScene = globalThis.canvas?.scene ?? game.scenes?.active;
+  return allowFallback ? activeScene ?? null : null;
 }
 
 function isTerritoryScene(scene) {
@@ -702,6 +764,42 @@ async function promptTerritoryPoint(point = null, defaults = {}) {
         owner: button.form.elements.owner?.value?.trim() ?? "",
         notes: button.form.elements.notes?.value?.trim() ?? ""
       })
+    }
+  });
+}
+
+async function promptTerritoryPointDetails(point) {
+  const categoryLabel = CATEGORY_LABELS[point.category] ?? point.category;
+  const detailRows = [
+    ["Coordinate", coordinateKey(point.x, point.y)],
+    ["Category", categoryLabel],
+    point.owner ? ["Owner", point.owner] : null,
+    point.level ? ["Level", String(point.level)] : null,
+    point.sourceActorUuid ? ["Actor", point.sourceActorUuid] : null,
+    point.sourceItemUuid ? ["Source Item", point.sourceItemUuid] : null
+  ].filter(Boolean);
+  const rows = detailRows
+    .map(([label, value]) => `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`)
+    .join("");
+  const notes = point.notes
+    ? `<section class="ptg-territory-point-notes"><h3>Notes</h3><p>${escapeHTML(point.notes)}</p></section>`
+    : "";
+  const content = `
+    <div class="ptg-dialog-body ptg-territory-point-dialog">
+      <dl class="ptg-territory-point-details">${rows}</dl>
+      ${notes}
+    </div>
+  `;
+
+  return DialogV2.prompt({
+    window: { title: `Territory Point: ${point.name}`, resizable: true },
+    classes: ["part-time-gods", "ptg-sheet-dialog", "ptg-territory-point-window"],
+    content,
+    rejectClose: false,
+    modal: false,
+    ok: {
+      label: "Close",
+      callback: () => true
     }
   });
 }
