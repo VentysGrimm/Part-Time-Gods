@@ -184,6 +184,23 @@ async function assertProductionUxScaffold() {
   for (const key of ["PTG.Help.PantheonPool", "PTG.Help.Fragments", "PTG.Help.Spark", "PTG.Help.Strain"]) {
     if (!pantheonTemplate.includes(key)) errors.push(`Pantheon sheet missing localized help key ${key}`);
   }
+
+  const stylesheet = await readText("styles/part-time-gods.css");
+  const readableSurfaceTokens = [
+    "--ptg-sheet-paper",
+    ".part-time-gods.sheet.item .window-content",
+    ".ptg-sheet :where(input:not([type=\"checkbox\"]), select, textarea)",
+    "var(--ptg-sheet-field, #ffffff)",
+    ".ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable=\"true\"])",
+    ".ptg-condition-create-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
+    ".ptg-career-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
+    ".ptg-attachment-definition-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
+    ".ptg-condition-recovery-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
+    ".ptg-print-title-field input"
+  ];
+  for (const token of readableSurfaceTokens) {
+    if (!stylesheet.includes(token)) errors.push(`Readable sheet/dialog stylesheet guard missing ${token}`);
+  }
 }
 
 async function assertChapterFourRulesScaffold() {

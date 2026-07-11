@@ -6,6 +6,7 @@
 - Added a party-style Mortal-Divine Balance roster and documented workflow macros as compatibility launchers for native sheet, scene, and GM setup entry points.
 - Began unifying Territory scene setup and controls behind one native Territory interface API.
 - Enforced `package.json`/`system.json` version parity and made release ZIP builds clear stale versioned artifacts from `dist/`.
+- Tightened Character title rows, Item sheet fields, rich text editor boxes, and PTG dialog/popout input colors so plain Foundry dialogs stay readable.
 
 ## 0.0.2 - 2026-06-30
 
