@@ -1,4 +1,18 @@
 <form class="ptg-sheet ptg-character-sheet" autocomplete="off">
+  <section class="ptg-edit-lock-bar {{#if sheetLocked}}is-locked{{else}}{{#if sheetUnlocked}}is-unlocked{{else}}is-readonly{{/if}}{{/if}}" aria-label="Sheet edit lock">
+    {{#if canEditSheet}}
+      <button type="button" class="ptg-edit-lock-toggle" data-ptg-edit-lock-toggle aria-pressed="{{#if sheetUnlocked}}true{{else}}false{{/if}}" title="{{sheetLockTitle}}">
+        <span>{{sheetLockState}}</span>
+        <small>{{sheetLockHint}}</small>
+      </button>
+    {{else}}
+      <div class="ptg-edit-lock-readonly">
+        <span>{{sheetLockState}}</span>
+        <small>{{sheetLockHint}}</small>
+      </div>
+    {{/if}}
+  </section>
+
   <nav class="ptg-page-tabs tabs" data-group="primary" aria-label="{{ptgLocalize "PTG.Sheet.CharacterPages"}}">
     <button type="button" class="item active" data-group="primary" data-tab="front" data-ptg-tab="front" title="{{ptgLocalize "PTG.Sheet.PrintedPage1"}}">{{ptgLocalize "PTG.Sheet.Page1"}}</button>
     <button type="button" class="item" data-group="primary" data-tab="back" data-ptg-tab="back" title="{{ptgLocalize "PTG.Sheet.PrintedPage2"}}">{{ptgLocalize "PTG.Sheet.Page2"}}</button>

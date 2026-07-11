@@ -14,6 +14,7 @@
 - Expanded Territory points with rulebook-facing public/GM metadata for control source, boundary status, discovery state, footprint, linked records, and ritual/event tracking.
 - Reworked the Mortal-Divine Balance tracker startup into a party-style GM roster with tracked character persistence, character drag/drop/add/remove controls, and a read-only player view for owned characters.
 - Reworked Item sheet spacing so fields, selects, text areas, and rich-text sections keep readable sizing, with long rich-text Item sections now collapsible.
+- Added permission-aware edit locks to Character, Antagonist, Pantheon, and Item sheets so they open protected against accidental edits until explicitly unlocked.
 
 ## 0.0.2 - 2026-06-30
 

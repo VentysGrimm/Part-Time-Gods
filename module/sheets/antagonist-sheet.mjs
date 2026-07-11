@@ -1,4 +1,5 @@
 import { openAntagonistBuilder } from "../data/premade-actors.mjs";
+import { mergeSheetEditLockContext, wireSheetEditLock } from "./sheet-edit-lock.mjs";
 
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -23,7 +24,7 @@ export class PTGAntagonistSheet extends HandlebarsApplicationMixin(ActorSheetV2)
   };
 
   async _prepareContext(options) {
-    const context = await super._prepareContext(options);
+    const context = mergeSheetEditLockContext(await super._prepareContext(options), this, this.actor);
 
     context.actor = this.actor;
     context.system = this.actor.system;
@@ -34,6 +35,7 @@ export class PTGAntagonistSheet extends HandlebarsApplicationMixin(ActorSheetV2)
 
   async _onRender(context, options) {
     await super._onRender(context, options);
+    wireSheetEditLock(this, this.element, this.actor);
 
     this.element.querySelector("[data-antagonist-builder]")?.addEventListener("click", () => openAntagonistBuilder());
   }

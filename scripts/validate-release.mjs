@@ -216,6 +216,9 @@ async function assertProductionUxScaffold() {
     "min-height: 2.5rem",
     "var(--ptg-sheet-field, #ffffff)",
     "details.ptg-editor-section",
+    ".ptg-edit-lock-bar",
+    ".ptg-sheet.is-locked",
+    "[data-edit][data-ptg-edit-locked=\"true\"]",
     ".ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable=\"true\"])",
     ".part-time-gods.sheet.item :where(.form-group.stacked) .editor",
     ".ptg-condition-create-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
@@ -243,6 +246,22 @@ async function assertProductionUxScaffold() {
   const itemTemplate = await readText("templates/item/item-sheet.hbs");
   for (const token of ["<details class=\"ptg-editor-section\" open>", "<summary><span>", "<details class=\"ptg-editor-section ptg-rules-explanation\" open>"]) {
     if (!itemTemplate.includes(token)) errors.push(`Item sheet collapsible editor guard missing ${token}`);
+  }
+
+  for (const template of [
+    "templates/actor/character-sheet.hbs",
+    "templates/actor/antagonist-sheet.hbs",
+    "templates/actor/pantheon-sheet.hbs",
+    "templates/item/item-sheet.hbs"
+  ]) {
+    const source = await readText(template);
+    if (!source.includes("data-ptg-edit-lock-toggle")) errors.push(`${template} missing sheet edit lock toggle`);
+    if (!source.includes("sheetLocked") || !source.includes("canEditSheet")) errors.push(`${template} missing sheet edit lock context`);
+  }
+
+  const lockHelper = await readText("module/sheets/sheet-edit-lock.mjs");
+  for (const token of ["sheetEditLockContext", "wireSheetEditLock", "isSheetEditLocked", "toggleSheetEditLock", "WeakSet"]) {
+    if (!lockHelper.includes(token)) errors.push(`Sheet edit lock helper missing ${token}`);
   }
 }
 

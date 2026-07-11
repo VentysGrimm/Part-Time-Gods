@@ -3,6 +3,7 @@ import { getDragEventData, itemFromDropData } from "../util/drop-data.mjs";
 import { localizeFallback } from "../util/localization.mjs";
 import { openPantheonPoolDialog, pantheonPoolMax, pantheonPoolOptions, spendPantheonDiceForActor } from "../workflows/pantheon-pool-workflow.mjs";
 import { generateRandomGod } from "../util/random-god-generator.mjs";
+import { isSheetEditLocked, mergeSheetEditLockContext, wireSheetEditLock } from "./sheet-edit-lock.mjs";
 
 const SYSTEM_ID = "part-time-gods";
 const PTG_DIALOG_CLASSES = ["part-time-gods", "ptg-sheet-dialog"];
@@ -39,12 +40,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   };
 
   static async _onSubmit(event, form, formData) {
+    if (isSheetEditLocked(this, this.actor)) return false;
     const data = formData?.object ?? {};
     return this.actor.update(data);
   }
 
   async _prepareContext(options) {
-    const context = await super._prepareContext(options);
+    const context = mergeSheetEditLockContext(await super._prepareContext(options), this, this.actor);
 
     context.actor = this.actor;
     context.system = this.actor.system;
@@ -79,6 +81,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
   async _onRender(context, options) {
     await super._onRender(context, options);
+    wireSheetEditLock(this, this.element, this.actor);
 
     for (const tab of this.element.querySelectorAll("[data-ptg-tab]")) {
       tab.addEventListener("click", event => this.#activateTab(event.currentTarget.dataset.ptgTab));
@@ -138,6 +141,11 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   }
 
   async _onDrop(event) {
+    if (isSheetEditLocked(this, this.actor)) {
+      ui.notifications.warn("Unlock this sheet before dropping Items onto it.");
+      return false;
+    }
+
     const data = getDragEventData(event);
     const item = await itemFromDropData(data);
     const sectionType = event.target.closest("[data-item-drop-type]")?.dataset.itemDropType ?? "";

@@ -28,6 +28,7 @@ test("character sheet drop copies the #131 item matrix into actor inventory", as
   const appliedChoices = [];
   const actor = {
     uuid: "Actor.qa-character",
+    isOwner: true,
     async createEmbeddedDocuments(documentType, documents) {
       createdDocuments.push({ documentType, documents });
       return documents.map(data => ({
@@ -43,7 +44,9 @@ test("character sheet drop copies the #131 item matrix into actor inventory", as
   };
 
   const { PTGCharacterSheet } = await import("../../module/sheets/character-sheet.mjs?matrix-drop");
+  const { toggleSheetEditLock } = await import("../../module/sheets/sheet-edit-lock.mjs");
   const sheet = Object.assign(Object.create(PTGCharacterSheet.prototype), { actor });
+  toggleSheetEditLock(sheet);
 
   for (const type of DROP_MATRIX_TYPES) {
     const item = matrixItem(type);
@@ -89,6 +92,7 @@ test("character sheet drop rejects items in mismatched typed sections", async ()
   let created = false;
   const actor = {
     uuid: "Actor.qa-character",
+    isOwner: true,
     async createEmbeddedDocuments() {
       created = true;
       return [];
@@ -96,7 +100,9 @@ test("character sheet drop rejects items in mismatched typed sections", async ()
   };
 
   const { PTGCharacterSheet } = await import("../../module/sheets/character-sheet.mjs?typed-drop");
+  const { toggleSheetEditLock } = await import("../../module/sheets/sheet-edit-lock.mjs");
   const sheet = Object.assign(Object.create(PTGCharacterSheet.prototype), { actor });
+  toggleSheetEditLock(sheet);
   const result = await sheet._onDrop(dropEvent(
     { type: "Item", id: armor.id },
     { dataset: { itemDropType: "truth" } }
