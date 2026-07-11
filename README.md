@@ -43,6 +43,7 @@ See `docs/issue-35-implementation-summary.md` for the current source-backed Foun
 
 Additional release and source notes:
 
+- `docs/development-branch-workflow.md`
 - `docs/compendium-source-pipeline.md`
 - `docs/legal-release-audit.md`
 - `CHANGELOG.md`
