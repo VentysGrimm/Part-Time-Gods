@@ -3,6 +3,7 @@ const unlockedSheets = new WeakSet();
 const ALLOWED_LOCKED_BUTTON_SELECTOR = [
   "[data-ptg-edit-lock-toggle]",
   "[data-ptg-tab]",
+  "[data-item-action='toggle-details']",
   ".tabs [data-tab]",
   ".sheet-tabs [data-tab]"
 ].join(", ");

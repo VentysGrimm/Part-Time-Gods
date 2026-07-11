@@ -1608,13 +1608,87 @@ function normalizeCreatorChoiceKey(item) {
 }
 
 function itemDetail(label, value) {
-  const text = String(value ?? "").trim();
-  if (!text) return null;
+  const html = sheetDetailDisplayHTML(value);
+  if (!html) return null;
 
   return {
     label,
-    html: text.includes("<") ? text : `<p>${escapeHTML(text)}</p>`
+    html
   };
+}
+
+const DETAIL_ALLOWED_TAGS = new Set(["a", "blockquote", "br", "code", "em", "i", "li", "ol", "p", "pre", "strong", "b", "table", "tbody", "td", "th", "thead", "tr", "ul"]);
+const DETAIL_ENTITY_MAP = {
+  amp: "&",
+  apos: "'",
+  gt: ">",
+  lt: "<",
+  quot: '"',
+  "#39": "'"
+};
+
+export function sheetDetailDisplayHTML(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+
+  const decoded = decodeSheetDetailEntities(raw);
+  const htmlSource = containsAllowedSheetDetailTag(decoded) ? decoded : raw;
+  if (containsAllowedSheetDetailTag(htmlSource)) return sanitizeSheetDetailHTML(htmlSource);
+
+  return `<p>${escapeHTML(decoded)}</p>`;
+}
+
+function decodeSheetDetailEntities(value) {
+  return String(value ?? "").replace(/&(#\d+|#x[\da-f]+|[a-z]+);/gi, (match, entity) => {
+    const key = entity.toLowerCase();
+    if (Object.hasOwn(DETAIL_ENTITY_MAP, key)) return DETAIL_ENTITY_MAP[key];
+    if (key.startsWith("#x")) {
+      const codePoint = Number.parseInt(key.slice(2), 16);
+      return isValidCodePoint(codePoint) ? String.fromCodePoint(codePoint) : match;
+    }
+    if (key.startsWith("#")) {
+      const codePoint = Number.parseInt(key.slice(1), 10);
+      return isValidCodePoint(codePoint) ? String.fromCodePoint(codePoint) : match;
+    }
+    return match;
+  });
+}
+
+function containsAllowedSheetDetailTag(value) {
+  return /<\/?(a|blockquote|br|code|em|i|li|ol|p|pre|strong|b|table|tbody|td|th|thead|tr|ul)\b/i.test(String(value ?? ""));
+}
+
+function sanitizeSheetDetailHTML(value) {
+  const stripped = decodeSheetDetailEntities(value)
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<\s*(script|style|iframe|object|embed|svg|math)\b[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+    .replace(/<\s*(script|style|iframe|object|embed|svg|math)\b[^>]*\/?\s*>/gi, "");
+
+  const sanitized = stripped.replace(/<\/?([a-z][\w-]*)([^>]*)>/gi, (match, tag, attributes) => {
+    const name = tag.toLowerCase();
+    if (!DETAIL_ALLOWED_TAGS.has(name)) return "";
+    if (match.startsWith("</")) return `</${name}>`;
+    if (name === "br") return "<br>";
+    if (name === "a") return sanitizeSheetDetailLink(attributes);
+    return `<${name}>`;
+  }).trim();
+
+  return sanitized || `<p>${escapeHTML(stripSheetDetailHTML(stripped))}</p>`;
+}
+
+function sanitizeSheetDetailLink(attributes) {
+  const href = String(attributes ?? "").match(/\bhref\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i);
+  const url = decodeSheetDetailEntities(href?.[2] ?? href?.[3] ?? href?.[4] ?? "").trim();
+  if (!/^(https?:|mailto:|#|\/)/i.test(url)) return "<a>";
+  return `<a href="${escapeHTML(url)}" target="_blank" rel="noreferrer">`;
+}
+
+function isValidCodePoint(value) {
+  return Number.isInteger(value) && value >= 0 && value <= 0x10FFFF;
+}
+
+function stripSheetDetailHTML(value) {
+  return String(value ?? "").replace(/<[^>]*>/g, "").trim();
 }
 
 function resourceTrack(key, labelKey, fallbackLabel, resource, formula, minimumBoxes = 0, helpKey = "") {

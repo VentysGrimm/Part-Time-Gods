@@ -3774,20 +3774,57 @@ details.ptg-editor-section:not([open]) {
 
 .ptg-print-ability header,
 .ptg-print-truth header {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 8px;
+  align-items: start;
 }
 
 .ptg-print-ability header strong,
 .ptg-print-truth header strong {
+  grid-column: 1;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
+.ptg-print-ability header > span,
+.ptg-print-truth header > span {
+  grid-column: 1;
+  min-width: 0;
+  color: #3d1f5d;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.ptg-print-ability-actions {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+  justify-content: flex-end;
+  max-width: min(100%, 12rem);
+}
+
+.ptg-print-ability-actions button,
+.ptg-print-truth-actions button,
+.ptg-print-back .ptg-print-section-heading > button {
+  min-height: 20px;
+  padding: 2px 6px;
+  border-color: #6d5680;
+  background: #f7f3fb;
+  color: #111111;
+  font-size: 10px;
+  line-height: 1;
+  box-shadow: none;
+}
+
 .ptg-character-sheet .ptg-print-page .ptg-item-details {
+  display: grid;
+  gap: 6px;
   min-height: 0;
   max-height: 132px;
   overscroll-behavior: contain;
@@ -3795,10 +3832,38 @@ details.ptg-editor-section:not([open]) {
   padding-right: 2px;
 }
 
-.ptg-character-sheet .ptg-print-page .ptg-item-details > div {
+.ptg-character-sheet .ptg-print-page .ptg-item-details > :where(div, .ptg-sheet-detail) {
   min-height: 0;
   max-height: 118px;
   overflow: auto;
+}
+
+.ptg-character-sheet .ptg-print-page .ptg-sheet-detail {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 0.28fr) minmax(0, 1fr);
+  gap: 4px 8px;
+  min-width: 0;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.16);
+}
+
+.ptg-character-sheet .ptg-print-page .ptg-sheet-detail > strong {
+  min-width: 0;
+  color: #3d1f5d;
+  font-size: 11px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.ptg-character-sheet .ptg-print-page .ptg-sheet-detail-body {
+  min-width: 0;
+  max-height: 96px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: #111111;
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .ptg-character-sheet .ptg-print-page .ptg-item-details :where(p, ul, ol) {
@@ -3807,6 +3872,28 @@ details.ptg-editor-section:not([open]) {
 
 .ptg-character-sheet .ptg-print-page .ptg-item-details :where(ul, ol) {
   padding-left: 16px;
+}
+
+.ptg-character-sheet .ptg-print-page .ptg-sheet-detail-body :where(pre, code) {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@container (max-width: 360px) {
+  .ptg-character-sheet .ptg-print-page .ptg-sheet-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .ptg-print-ability header,
+  .ptg-print-truth header {
+    grid-template-columns: 1fr;
+  }
+
+  .ptg-print-ability-actions {
+    grid-column: 1;
+    grid-row: auto;
+    justify-content: flex-start;
+  }
 }
 
 .ptg-character-sheet .ptg-print-page .ptg-editor-section {

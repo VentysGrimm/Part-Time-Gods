@@ -201,6 +201,12 @@ async function assertProductionUxScaffold() {
   for (const key of ["PTG.Help.FreeTime", "PTG.Help.Wealth", "PTG.Help.Fragments", "PTG.Help.Spark", "PTG.Help.Strain", "PTG.Help.Conditions", "PTG.Help.ManifestationMeasures"]) {
     if (!characterTemplate.includes(key) && !characterSheet.includes(key)) errors.push(`Character sheet missing localized help key ${key}`);
   }
+  for (const token of ["ptg-print-ability-actions", "ptg-print-truth-actions", "ptg-sheet-detail-body"]) {
+    if (!characterTemplate.includes(token)) errors.push(`Character sheet ability readability markup missing ${token}`);
+  }
+  for (const token of ["sheetDetailDisplayHTML", "sanitizeSheetDetailHTML", "decodeSheetDetailEntities"]) {
+    if (!characterSheet.includes(token)) errors.push(`Character sheet detail display helper missing ${token}`);
+  }
 
   const pantheonTemplate = await readText("templates/actor/pantheon-sheet.hbs");
   for (const key of ["PTG.Help.PantheonPool", "PTG.Help.Fragments", "PTG.Help.Spark", "PTG.Help.Strain"]) {
@@ -219,6 +225,9 @@ async function assertProductionUxScaffold() {
     ".ptg-edit-lock-bar",
     ".ptg-sheet.is-locked",
     "[data-edit][data-ptg-edit-locked=\"true\"]",
+    ".ptg-print-ability-actions",
+    ".ptg-print-truth-actions button",
+    ".ptg-sheet-detail-body",
     ".ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable=\"true\"])",
     ".part-time-gods.sheet.item :where(.form-group.stacked) .editor",
     ".ptg-condition-create-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
@@ -260,7 +269,7 @@ async function assertProductionUxScaffold() {
   }
 
   const lockHelper = await readText("module/sheets/sheet-edit-lock.mjs");
-  for (const token of ["sheetEditLockContext", "wireSheetEditLock", "isSheetEditLocked", "toggleSheetEditLock", "WeakSet"]) {
+  for (const token of ["sheetEditLockContext", "wireSheetEditLock", "isSheetEditLocked", "toggleSheetEditLock", "WeakSet", "[data-item-action='toggle-details']"]) {
     if (!lockHelper.includes(token)) errors.push(`Sheet edit lock helper missing ${token}`);
   }
 }

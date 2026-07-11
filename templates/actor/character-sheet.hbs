@@ -299,16 +299,21 @@
             <article class="ptg-print-ability" data-item-id="{{item.id}}">
               <header>
                 <strong>{{item.name}}</strong>
-                {{#if item.hasDetails}}
-                  <button type="button" data-item-action="toggle-details" aria-expanded="{{item.expanded}}">{{#if item.expanded}}Hide{{else}}Details{{/if}}</button>
-                {{/if}}
-                <button type="button" data-item-action="edit">Edit</button>
+                <div class="ptg-print-ability-actions">
+                  {{#if item.hasDetails}}
+                    <button type="button" data-item-action="toggle-details" aria-expanded="{{item.expanded}}">{{#if item.expanded}}Hide{{else}}Details{{/if}}</button>
+                  {{/if}}
+                  <button type="button" data-item-action="edit">Edit</button>
+                </div>
               </header>
               {{#if item.hasDetails}}
                 {{#if item.expanded}}
                   <div class="ptg-item-details">
                     {{#each item.sheetDetails as |detail|}}
-                      <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                      <section class="ptg-sheet-detail">
+                        <strong>{{detail.label}}</strong>
+                        <div class="ptg-sheet-detail-body">{{{detail.html}}}</div>
+                      </section>
                     {{/each}}
                   </div>
                 {{/if}}
@@ -329,16 +334,21 @@
             <article class="ptg-print-ability" data-item-id="{{item.id}}">
               <header>
                 <strong>{{item.name}}</strong>
-                {{#if item.hasDetails}}
-                  <button type="button" data-item-action="toggle-details" aria-expanded="{{item.expanded}}">{{#if item.expanded}}Hide{{else}}Details{{/if}}</button>
-                {{/if}}
-                <button type="button" data-item-action="edit">Edit</button>
+                <div class="ptg-print-ability-actions">
+                  {{#if item.hasDetails}}
+                    <button type="button" data-item-action="toggle-details" aria-expanded="{{item.expanded}}">{{#if item.expanded}}Hide{{else}}Details{{/if}}</button>
+                  {{/if}}
+                  <button type="button" data-item-action="edit">Edit</button>
+                </div>
               </header>
               {{#if item.hasDetails}}
                 {{#if item.expanded}}
                   <div class="ptg-item-details">
                     {{#each item.sheetDetails as |detail|}}
-                      <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                      <section class="ptg-sheet-detail">
+                        <strong>{{detail.label}}</strong>
+                        <div class="ptg-sheet-detail-body">{{{detail.html}}}</div>
+                      </section>
                     {{/each}}
                   </div>
                 {{/if}}
@@ -387,7 +397,10 @@
               {{#if item.expanded}}
                 <div class="ptg-item-details">
                   {{#each item.sheetDetails as |detail|}}
-                    <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                    <section class="ptg-sheet-detail">
+                      <strong>{{detail.label}}</strong>
+                      <div class="ptg-sheet-detail-body">{{{detail.html}}}</div>
+                    </section>
                   {{/each}}
                 </div>
               {{/if}}
@@ -440,7 +453,10 @@
               {{#if item.expanded}}
                 <div class="ptg-item-details">
                   {{#each item.sheetDetails as |detail|}}
-                    <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                    <section class="ptg-sheet-detail">
+                      <strong>{{detail.label}}</strong>
+                      <div class="ptg-sheet-detail-body">{{{detail.html}}}</div>
+                    </section>
                   {{/each}}
                 </div>
               {{/if}}
@@ -470,7 +486,10 @@
               {{#if item.expanded}}
                 <div class="ptg-item-details">
                   {{#each item.sheetDetails as |detail|}}
-                    <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                    <section class="ptg-sheet-detail">
+                      <strong>{{detail.label}}</strong>
+                      <div class="ptg-sheet-detail-body">{{{detail.html}}}</div>
+                    </section>
                   {{/each}}
                 </div>
               {{/if}}
@@ -492,18 +511,23 @@
               <header>
                 <strong>{{item.name}}</strong>
                 <span>Level {{item.system.level}}</span>
-                {{#if item.hasDetails}}
-                  <button type="button" data-item-action="toggle-details" aria-expanded="{{item.expanded}}">{{#if item.expanded}}Hide{{else}}Details{{/if}}</button>
-                {{/if}}
-                <button type="button" data-item-action="use">Use</button>
-                <button type="button" data-item-action="edit">Edit</button>
-                <button type="button" data-item-action="delete">Delete</button>
+                <div class="ptg-print-ability-actions">
+                  {{#if item.hasDetails}}
+                    <button type="button" data-item-action="toggle-details" aria-expanded="{{item.expanded}}">{{#if item.expanded}}Hide{{else}}Details{{/if}}</button>
+                  {{/if}}
+                  <button type="button" data-item-action="use">Use</button>
+                  <button type="button" data-item-action="edit">Edit</button>
+                  <button type="button" data-item-action="delete">Delete</button>
+                </div>
               </header>
               {{#if item.hasDetails}}
                 {{#if item.expanded}}
                   <div class="ptg-item-details">
                     {{#each item.sheetDetails as |detail|}}
-                      <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                      <section class="ptg-sheet-detail">
+                        <strong>{{detail.label}}</strong>
+                        <div class="ptg-sheet-detail-body">{{{detail.html}}}</div>
+                      </section>
                     {{/each}}
                   </div>
                 {{/if}}
@@ -525,7 +549,7 @@
                 <strong>"{{item.name}}"</strong>
                 <span>Rank {{item.system.rank}}</span>
               </header>
-              <div class="ptg-print-mini-actions">
+              <div class="ptg-print-mini-actions ptg-print-truth-actions">
                 {{#if item.hasDetails}}
                   <button type="button" data-item-action="toggle-details" aria-expanded="{{item.expanded}}">{{#if item.expanded}}Hide{{else}}Details{{/if}}</button>
                 {{/if}}
@@ -537,7 +561,10 @@
                 {{#if item.expanded}}
                   <div class="ptg-item-details">
                     {{#each item.sheetDetails as |detail|}}
-                      <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                      <section class="ptg-sheet-detail">
+                        <strong>{{detail.label}}</strong>
+                        <div class="ptg-sheet-detail-body">{{{detail.html}}}</div>
+                      </section>
                     {{/each}}
                   </div>
                 {{/if}}

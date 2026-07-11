@@ -39,7 +39,10 @@
             {{#if item.expanded}}
               <div class="ptg-item-details ptg-gear-details">
                 {{#each item.sheetDetails as |detail|}}
-                  <div><strong>{{detail.label}}</strong> {{{detail.html}}}</div>
+                  <section class="ptg-sheet-detail">
+                    <strong>{{detail.label}}</strong>
+                    <div class="ptg-sheet-detail-body">{{{detail.html}}}</div>
+                  </section>
                 {{/each}}
               </div>
             {{/if}}
