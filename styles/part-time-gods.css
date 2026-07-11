@@ -3850,6 +3850,12 @@
   color: #000000;
 }
 
+.ptg-balance-tracker.is-player {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
 .ptg-balance-tracker *,
 .ptg-balance-tracker *::before,
 .ptg-balance-tracker *::after {
@@ -3859,11 +3865,25 @@
 .ptg-balance-header {
   flex: 0 0 auto;
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
+  align-items: center;
   min-width: 0;
   padding: 8px;
   border: 1px solid #b49bd8;
   background: #f4effa;
+}
+
+.ptg-balance-header > strong,
+.ptg-balance-header > span {
+  min-width: 0;
+  color: #000000;
+}
+
+.ptg-balance-header > span {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .ptg-balance-selector {
@@ -3892,6 +3912,14 @@
   color: #000000;
 }
 
+.ptg-balance-header button {
+  min-height: 2.25rem;
+  border: 1px solid #8d74b8;
+  background: #e8def6;
+  color: #000000;
+  font-weight: 800;
+}
+
 .ptg-balance-body {
   display: grid;
   grid-template-columns: minmax(220px, 0.38fr) minmax(0, 1fr);
@@ -3901,6 +3929,11 @@
   overflow: hidden;
   padding-right: 4px;
   scrollbar-gutter: stable;
+}
+
+.ptg-balance-body.is-player {
+  display: block;
+  overflow-y: auto;
 }
 
 .ptg-balance-party,
@@ -3939,9 +3972,19 @@
   display: grid;
   gap: 6px;
   min-width: 0;
+  min-height: 0;
 }
 
 .ptg-balance-party-card {
+  position: relative;
+  min-width: 0;
+  border: 1px solid #8d74b8;
+  background: #ffffff;
+  color: #000000;
+  text-align: left;
+}
+
+.ptg-balance-party-card summary {
   position: relative;
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr);
@@ -3949,12 +3992,13 @@
   align-items: center;
   min-width: 0;
   min-height: 58px;
-  height: auto;
   padding: 6px;
-  border: 1px solid #8d74b8;
-  background: #ffffff;
-  color: #000000;
-  text-align: left;
+  cursor: pointer;
+  list-style: none;
+}
+
+.ptg-balance-party-card summary::-webkit-details-marker {
+  display: none;
 }
 
 .ptg-balance-party-card.selected {
@@ -4011,6 +4055,13 @@
   background: var(--ptg-balance-purple);
   transform: translateX(-50%);
   z-index: 1;
+}
+
+.ptg-balance-party-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 0 6px 8px;
 }
 
 .ptg-balance-tracker h2,
@@ -4104,6 +4155,7 @@
 }
 
 .ptg-balance-actions button,
+.ptg-balance-party-card-actions button,
 .ptg-balance-custom button,
 .ptg-balance-log button {
   min-height: 2.5rem;

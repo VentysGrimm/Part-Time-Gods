@@ -167,8 +167,18 @@ async function assertProductionUxScaffold() {
   }
 
   const entryPoint = await readText("part-time-gods.js");
-  for (const token of ["registerGMSetupSettings()", "registerGMSetupControls()", "maybeOpenFirstRunGMSetup()", "registerTerritoryGridSettings()", "maybeOpenTerritoryInterfaceOnReady()", "openTerritoryInterface"]) {
+  for (const token of ["registerGMSetupSettings()", "registerGMSetupControls()", "maybeOpenFirstRunGMSetup()", "registerTerritoryGridSettings()", "maybeOpenTerritoryInterfaceOnReady()", "openTerritoryInterface", "maybeOpenMortalDivineBalanceTrackerOnReady()", "game.ptg.balance"]) {
     if (!entryPoint.includes(token)) errors.push(`Main entry point missing ${token}`);
+  }
+
+  const balanceModule = await readText("module/apps/mortal-divine-tracker.mjs");
+  for (const token of ["maybeOpenMortalDivineBalanceTrackerOnReady", "autoOpenMortalDivineTracker", "mortalDivineTrackedCharacters", "visibleBalanceTrackerActors", "normalizeTrackedCharacterUuids", "addTrackedCharacter", "removeTrackedCharacterUuid", "canViewBalanceActor"]) {
+    if (!balanceModule.includes(token)) errors.push(`Mortal-Divine tracker module missing ${token}`);
+  }
+
+  const balanceTemplate = await readText("templates/apps/mortal-divine-tracker.hbs");
+  for (const token of ["is-gm", "is-player", "data-balance-add", "data-balance-remove", "<details class=\"ptg-balance-party-card", "PTG.Balance.PlayerView"]) {
+    if (!balanceTemplate.includes(token)) errors.push(`Mortal-Divine tracker template missing ${token}`);
   }
 
   const territoryModule = await readText("module/apps/territory-grid-app.mjs");
@@ -216,7 +226,11 @@ async function assertProductionUxScaffold() {
     "min-height: 360px",
     ".ptg-territory-point-details",
     ".ptg-territory-status-contested",
-    ".ptg-territory-control-pantheon"
+    ".ptg-territory-control-pantheon",
+    ".ptg-balance-tracker.is-player",
+    ".ptg-balance-body.is-player",
+    ".ptg-balance-party-card summary",
+    ".ptg-balance-party-card-actions"
   ];
   for (const token of readableSurfaceTokens) {
     if (!stylesheet.includes(token)) errors.push(`Readable sheet/dialog stylesheet guard missing ${token}`);

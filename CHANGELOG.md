@@ -12,6 +12,7 @@
 - Added GM Territory background controls for scene image/color changes while keeping the grid overlay foregrounded and fitted to canvas.
 - Added Character actor drag/drop import to the GM Territory interface so player territory attachments can seed scene point data.
 - Expanded Territory points with rulebook-facing public/GM metadata for control source, boundary status, discovery state, footprint, linked records, and ritual/event tracking.
+- Reworked the Mortal-Divine Balance tracker startup into a party-style GM roster with tracked character persistence, character drag/drop/add/remove controls, and a read-only player view for owned characters.
 
 ## 0.0.2 - 2026-06-30
 

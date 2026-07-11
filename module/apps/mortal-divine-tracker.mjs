@@ -2,6 +2,7 @@ import { getDragEventData } from "../util/drop-data.mjs";
 import { SYSTEM_ID, localize, localizeFallback } from "../util/localization.mjs";
 
 const FLAG_KEY = "mortalDivineBalance";
+const TRACKED_CHARACTERS_SETTING = "mortalDivineTrackedCharacters";
 const MIN_BALANCE = -10;
 const MAX_BALANCE = 10;
 
@@ -42,14 +43,32 @@ export function registerMortalDivineTrackerSettings() {
     },
     default: "none"
   });
+  game.settings.register(SYSTEM_ID, "autoOpenMortalDivineTracker", {
+    name: localize("PTG.Settings.AutoOpenBalanceTracker.Name"),
+    hint: localize("PTG.Settings.AutoOpenBalanceTracker.Hint"),
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true
+  });
+  game.settings.register(SYSTEM_ID, TRACKED_CHARACTERS_SETTING, {
+    name: localize("PTG.Settings.BalanceTrackedCharacters.Name"),
+    scope: "world",
+    config: false,
+    type: Array,
+    default: []
+  });
+}
+
+export async function maybeOpenMortalDivineBalanceTrackerOnReady() {
+  if (!game.settings.get(SYSTEM_ID, "autoOpenMortalDivineTracker")) return false;
+  if (!game.user?.isGM && !balanceTrackerCharacters().length) return false;
+
+  openMortalDivineBalanceTracker();
+  return true;
 }
 
 export function openMortalDivineBalanceTracker(actor = null) {
-  if (!game.user?.isGM) {
-    ui.notifications.warn(localize("PTG.Balance.OnlyGMOpen"));
-    return null;
-  }
-
   if (!trackerApp) trackerApp = new MortalDivineBalanceTracker();
   if (actor) trackerApp.setActor(actor);
   trackerApp.render({ force: true });
@@ -81,15 +100,18 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const actor = await this.#selectedOrDefaultActor();
-    const actorOptions = characterActorOptions(actor);
+    const isGM = Boolean(game.user?.isGM);
+    const actorOptions = characterActorOptions(actor, { includeAll: isGM });
+    const trackedActors = balanceTrackerCharacters(actor);
     const state = actor ? balanceState(actor) : defaultBalanceState();
     const value = clampBalance(state.value);
 
     return {
       ...context,
-      isGM: Boolean(game.user?.isGM),
+      isGM,
+      isPlayerView: !isGM,
       actorOptions: actorOptions.map(option => actorOptionContext(option, actor)),
-      partyCharacters: actorOptions.map(option => partyCharacterContext(option, actor)),
+      partyCharacters: trackedActors.map(option => partyCharacterContext(option, actor)),
       actor: actor ? {
         uuid: actor.uuid,
         name: actor.name,
@@ -118,9 +140,14 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     root.addEventListener("drop", event => this.#onDrop(event));
 
     root.querySelector("[data-balance-actor-select]")?.addEventListener("change", event => this.#onActorSelect(event.currentTarget));
+    root.querySelector("[data-balance-add]")?.addEventListener("click", event => this.#addSelectedActor(event.currentTarget));
 
     for (const button of root.querySelectorAll("[data-balance-track]")) {
       button.addEventListener("click", event => this.#onTrack(event.currentTarget));
+    }
+
+    for (const button of root.querySelectorAll("[data-balance-remove]")) {
+      button.addEventListener("click", event => this.#removeTrackedActor(event.currentTarget));
     }
 
     for (const button of root.querySelectorAll("[data-balance-action]")) {
@@ -136,8 +163,13 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
       ui.notifications.warn(localize("PTG.Balance.TrackCharacter"));
       return;
     }
+    if (!game.user?.isGM && !canViewBalanceActor(actor)) {
+      ui.notifications.warn(localize("PTG.Balance.NoOwnedCharacters"));
+      return;
+    }
 
     this.#actorUuid = actor.uuid;
+    if (game.user?.isGM) void addTrackedCharacter(actor);
   }
 
   #onActorSelect(select) {
@@ -148,6 +180,32 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
   #onTrack(button) {
     this.#actorUuid = button.dataset.balanceTrack ?? "";
     this.render({ force: true });
+  }
+
+  async #addSelectedActor(button) {
+    if (!game.user?.isGM) return ui.notifications.warn(localize("PTG.Balance.OnlyGMEdit"));
+
+    const uuid = button.form?.elements.balanceActorUuid?.value ?? "";
+    const actor = await actorFromUuid(uuid);
+    if (!actor || actor.type !== "character") {
+      ui.notifications.warn(localize("PTG.Balance.TrackCharacter"));
+      return null;
+    }
+
+    await addTrackedCharacter(actor);
+    this.#actorUuid = actor.uuid;
+    this.render({ force: true });
+    return actor;
+  }
+
+  async #removeTrackedActor(button) {
+    if (!game.user?.isGM) return ui.notifications.warn(localize("PTG.Balance.OnlyGMEdit"));
+
+    const uuid = button.dataset.balanceRemove ?? "";
+    await removeTrackedCharacterUuid(uuid);
+    if (this.#actorUuid === uuid) this.#actorUuid = "";
+    this.render({ force: true });
+    return uuid;
   }
 
   async #onDrop(event) {
@@ -161,6 +219,7 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
       return;
     }
 
+    await addTrackedCharacter(actor);
     this.setActor(actor);
     this.render({ force: true });
   }
@@ -228,7 +287,7 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     const tracked = await this.#trackedActor();
     if (tracked) return tracked;
 
-    const fallback = defaultSelectedCharacterActor();
+    const fallback = balanceTrackerCharacters()[0] ?? defaultSelectedCharacterActor();
     if (fallback) {
       this.#actorUuid = fallback.uuid;
       return fallback;
@@ -242,7 +301,7 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     if (!this.#actorUuid) return null;
     try {
       const actor = actorDocumentFromResolved(await fromUuid(this.#actorUuid));
-      return actor?.type === "character" ? actor : null;
+      return actor?.type === "character" && (game.user?.isGM || canViewBalanceActor(actor)) ? actor : null;
     } catch (error) {
       console.warn("Part-Time Gods 2E | Unable to resolve Mortal-Divine Balance actor.", this.#actorUuid, error);
       return null;
@@ -265,6 +324,16 @@ async function actorFromDropData(data) {
   return null;
 }
 
+async function actorFromUuid(uuid) {
+  if (!uuid) return null;
+  try {
+    return actorDocumentFromResolved(await fromUuid(uuid));
+  } catch (error) {
+    console.warn("Part-Time Gods 2E | Unable to resolve Mortal-Divine Balance actor.", uuid, error);
+    return null;
+  }
+}
+
 function actorDocumentFromResolved(document) {
   if (document?.documentName === "Actor" || document?.constructor?.documentName === "Actor") return document;
   if (document?.actor?.documentName === "Actor" || document?.actor?.constructor?.documentName === "Actor") return document.actor;
@@ -272,28 +341,87 @@ function actorDocumentFromResolved(document) {
 }
 
 function defaultSelectedCharacterActor() {
-  for (const token of Array.from(canvas?.tokens?.controlled ?? [])) {
+  for (const token of Array.from(globalThis.canvas?.tokens?.controlled ?? [])) {
     if (token.actor?.type === "character") return token.actor;
   }
 
   return game.user?.character?.type === "character" ? game.user.character : null;
 }
 
-function characterActorOptions(selectedActor = null) {
+function characterActorOptions(selectedActor = null, { includeAll = Boolean(game.user?.isGM) } = {}) {
   const actors = new Map();
   addCharacterActor(actors, selectedActor);
 
-  for (const token of Array.from(canvas?.tokens?.controlled ?? [])) {
+  for (const token of Array.from(globalThis.canvas?.tokens?.controlled ?? [])) {
     addCharacterActor(actors, token.actor);
   }
 
   addCharacterActor(actors, game.user?.character);
 
-  for (const actor of game.actors ?? []) {
-    addCharacterActor(actors, actor);
-  }
+  if (includeAll) for (const actor of game.actors ?? []) addCharacterActor(actors, actor);
 
   return Array.from(actors.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function balanceTrackerCharacters(selectedActor = null) {
+  return visibleBalanceTrackerActors(characterActorOptions(selectedActor, { includeAll: true }), {
+    trackedUuids: trackedCharacterUuids(),
+    user: game.user,
+    isGM: Boolean(game.user?.isGM)
+  });
+}
+
+export function visibleBalanceTrackerActors(actors = [], { trackedUuids = [], user = game.user, isGM = Boolean(user?.isGM) } = {}) {
+  const tracked = normalizeTrackedCharacterUuids(trackedUuids);
+  const ordered = new Map();
+
+  for (const uuid of tracked) {
+    const actor = actors.find(candidate => candidate?.uuid === uuid);
+    if (actor?.type === "character" && (isGM || canViewBalanceActor(actor, user))) ordered.set(actor.uuid, actor);
+  }
+
+  if (!tracked.length && !isGM) {
+    for (const actor of actors) {
+      if (actor?.type === "character" && canViewBalanceActor(actor, user)) ordered.set(actor.uuid, actor);
+    }
+  }
+
+  return Array.from(ordered.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function normalizeTrackedCharacterUuids(value) {
+  const source = Array.isArray(value) ? value : [];
+  return Array.from(new Set(source.map(uuid => String(uuid ?? "").trim()).filter(Boolean)));
+}
+
+function trackedCharacterUuids() {
+  return normalizeTrackedCharacterUuids(game.settings.get(SYSTEM_ID, TRACKED_CHARACTERS_SETTING));
+}
+
+async function addTrackedCharacter(actor) {
+  if (!game.user?.isGM || actor?.type !== "character") return trackedCharacterUuids();
+
+  const uuids = normalizeTrackedCharacterUuids([...trackedCharacterUuids(), actor.uuid]);
+  await game.settings.set(SYSTEM_ID, TRACKED_CHARACTERS_SETTING, uuids);
+  return uuids;
+}
+
+async function removeTrackedCharacterUuid(uuid) {
+  if (!game.user?.isGM || !uuid) return trackedCharacterUuids();
+
+  const uuids = trackedCharacterUuids().filter(candidate => candidate !== uuid);
+  await game.settings.set(SYSTEM_ID, TRACKED_CHARACTERS_SETTING, uuids);
+  return uuids;
+}
+
+function canViewBalanceActor(actor, user = game.user) {
+  if (!actor || actor.type !== "character") return false;
+  if (user?.isGM || actor.isOwner) return true;
+  if (typeof actor.testUserPermission === "function") return actor.testUserPermission(user, "OWNER");
+
+  const ownerLevel = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3;
+  const permission = actor.ownership?.[user?.id] ?? actor.permission?.[user?.id] ?? actor.ownership?.default ?? 0;
+  return Number(permission) >= ownerLevel;
 }
 
 function addCharacterActor(actors, actor) {

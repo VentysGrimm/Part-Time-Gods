@@ -14,6 +14,7 @@ const macros = await import("../../module/data/premade-macros.mjs");
 const skills = await import("../../module/config/skills.mjs");
 const compendiums = await import("../../module/data/premade-compendiums.mjs");
 const territory = await import("../../module/apps/territory-grid-app.mjs");
+const balance = await import("../../module/apps/mortal-divine-tracker.mjs");
 
 test("Premade compendium source documents have stable slug and sourceId flags", async () => {
   const documents = [
@@ -288,7 +289,7 @@ test("Territory scene view fits the overlay to the canvas viewport", () => {
   assert.equal(Number(pan.scale.toFixed(3)), 0.545);
 });
 
-test("Territory scene background update preserves grid overlay fields", () => {
+test("Territory scene background controls update scene and foreground overlay", async () => {
   const update = territory.territorySceneBackgroundUpdateData({
     backgroundSrc: "worlds/ptg/territory.jpg",
     backgroundColor: "#112233"
@@ -305,6 +306,121 @@ test("Territory scene background update preserves grid overlay fields", () => {
 
   assert.equal(cleared["background.src"], "");
   assert.equal(cleared.backgroundColor, "#f4f0e8");
+
+  const originalUser = game.user;
+  game.user = { isGM: true };
+  try {
+    const scene = {
+      background: { src: "worlds/ptg/old.jpg" },
+      backgroundColor: "#445566",
+      flags: {},
+      drawings: {
+        contents: [
+          { id: "unmanaged", name: "Unmanaged Drawing", sort: 9999 },
+          {
+            id: "column",
+            name: "Territory Grid: column-1",
+            sort: 100,
+            hidden: true,
+            locked: false,
+            flags: { [SYSTEM_ID]: { territorySheetElement: "column-1" } },
+            getFlag(system, key) {
+              return this.flags?.[system]?.[key];
+            }
+          },
+          {
+            name: "Grid Border",
+            _source: {
+              _id: "border",
+              sort: 300,
+              flags: { [SYSTEM_ID]: { territorySheetElement: "play-grid-border" } }
+            }
+          }
+        ]
+      },
+      async update(data) {
+        this.updated = data;
+        this.background = { src: data["background.src"] };
+        this.backgroundColor = data.backgroundColor;
+      },
+      async setFlag(system, key, value) {
+        this.flags[system] ??= {};
+        this.flags[system][key] = value;
+      },
+      async updateEmbeddedDocuments(documentType, updates) {
+        this.embeddedUpdate = { documentType, updates };
+      }
+    };
+
+    const applied = await territory.setTerritorySceneBackground(scene, {
+      backgroundSrc: "worlds/ptg/territory.jpg",
+      backgroundColor: "#112233"
+    });
+
+    assert.deepEqual(applied, update);
+    assert.deepEqual(scene.updated, update);
+    assert.equal(scene.flags[SYSTEM_ID].territoryBackground.src, "worlds/ptg/territory.jpg");
+    assert.equal(scene.flags[SYSTEM_ID].territoryBackground.color, "#112233");
+    assert.equal(scene.embeddedUpdate.documentType, "Drawing");
+    assert.deepEqual(scene.embeddedUpdate.updates, [
+      { _id: "column", hidden: false, locked: true, sort: 5000 },
+      { _id: "border", hidden: false, locked: true, sort: 5001 }
+    ]);
+  } finally {
+    game.user = originalUser;
+  }
+});
+
+test("Mortal-Divine tracker roster respects GM and player visibility", () => {
+  const owned = {
+    name: "Owned Character",
+    type: "character",
+    uuid: "Actor.owned",
+    isOwner: true
+  };
+  const other = {
+    name: "Other Character",
+    type: "character",
+    uuid: "Actor.other",
+    isOwner: false,
+    ownership: { player: 0 }
+  };
+  const observer = {
+    name: "Observer Character",
+    type: "character",
+    uuid: "Actor.observer",
+    isOwner: false,
+    testUserPermission: (user, level) => user.id === "player" && level === "OWNER"
+  };
+  const npc = {
+    name: "Antagonist",
+    type: "antagonist",
+    uuid: "Actor.npc"
+  };
+  const actors = [other, npc, owned, observer];
+
+  assert.deepEqual(balance.normalizeTrackedCharacterUuids(["Actor.owned", "", "Actor.owned", "Actor.other"]), ["Actor.owned", "Actor.other"]);
+
+  const gmRoster = balance.visibleBalanceTrackerActors(actors, {
+    trackedUuids: ["Actor.other", "Actor.owned"],
+    user: { id: "gm", isGM: true },
+    isGM: true
+  });
+  assert.deepEqual(gmRoster.map(actor => actor.uuid), ["Actor.other", "Actor.owned"]);
+
+  const playerTracked = balance.visibleBalanceTrackerActors(actors, {
+    trackedUuids: ["Actor.other", "Actor.owned", "Actor.observer"],
+    user: { id: "player", isGM: false },
+    isGM: false
+  });
+  assert.deepEqual(playerTracked.map(actor => actor.uuid), ["Actor.observer", "Actor.owned"]);
+
+  const playerFallback = balance.visibleBalanceTrackerActors(actors, {
+    trackedUuids: [],
+    user: { id: "player", isGM: false },
+    isGM: false
+  });
+  assert.deepEqual(playerFallback.map(actor => actor.uuid), ["Actor.observer", "Actor.owned"]);
 });
 
 test("Premade scene refresh replaces stale managed drawing rows", async () => {

@@ -69,6 +69,13 @@
           "Gm": "Whisper to GMs",
           "Public": "Public chat card"
         }
+      },
+      "AutoOpenBalanceTracker": {
+        "Name": "Auto-open the Mortal-Divine Balance tracker on world ready",
+        "Hint": "Opens the party-style balance tracker on startup. GMs see the tracked roster; players see only their owned character balance."
+      },
+      "BalanceTrackedCharacters": {
+        "Name": "Tracked Mortal-Divine Balance characters"
       }
     },
     "Notifications": {
@@ -273,9 +280,14 @@
       "Title": "Mortal-Divine Balance",
       "Character": "Character",
       "ChooseCharacter": "Choose a character",
+      "AddCharacter": "Add Character",
+      "RemoveCharacter": "Remove",
+      "Focus": "Focus",
+      "PlayerView": "Your Mortal-Divine balance",
       "Party": "Party Balance",
       "PartyHint": "Track the Mortal-Divine pressure for every linked or visible character from one sheet.",
       "NoPartyCharacters": "No character actors are available to track.",
+      "NoOwnedCharacters": "No owned character is available for this player.",
       "MeterAria": "Mortal-Divine Balance meter",
       "Mortal": "Mortal",
       "Balanced": "Balanced",

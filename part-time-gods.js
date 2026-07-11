@@ -35,7 +35,7 @@ import { PTG_PREMADE_MACROS } from "./module/data/premade-macros.mjs";
 import { getPremadeJournals } from "./module/data/premade-journals.mjs";
 import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
 import { openPTGCombatControls, registerPTGCombatHooks, rollPTGInitiative } from "./module/combat/ptg-combat.mjs";
-import { openMortalDivineBalanceTracker, registerMortalDivineTrackerSettings } from "./module/apps/mortal-divine-tracker.mjs";
+import { maybeOpenMortalDivineBalanceTrackerOnReady, openMortalDivineBalanceTracker, registerMortalDivineTrackerSettings } from "./module/apps/mortal-divine-tracker.mjs";
 import {
   buildTerritoryGridCells,
   calculateTerritoryInfluence,
@@ -96,6 +96,7 @@ Hooks.once("init", async () => {
     openGMSetupPanel,
     openRulesReference,
     openPTGCombatControls,
+    maybeOpenMortalDivineBalanceTrackerOnReady,
     openMortalDivineBalanceTracker,
     openPantheonPoolDialog,
     openPTGStoryWorkflow,
@@ -124,6 +125,10 @@ Hooks.once("init", async () => {
   game.ptg.setup = {
     open: openGMSetupPanel,
     rulesReference: openRulesReference
+  };
+  game.ptg.balance = {
+    open: openMortalDivineBalanceTracker,
+    autoOpen: maybeOpenMortalDivineBalanceTrackerOnReady
   };
 
   registerPTGCombatHooks();
@@ -227,6 +232,7 @@ Hooks.once("ready", async () => {
 
   if (!game.user?.isGM) {
     await maybeOpenTerritoryInterfaceOnReady();
+    await maybeOpenMortalDivineBalanceTrackerOnReady();
     return;
   }
 
@@ -255,6 +261,7 @@ Hooks.once("ready", async () => {
 
   await maybeOpenFirstRunGMSetup();
   await maybeOpenTerritoryInterfaceOnReady();
+  await maybeOpenMortalDivineBalanceTrackerOnReady();
 });
 
 Hooks.on("dropCanvasData", async (canvas, data) => {
