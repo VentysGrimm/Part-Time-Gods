@@ -211,9 +211,13 @@ async function assertProductionUxScaffold() {
   const readableSurfaceTokens = [
     "--ptg-sheet-paper",
     ".part-time-gods.sheet.item .window-content",
+    ".part-time-gods.sheet.item :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-sheet :where(input:not([type=\"checkbox\"]), select, textarea)",
+    "min-height: 2.5rem",
     "var(--ptg-sheet-field, #ffffff)",
+    "details.ptg-editor-section",
     ".ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable=\"true\"])",
+    ".part-time-gods.sheet.item :where(.form-group.stacked) .editor",
     ".ptg-condition-create-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-career-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-attachment-definition-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
@@ -234,6 +238,11 @@ async function assertProductionUxScaffold() {
   ];
   for (const token of readableSurfaceTokens) {
     if (!stylesheet.includes(token)) errors.push(`Readable sheet/dialog stylesheet guard missing ${token}`);
+  }
+
+  const itemTemplate = await readText("templates/item/item-sheet.hbs");
+  for (const token of ["<details class=\"ptg-editor-section\" open>", "<summary><span>", "<details class=\"ptg-editor-section ptg-rules-explanation\" open>"]) {
+    if (!itemTemplate.includes(token)) errors.push(`Item sheet collapsible editor guard missing ${token}`);
   }
 }
 

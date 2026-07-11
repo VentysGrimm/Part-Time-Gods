@@ -92,6 +92,56 @@
   min-width: 0;
 }
 
+.part-time-gods.sheet.item :where(input:not([type="checkbox"]), select, textarea) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 2.5rem;
+  padding: 6px 8px;
+  border: 1px solid var(--ptg-sheet-line);
+  background: var(--ptg-sheet-field);
+  color: #000000;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.part-time-gods.sheet.item :where(textarea) {
+  min-height: 6rem;
+  overflow: auto;
+  resize: vertical;
+  text-overflow: clip;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.part-time-gods.sheet.item :where(select) {
+  height: auto;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.part-time-gods.sheet.item :where(.form-group, .field, .resource) {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: fit-content;
+}
+
+.part-time-gods.sheet.item :where(.form-group > label, .field > label, .resource > label, legend, summary) {
+  min-width: 0;
+  max-width: 100%;
+  min-height: 1.5rem;
+  color: #000000;
+  line-height: 1.3;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
 .part-time-gods.sheet.item .ptg-power-sheet,
 .part-time-gods.sheet.item .domain-sheet,
 .part-time-gods.sheet.item .sheet-body {
@@ -159,7 +209,9 @@
   min-width: 0;
   max-width: 100%;
   font-size: 28px;
-  height: 40px;
+  min-height: 44px;
+  padding: 6px 10px;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -363,14 +415,19 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
+  min-height: 2.5rem;
+  padding: 6px 8px;
   border: 1px solid var(--ptg-sheet-line);
   background: var(--ptg-sheet-field);
   color: #000000;
+  font-size: 13px;
+  line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .ptg-sheet textarea {
+  min-height: 6rem;
   overflow: auto;
   text-overflow: clip;
   overflow-wrap: anywhere;
@@ -476,18 +533,46 @@
   color: var(--ptg-sheet-ink);
 }
 
-.ptg-editor-section h2 {
+.ptg-editor-section h2,
+.ptg-editor-section > summary {
   margin: 0;
   min-width: 0;
   max-width: 100%;
   color: #000000;
   font-size: 16px;
-  line-height: 1.15;
+  line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
+.ptg-editor-section > summary {
+  min-height: 2rem;
+  padding: 3px 6px;
+  cursor: pointer;
+  font-weight: 800;
+  border-radius: 4px;
+}
+
+.ptg-editor-section > summary:hover,
+.ptg-editor-section > summary:focus {
+  background: rgba(91, 44, 131, 0.08);
+}
+
+details.ptg-editor-section {
+  display: block;
+}
+
+details.ptg-editor-section[open] > :not(summary) {
+  margin-top: 8px;
+}
+
+details.ptg-editor-section:not([open]) {
+  padding-bottom: 8px;
+}
+
 .ptg-editor-section prose-mirror,
-.ptg-editor-section .editor {
+.ptg-editor-section .editor,
+.part-time-gods.sheet.item :where(.form-group.stacked) prose-mirror,
+.part-time-gods.sheet.item :where(.form-group.stacked) .editor {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -502,6 +587,7 @@
 }
 
 .ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable="true"]),
+.part-time-gods.sheet.item :where(.form-group.stacked) :where(.editor-content, .editor-container, .ProseMirror, [contenteditable="true"]),
 .ptg-item-details,
 .ptg-item-details > div {
   box-sizing: border-box;
@@ -511,7 +597,8 @@
   word-break: normal;
 }
 
-.ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable="true"]) {
+.ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable="true"]),
+.part-time-gods.sheet.item :where(.form-group.stacked) :where(.editor-content, .editor-container, .ProseMirror, [contenteditable="true"]) {
   flex: 1 1 auto;
   min-height: 0;
   max-width: 100%;

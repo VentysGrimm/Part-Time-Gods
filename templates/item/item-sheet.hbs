@@ -27,14 +27,14 @@
       <label><span>Curse</span><input name="system.grants.curse" type="text" value="{{system.grants.curse}}"></label>
       <label class="span-2"><span>Career Options</span><textarea readonly>{{json system.careerOptions}}</textarea></label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "archetype")}}
@@ -52,14 +52,14 @@
       <label><span>Blessing</span><input name="system.grants.blessing" type="text" value="{{system.grants.blessing}}"></label>
       <label><span>Curse</span><input name="system.grants.curse" type="text" value="{{system.grants.curse}}"></label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "domain")}}
@@ -121,22 +121,22 @@
       <label><span>Curse</span><input name="system.grants.curse" type="text" value="{{system.grants.curse}}"></label>
     </section>
 
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Limitations</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Limitations</span></summary>
       {{editor system.limitations target="system.limitations" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>GM Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>GM Notes</span></summary>
       {{editor system.gmNotes target="system.gmNotes" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "theology")}}
@@ -158,14 +158,14 @@
       <label><span>Blessing</span><input name="system.grants.blessing" type="text" value="{{system.grants.blessing}}"></label>
       <label><span>Curse</span><input name="system.grants.curse" type="text" value="{{system.grants.curse}}"></label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "power")}}
@@ -222,18 +222,18 @@
       </label>
     </section>
 
-    <section class="ptg-editor-section">
-      <h2>Effect</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Effect</span></summary>
       {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Limitations</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Limitations</span></summary>
       {{editor system.limitations target="system.limitations" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "attachment")}}
@@ -283,30 +283,30 @@
         <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Benefit</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Benefit</span></summary>
       {{editor system.benefit target="system.benefit" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Related Bonus</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Bonus</span></summary>
       {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Related Detriment</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Detriment</span></summary>
       {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Automation Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Automation Notes</span></summary>
       {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "bond")}}
@@ -373,26 +373,26 @@
         <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Related Bonus</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Bonus</span></summary>
       {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Related Detriment</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Detriment</span></summary>
       {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Automation Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Automation Notes</span></summary>
       {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "truth")}}
@@ -455,34 +455,34 @@
         <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Benefit</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Benefit</span></summary>
       {{editor system.benefit target="system.benefit" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Effect</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Effect</span></summary>
       {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Related Bonus</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Bonus</span></summary>
       {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Related Detriment</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Detriment</span></summary>
       {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Automation Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Automation Notes</span></summary>
       {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "relic")}}
@@ -532,34 +532,34 @@
         <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Benefit</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Benefit</span></summary>
       {{editor system.benefit target="system.benefit" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Effect</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Effect</span></summary>
       {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Related Bonus</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Bonus</span></summary>
       {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Related Detriment</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Detriment</span></summary>
       {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Automation Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Automation Notes</span></summary>
       {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "worshipper")}}
@@ -595,10 +595,10 @@
         <input name="system.definition" type="text" value="{{system.definition}}">
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Benefit</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Benefit</span></summary>
       {{editor system.benefit target="system.benefit" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
     <section class="ptg-item-fields three">
       <label>
         <span>Last Request Type</span>
@@ -613,10 +613,10 @@
         <textarea readonly>{{json system.requestLog}}</textarea>
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Risk Notes</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Risk Notes</span></summary>
       {{editor system.riskNotes target="system.riskNotes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
     <section class="ptg-item-fields three">
       <label>
         <span>Summary</span>
@@ -635,26 +635,26 @@
         <input name="system.sourcePage" type="number" value="{{system.sourcePage}}" min="0">
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Related Bonus</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Bonus</span></summary>
       {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Related Detriment</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Detriment</span></summary>
       {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Automation Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Automation Notes</span></summary>
       {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "vassal")}}
@@ -706,10 +706,10 @@
         <input name="system.definition" type="text" value="{{system.definition}}">
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Benefit</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Benefit</span></summary>
       {{editor system.benefit target="system.benefit" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
     <section class="ptg-item-fields three">
       <label>
         <span>Summary</span>
@@ -732,30 +732,30 @@
         <textarea readonly>{{json system.powerHooks}}</textarea>
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Related Bonus</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Bonus</span></summary>
       {{editor system.relatedBonus target="system.relatedBonus" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Related Detriment</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Related Detriment</span></summary>
       {{editor system.relatedDetriment target="system.relatedDetriment" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Automation Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Automation Notes</span></summary>
       {{editor system.automationNotes target="system.automationNotes" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Risk Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Risk Notes</span></summary>
       {{editor system.riskNotes target="system.riskNotes" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "blessing")}}
@@ -773,14 +773,14 @@
         <input name="system.bonus" type="text" value="{{system.bonus}}">
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Effect</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Effect</span></summary>
       {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "curse")}}
@@ -798,14 +798,14 @@
         <input name="system.pantheonDice" type="number" value="{{system.pantheonDice}}" min="0">
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Effect</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Effect</span></summary>
       {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "condition")}}
@@ -864,14 +864,14 @@
         <textarea readonly>{{json system.rollModifier}}</textarea>
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Effect</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Effect</span></summary>
       {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "gearQuality")}}
@@ -897,18 +897,18 @@
         <textarea readonly>{{json system.automationData}}</textarea>
       </label>
     </section>
-    <section class="ptg-editor-section">
-      <h2>Effect</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Effect</span></summary>
       {{editor system.effect target="system.effect" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "weapon")}}
@@ -951,8 +951,8 @@
       </label>
     </section>
     {{#if system.qualities.length}}
-      <section class="ptg-editor-section">
-        <h2>Structured Qualities</h2>
+      <details class="ptg-editor-section" open>
+        <summary><span>Structured Qualities</span></summary>
         <div class="ptg-quality-list">
           {{#each system.qualities as |quality|}}
             <article class="ptg-quality-entry">
@@ -963,16 +963,16 @@
             </article>
           {{/each}}
         </div>
-      </section>
+      </details>
     {{/if}}
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if (eq item.type "armor")}}
@@ -1007,8 +1007,8 @@
       </label>
     </section>
     {{#if system.qualities.length}}
-      <section class="ptg-editor-section">
-        <h2>Structured Qualities</h2>
+      <details class="ptg-editor-section" open>
+        <summary><span>Structured Qualities</span></summary>
         <div class="ptg-quality-list">
           {{#each system.qualities as |quality|}}
             <article class="ptg-quality-entry">
@@ -1019,21 +1019,21 @@
             </article>
           {{/each}}
         </div>
-      </section>
+      </details>
     {{/if}}
-    <section class="ptg-editor-section">
-      <h2>Description</h2>
+    <details class="ptg-editor-section" open>
+      <summary><span>Description</span></summary>
       {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
-    </section>
-    <section class="ptg-editor-section">
-      <h2>Notes</h2>
+    </details>
+    <details class="ptg-editor-section" open>
+      <summary><span>Notes</span></summary>
       {{editor system.notes target="system.notes" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 
   {{#if system.rules}}
-    <section class="ptg-editor-section ptg-rules-explanation">
-      <h2>Rules Explanation</h2>
+    <details class="ptg-editor-section ptg-rules-explanation" open>
+      <summary><span>Rules Explanation</span></summary>
       <section class="ptg-item-fields three">
         <label class="span-2">
           <span>Summary</span>
@@ -1053,6 +1053,6 @@
         </label>
       </section>
       {{editor system.rules.fullText target="system.rules.fullText" button=true editable=editable engine="prosemirror"}}
-    </section>
+    </details>
   {{/if}}
 </form>
