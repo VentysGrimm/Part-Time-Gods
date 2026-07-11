@@ -7,6 +7,7 @@
 - Began unifying Territory scene setup and controls behind one native Territory interface API.
 - Enforced `package.json`/`system.json` version parity and made release ZIP builds clear stale versioned artifacts from `dist/`.
 - Tightened Character title rows, Item sheet fields, rich text editor boxes, and PTG dialog/popout input colors so plain Foundry dialogs stay readable.
+- Corrected release-install notes to require publishing the matching 0.1.0 GitHub Release manifest and ZIP assets before treating the live install path as current.
 
 ## 0.0.2 - 2026-06-30
 
