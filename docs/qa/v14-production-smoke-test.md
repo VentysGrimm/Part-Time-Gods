@@ -23,9 +23,9 @@ Foundry target: v14 only
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| JavaScript syntax check | Pass | `node --input-type=module --eval "await import('./scripts/check-syntax.mjs')"` reported 59 files checked. Direct `npm.cmd run check` cannot be run in the sandbox because Node path resolution hits `EPERM` on `C:\Users\Owner\AppData\Local\FoundryVTT\Data`. |
+| JavaScript syntax check | Pass | 2026-07-11: `node --input-type=module --eval "await import('./scripts/check-syntax.mjs')"` reported 61 files checked. Direct script-runner paths can hit sandbox `EPERM` on `C:\Users\Owner\AppData\Local\FoundryVTT\Data`. |
 | Release validation | Pass | 62 actors, 769 items, 40 choices, 9 journals, 91 roll tables, 1 scene, 8 macros, stable source keys. |
-| Automated tests | Pass | All 8 test modules pass through isolated `node --input-type=module --eval "await import(...)"` executions. Direct `node --test` cannot be run in the sandbox because Node path resolution hits `EPERM` on `C:\Users\Owner\AppData\Local\FoundryVTT\Data`. |
+| Automated tests | Pass | 2026-07-11: `node scripts\run-tests.mjs` passed outside the sandbox after the expected Foundry data-path `EPERM` in sandboxed execution: 25 tests, 25 pass, 0 fail. |
 | Release ZIP build | Pending rebuild after Foundry closes | `system.json` now targets `dist\part-time-gods-0.1.0.zip`; rebuild the ZIP after Foundry releases the live pack LevelDB files. |
 | GitHub Actions | Pass | Main branch validation for the drop-data and initiative coverage slice passed at `91094ebd90f293cb4f516e323f3bb3a27aee3152`: `https://github.com/VentysGrimm/Part-Time-Gods/actions/runs/28949168516`. |
 | Public manifest install path | Pass for fetchability | `https://github.com/VentysGrimm/Part-Time-Gods/releases/latest/download/system.json` returned HTTP 200 and advertises itself as the manifest URL. |
