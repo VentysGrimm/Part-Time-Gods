@@ -60,7 +60,7 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
   static DEFAULT_OPTIONS = {
     classes: ["part-time-gods", "ptg-balance-tracker-window"],
     position: {
-      width: 560,
+      width: 820,
       height: 680
     },
     window: {
@@ -89,6 +89,7 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
       ...context,
       isGM: Boolean(game.user?.isGM),
       actorOptions: actorOptions.map(option => actorOptionContext(option, actor)),
+      partyCharacters: actorOptions.map(option => partyCharacterContext(option, actor)),
       actor: actor ? {
         uuid: actor.uuid,
         name: actor.name,
@@ -118,6 +119,10 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
 
     root.querySelector("[data-balance-actor-select]")?.addEventListener("change", event => this.#onActorSelect(event.currentTarget));
 
+    for (const button of root.querySelectorAll("[data-balance-track]")) {
+      button.addEventListener("click", event => this.#onTrack(event.currentTarget));
+    }
+
     for (const button of root.querySelectorAll("[data-balance-action]")) {
       button.addEventListener("click", event => this.#onPreset(event.currentTarget));
     }
@@ -137,6 +142,11 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
 
   #onActorSelect(select) {
     this.#actorUuid = select.value ?? "";
+    this.render({ force: true });
+  }
+
+  #onTrack(button) {
+    this.#actorUuid = button.dataset.balanceTrack ?? "";
     this.render({ force: true });
   }
 
@@ -296,6 +306,25 @@ function actorOptionContext(actor, selectedActor) {
     uuid: actor.uuid,
     label: `${actor.name} - ${balanceLabel(value)} (${value})`,
     selected: actor.uuid === selectedActor?.uuid
+  };
+}
+
+function partyCharacterContext(actor, selectedActor) {
+  const state = balanceState(actor);
+  const value = clampBalance(state.value);
+  const log = Array.from(state.log ?? []);
+  const lastEntry = log.at(-1) ?? null;
+
+  return {
+    uuid: actor.uuid,
+    name: actor.name,
+    img: actor.img,
+    value,
+    label: balanceLabel(value),
+    percent: ((value - MIN_BALANCE) / (MAX_BALANCE - MIN_BALANCE)) * 100,
+    selected: actor.uuid === selectedActor?.uuid,
+    logCount: log.length,
+    lastMovement: lastEntry ? `${directionLabel(lastEntry.direction)} ${lastEntry.amount}: ${lastEntry.reason}` : ""
   };
 }
 

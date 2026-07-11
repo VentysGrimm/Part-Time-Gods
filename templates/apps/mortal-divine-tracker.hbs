@@ -12,97 +12,121 @@
   </header>
 
   <section class="ptg-balance-body md-tracker-body">
-    {{#if actor}}
-      <header class="ptg-balance-actor">
-        <img src="{{actor.img}}" alt="{{actor.name}}">
-        <div>
-          <h2>{{actor.name}}</h2>
-          <p>{{actor.label}} ({{actor.value}})</p>
-        </div>
+    <aside class="ptg-balance-party">
+      <header>
+        <h2>{{localize "PTG.Balance.Party"}}</h2>
+        <p>{{localize "PTG.Balance.PartyHint"}}</p>
       </header>
-
-      <section class="ptg-balance-meter" aria-label="{{localize "PTG.Balance.MeterAria"}}">
-        <div class="ptg-balance-scale">
-          <span>{{localize "PTG.Balance.Mortal"}}</span>
-          <strong>{{localize "PTG.Balance.Balanced"}}</strong>
-          <span>{{localize "PTG.Balance.Divine"}}</span>
-        </div>
-        <div class="ptg-balance-bar">
-          <i style="left: {{actor.percent}}%;"></i>
-        </div>
-        <div class="ptg-balance-values">
-          <span>{{min}}</span>
-          <span>0</span>
-          <span>+{{max}}</span>
-        </div>
-      </section>
-
-      <section class="ptg-balance-actions">
-        <div>
-          <h3>{{localize "PTG.Balance.MortalPressure"}}</h3>
-          {{#each mortalButtons as |button|}}
-            <button type="button" data-balance-action data-balance-direction="mortal" data-balance-amount="{{button.amount}}" data-balance-reason="{{button.label}}">
-              {{button.label}}
-            </button>
-          {{/each}}
-        </div>
-        <div>
-          <h3>{{localize "PTG.Balance.DivinePressure"}}</h3>
-          {{#each divineButtons as |button|}}
-            <button type="button" data-balance-action data-balance-direction="divine" data-balance-amount="{{button.amount}}" data-balance-reason="{{button.label}}">
-              {{button.label}}
-            </button>
-          {{/each}}
-        </div>
-      </section>
-
-      <section class="ptg-balance-custom">
-        <h3>{{localize "PTG.Balance.CustomAdjustment"}}</h3>
-        <div class="ptg-item-fields three">
-          <label>
-            <span>{{localize "PTG.Balance.Direction"}}</span>
-            <select name="balanceDirection">
-              <option value="mortal">{{localize "PTG.Balance.Mortal"}}</option>
-              <option value="divine">{{localize "PTG.Balance.Divine"}}</option>
-            </select>
-          </label>
-          <label>
-            <span>{{localize "PTG.Balance.Amount"}}</span>
-            <input name="balanceAmount" type="number" value="1" min="1" max="10">
-          </label>
-          <button type="button" data-balance-custom>{{localize "PTG.Balance.Apply"}}</button>
-        </div>
-        <label>
-          <span>{{localize "PTG.Balance.GMNote"}}</span>
-          <textarea name="balanceNote" placeholder="{{localize "PTG.Balance.GMNotePlaceholder"}}"></textarea>
-        </label>
-      </section>
-
-      <section class="ptg-balance-log">
-        <header>
-          <h3>{{localize "PTG.Balance.RecentMovement"}}</h3>
-          <button type="button" data-balance-clear>{{localize "PTG.Balance.ClearLog"}}</button>
-        </header>
-        {{#if log.length}}
-          <ol>
-            {{#each log as |entry|}}
-              <li>
-                <strong>{{entry.directionLabel}} {{entry.amount}}</strong>
-                <span>{{entry.reason}}</span>
-                <small>{{entry.before}} -> {{entry.after}}</small>
-                {{#if entry.note}}<p>{{entry.note}}</p>{{/if}}
-              </li>
-            {{/each}}
-          </ol>
+      <div class="ptg-balance-party-list">
+        {{#each partyCharacters as |character|}}
+          <button type="button" class="ptg-balance-party-card{{#if character.selected}} selected{{/if}}" data-balance-track="{{character.uuid}}">
+            <img src="{{character.img}}" alt="">
+            <span>
+              <strong>{{character.name}}</strong>
+              <small>{{character.label}} ({{character.value}})</small>
+              {{#if character.lastMovement}}<em>{{character.lastMovement}}</em>{{/if}}
+            </span>
+            <i style="left: {{character.percent}}%;" aria-hidden="true"></i>
+          </button>
         {{else}}
-          <p class="ptg-sheet-note">{{localize "PTG.Balance.NoEvents"}}</p>
-        {{/if}}
-      </section>
-    {{else}}
-      <section class="ptg-balance-empty">
-        <h2>{{localize "PTG.Balance.Title"}}</h2>
-        <p>{{localize "PTG.Balance.EmptyDrop"}}</p>
-      </section>
-    {{/if}}
+          <p class="ptg-sheet-note">{{localize "PTG.Balance.NoPartyCharacters"}}</p>
+        {{/each}}
+      </div>
+    </aside>
+
+    <section class="ptg-balance-detail">
+      {{#if actor}}
+        <header class="ptg-balance-actor">
+          <img src="{{actor.img}}" alt="{{actor.name}}">
+          <div>
+            <h2>{{actor.name}}</h2>
+            <p>{{actor.label}} ({{actor.value}})</p>
+          </div>
+        </header>
+
+        <section class="ptg-balance-meter" aria-label="{{localize "PTG.Balance.MeterAria"}}">
+          <div class="ptg-balance-scale">
+            <span>{{localize "PTG.Balance.Mortal"}}</span>
+            <strong>{{localize "PTG.Balance.Balanced"}}</strong>
+            <span>{{localize "PTG.Balance.Divine"}}</span>
+          </div>
+          <div class="ptg-balance-bar">
+            <i style="left: {{actor.percent}}%;"></i>
+          </div>
+          <div class="ptg-balance-values">
+            <span>{{min}}</span>
+            <span>0</span>
+            <span>+{{max}}</span>
+          </div>
+        </section>
+
+        <section class="ptg-balance-actions">
+          <div>
+            <h3>{{localize "PTG.Balance.MortalPressure"}}</h3>
+            {{#each mortalButtons as |button|}}
+              <button type="button" data-balance-action data-balance-direction="mortal" data-balance-amount="{{button.amount}}" data-balance-reason="{{button.label}}">
+                {{button.label}}
+              </button>
+            {{/each}}
+          </div>
+          <div>
+            <h3>{{localize "PTG.Balance.DivinePressure"}}</h3>
+            {{#each divineButtons as |button|}}
+              <button type="button" data-balance-action data-balance-direction="divine" data-balance-amount="{{button.amount}}" data-balance-reason="{{button.label}}">
+                {{button.label}}
+              </button>
+            {{/each}}
+          </div>
+        </section>
+
+        <section class="ptg-balance-custom">
+          <h3>{{localize "PTG.Balance.CustomAdjustment"}}</h3>
+          <div class="ptg-item-fields three">
+            <label>
+              <span>{{localize "PTG.Balance.Direction"}}</span>
+              <select name="balanceDirection">
+                <option value="mortal">{{localize "PTG.Balance.Mortal"}}</option>
+                <option value="divine">{{localize "PTG.Balance.Divine"}}</option>
+              </select>
+            </label>
+            <label>
+              <span>{{localize "PTG.Balance.Amount"}}</span>
+              <input name="balanceAmount" type="number" value="1" min="1" max="10">
+            </label>
+            <button type="button" data-balance-custom>{{localize "PTG.Balance.Apply"}}</button>
+          </div>
+          <label>
+            <span>{{localize "PTG.Balance.GMNote"}}</span>
+            <textarea name="balanceNote" placeholder="{{localize "PTG.Balance.GMNotePlaceholder"}}"></textarea>
+          </label>
+        </section>
+
+        <section class="ptg-balance-log">
+          <header>
+            <h3>{{localize "PTG.Balance.RecentMovement"}}</h3>
+            <button type="button" data-balance-clear>{{localize "PTG.Balance.ClearLog"}}</button>
+          </header>
+          {{#if log.length}}
+            <ol>
+              {{#each log as |entry|}}
+                <li>
+                  <strong>{{entry.directionLabel}} {{entry.amount}}</strong>
+                  <span>{{entry.reason}}</span>
+                  <small>{{entry.before}} -> {{entry.after}}</small>
+                  {{#if entry.note}}<p>{{entry.note}}</p>{{/if}}
+                </li>
+              {{/each}}
+            </ol>
+          {{else}}
+            <p class="ptg-sheet-note">{{localize "PTG.Balance.NoEvents"}}</p>
+          {{/if}}
+        </section>
+      {{else}}
+        <section class="ptg-balance-empty">
+          <h2>{{localize "PTG.Balance.Title"}}</h2>
+          <p>{{localize "PTG.Balance.EmptyDrop"}}</p>
+        </section>
+      {{/if}}
+    </section>
   </section>
 </section>

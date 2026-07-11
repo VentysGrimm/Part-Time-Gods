@@ -5,7 +5,8 @@ export const PTG_PREMADE_MACROS = [
     name: "PTG: Table Tools",
     slug: "table-tools",
     img: "icons/svg/temple.svg",
-    summary: "Open the Pantheon sheet Table Tools hub.",
+    summary: "Compatibility launcher for the Pantheon sheet Table Tools hub.",
+    nativeHome: "Pantheon actor sheet -> Table Tools",
     command: `
 const pantheon = game.actors?.find(actor => actor.type === "pantheon" && (game.user?.isGM || actor.isOwner || actor.visible !== false));
 if (!pantheon) {
@@ -19,7 +20,8 @@ pantheon.sheet?.render(true);
     name: "PTG: Create Territory Scene",
     slug: "create-territory-scene",
     img: "icons/svg/direction.svg",
-    summary: "Create or update the God Territory Grid scene.",
+    summary: "Compatibility launcher for the GM setup panel territory-scene action.",
+    nativeHome: "GM Setup panel -> Create/Open Territory Scene",
     command: `
 const api = game.partTimeGods;
 if (!api?.importGodTerritoryScene) {
@@ -33,7 +35,8 @@ await api.importGodTerritoryScene({ activate: false });
     name: "PTG: Territory Controls",
     slug: "territory-controls",
     img: "icons/svg/target.svg",
-    summary: "Open the Territory Grid app.",
+    summary: "Compatibility launcher for the God Territory Grid scene controls and Pantheon sheet territory controls.",
+    nativeHome: "God Territory Grid scene controls; Pantheon actor sheet -> Table Tools -> Territory Controls",
     command: `
 const territory = game.ptg?.territory;
 const api = game.partTimeGods;
@@ -49,7 +52,8 @@ await open();
     name: "PTG: Combat Controls",
     slug: "combat-controls",
     img: "icons/svg/sword.svg",
-    summary: "Open the Part-Time Gods combat control workflow.",
+    summary: "Compatibility launcher for the GM setup panel and Pantheon sheet combat controls.",
+    nativeHome: "GM Setup panel; Pantheon actor sheet -> Table Tools -> Combat Controls",
     command: `
 const api = game.partTimeGods;
 if (!api?.openPTGCombatControls) {
@@ -63,7 +67,8 @@ await api.openPTGCombatControls();
     name: "PTG: Mortal-Divine Tracker",
     slug: "mortal-divine-tracker",
     img: "icons/svg/scales.svg",
-    summary: "Open the Mortal-Divine tracker.",
+    summary: "Compatibility launcher for the party-style Mortal-Divine Balance sheet.",
+    nativeHome: "GM Setup panel; Pantheon actor sheet member Balance buttons; Pantheon actor sheet -> Table Tools",
     command: `
 const api = game.partTimeGods;
 if (!api?.openMortalDivineBalanceTracker) {
@@ -77,7 +82,8 @@ await api.openMortalDivineBalanceTracker();
     name: "PTG: Pantheon Pool",
     slug: "pantheon-pool",
     img: "icons/svg/dice-target.svg",
-    summary: "Open the shared Pantheon Pool add/spend workflow.",
+    summary: "Compatibility launcher for the Pantheon sheet Pool Workflow and Table Tools buttons.",
+    nativeHome: "Pantheon actor sheet -> Pool Workflow; Pantheon actor sheet -> Table Tools -> Pantheon Pool",
     command: `
 const api = game.partTimeGods;
 if (!api?.openPantheonPoolDialog) {
@@ -93,7 +99,8 @@ await api.openPantheonPoolDialog({ pantheon, actingActor: actor?.type === "chara
     name: "PTG: Story Workflow",
     slug: "story-workflow",
     img: "icons/svg/book.svg",
-    summary: "Open the source-backed attachment, downtime, territory, and player-sourcing workflow.",
+    summary: "Compatibility launcher for the Pantheon sheet Story Workflow table tool.",
+    nativeHome: "Pantheon actor sheet -> Table Tools -> Story Workflow",
     command: `
 const api = game.partTimeGods;
 if (!api?.openPTGStoryWorkflow) {
@@ -111,7 +118,8 @@ await api.openPTGStoryWorkflow({ pantheon, actingActor: actor?.type === "charact
     name: "PTG: Opposition Builder",
     slug: "opposition-builder",
     img: "icons/svg/mystery-man.svg",
-    summary: "Open the source-backed opposition builder.",
+    summary: "Compatibility launcher for the Antagonist sheet and GM setup opposition builder entry points.",
+    nativeHome: "Antagonist actor sheet -> Opposition Builder; GM Setup panel -> Opposition Builder",
     command: `
 const api = game.partTimeGods;
 if (!api?.openAntagonistBuilder) {
@@ -123,7 +131,7 @@ await api.openAntagonistBuilder();
   }),
 ];
 
-function toolMacro({ name, slug, img, summary, command }) {
+function toolMacro({ name, slug, img, summary, nativeHome, command }) {
   return {
     name,
     type: "script",
@@ -137,7 +145,9 @@ function toolMacro({ name, slug, img, summary, command }) {
         slug,
         sourceId: `macro:workflow:${slug}`,
         sourceBook: "Part-Time Gods Second Edition",
-        summary
+        summary,
+        compatibilityLauncher: true,
+        nativeHome
       }
     }
   };

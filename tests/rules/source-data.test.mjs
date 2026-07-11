@@ -135,6 +135,19 @@ test("Chapter 5 battle data covers actions, defenses, gear, and conditions", () 
   assert.ok((counts.get("weapon") ?? []).length >= 9);
 });
 
+test("Workflow macros are compatibility launchers with native UI homes", () => {
+  const workflowMacros = macros.PTG_PREMADE_MACROS.filter(macro => macro.flags?.[SYSTEM_ID]?.kind === "workflow-macro");
+
+  assert.equal(workflowMacros.length, 8);
+  for (const macro of workflowMacros) {
+    const flags = macro.flags[SYSTEM_ID];
+    assert.equal(flags.compatibilityLauncher, true, `${macro.name} compatibility launcher flag`);
+    assert.match(flags.summary, /compatibility launcher/i, `${macro.name} summary`);
+    assert.ok(flags.nativeHome, `${macro.name} native UI home`);
+    assert.doesNotMatch(flags.nativeHome, /macro/i, `${macro.name} native home should not be macro-first`);
+  }
+});
+
 test("Premade territory scene drawings use Foundry v14 drawing schema", () => {
   const [scene] = scenes.getPremadeScenes();
 

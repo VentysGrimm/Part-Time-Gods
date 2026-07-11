@@ -375,6 +375,17 @@ async function validatePremadeSourceData() {
     .map(macro => macro.name);
   if (importFacingMacros.length) errors.push(`Import-facing macros should stay workflow-only: ${importFacingMacros.join(", ")}`);
 
+  const primaryMacros = documents.macros
+    .filter(macro => macro.flags?.[SYSTEM_ID]?.kind === "workflow-macro")
+    .filter(macro => {
+      const flags = macro.flags?.[SYSTEM_ID] ?? {};
+      return flags.compatibilityLauncher !== true
+        || !flags.nativeHome
+        || !/compatibility launcher/i.test(flags.summary ?? "");
+    })
+    .map(macro => macro.name);
+  if (primaryMacros.length) errors.push(`Workflow macros must declare compatibility launcher metadata and a native UI home:\n${primaryMacros.map(name => `- ${name}`).join("\n")}`);
+
   return { summary };
 }
 

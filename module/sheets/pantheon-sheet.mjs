@@ -166,6 +166,11 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const actor = await fromUuid(uuid);
       actor?.sheet?.render(true);
     }
+
+    if (button.dataset.memberAction === "balance") {
+      const actor = await fromUuid(uuid);
+      if (actor?.type === "character") openMortalDivineBalanceTracker(actor);
+    }
   }
 
   async #onPantheonTool(tool) {

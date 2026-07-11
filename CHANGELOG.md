@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Aligned the 0.1.0 system manifest, package metadata, release validation, and generated compendium metadata version source.
+- Added a party-style Mortal-Divine Balance roster and documented workflow macros as compatibility launchers for native sheet, scene, and GM setup entry points.
 
 ## 0.0.2 - 2026-06-30
 

@@ -83,6 +83,9 @@
           </div>
           <div class="ptg-pantheon-member-actions">
             <button type="button" data-member-action="open">Open</button>
+            {{#if @root.canUseSetupTools}}
+              <button type="button" data-member-action="balance">Balance</button>
+            {{/if}}
             {{#if @root.editable}}
               <button type="button" data-member-action="up">Up</button>
               <button type="button" data-member-action="down">Down</button>
