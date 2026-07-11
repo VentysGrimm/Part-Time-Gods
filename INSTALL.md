@@ -33,4 +33,4 @@ From the system root, run:
 npm.cmd run release
 ```
 
-This creates `dist/part-time-gods-0.0.2.zip` and `dist/system.json` for manual release packaging. The live install manifest follows the pushed `main` branch, so open a Foundry VTT v14 world after pushing and smoke test the character sheet, item sheets, compendia, roll dialogs, chat card actions, Conditions, Manifestation Measures, and rules journals.
+This creates `dist/part-time-gods-0.1.0.zip` and `dist/system.json` for manual release packaging. The live install manifest follows the pushed `main` branch, so open a Foundry VTT v14 world after pushing and smoke test the character sheet, item sheets, compendia, roll dialogs, chat card actions, Conditions, Manifestation Measures, and rules journals.

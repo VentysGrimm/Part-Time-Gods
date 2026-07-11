@@ -245,8 +245,9 @@ function assertReleaseUrls(manifest) {
   if (!/^https:\/\/github\.com\/VentysGrimm\/Part-Time-Gods\/releases\/latest\/download\/system\.json$/.test(String(manifest.manifest ?? ""))) {
     errors.push(`Manifest URL should point at the live GitHub Release system.json: ${manifest.manifest}`);
   }
-  if (!/^https:\/\/github\.com\/VentysGrimm\/Part-Time-Gods\/releases\/download\/v0\.0\.2\/part-time-gods-0\.0\.2\.zip$/.test(String(manifest.download ?? ""))) {
-    errors.push(`Download URL should point at the v0.0.2 GitHub Release ZIP: ${manifest.download}`);
+  const expectedDownload = `https://github.com/VentysGrimm/Part-Time-Gods/releases/download/v${manifest.version}/${manifest.id}-${manifest.version}.zip`;
+  if (String(manifest.download ?? "") !== expectedDownload) {
+    errors.push(`Download URL should point at the v${manifest.version} GitHub Release ZIP: ${manifest.download}`);
   }
 }
 

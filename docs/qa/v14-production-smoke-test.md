@@ -2,8 +2,8 @@
 
 Status: Runtime QA in progress. Issue #131 remains open.
 
-Updated: 2026-07-08
-System: Part-Time Gods 2E 0.0.2
+Updated: 2026-07-11
+System: Part-Time Gods 2E 0.1.0
 Repository: VentysGrimm/Part-Time-Gods
 OS: Windows, user data under `C:\Users\Owner\AppData\Local\FoundryVTT`
 Foundry target: v14 only
@@ -14,7 +14,7 @@ Foundry target: v14 only
 | --- | --- |
 | Foundry version | Pass. Status API reports Foundry `14.364`. |
 | Browser | Pass. Codex in-app browser verified setup/join pages; live desktop Foundry window was used for the GM runtime continuation. |
-| QA world | Pass. Status API reports active world `ptg-v14-qa-smoke-test`, system `part-time-gods`, system version `0.0.2`. |
+| QA world | Pass. Status API reports active world `ptg-v14-qa-smoke-test`, system `part-time-gods`, system version `0.1.0`. |
 | System install from local checkout | Pass. The running QA world is using this checkout at `C:\Users\Owner\AppData\Local\FoundryVTT\Data\systems\part-time-gods`. |
 | System install from public manifest/latest release | Pending Foundry installer UI test. Fetchability passes for the live manifest and archive URLs. |
 | Screenshots | Not captured in this pass. Browser-visible UI and chat-card evidence recorded below. |
@@ -26,10 +26,10 @@ Foundry target: v14 only
 | JavaScript syntax check | Pass | `node --input-type=module --eval "await import('./scripts/check-syntax.mjs')"` reported 59 files checked. Direct `npm.cmd run check` cannot be run in the sandbox because Node path resolution hits `EPERM` on `C:\Users\Owner\AppData\Local\FoundryVTT\Data`. |
 | Release validation | Pass | 62 actors, 769 items, 40 choices, 9 journals, 91 roll tables, 1 scene, 8 macros, stable source keys. |
 | Automated tests | Pass | All 8 test modules pass through isolated `node --input-type=module --eval "await import(...)"` executions. Direct `node --test` cannot be run in the sandbox because Node path resolution hits `EPERM` on `C:\Users\Owner\AppData\Local\FoundryVTT\Data`. |
-| Release ZIP build | Pass | `dist\part-time-gods-0.0.2.zip` and `dist\system.json` were generated with the live manifest values. |
+| Release ZIP build | Pending rebuild after Foundry closes | `system.json` now targets `dist\part-time-gods-0.1.0.zip`; rebuild the ZIP after Foundry releases the live pack LevelDB files. |
 | GitHub Actions | Pass | Main branch validation for the drop-data and initiative coverage slice passed at `91094ebd90f293cb4f516e323f3bb3a27aee3152`: `https://github.com/VentysGrimm/Part-Time-Gods/actions/runs/28949168516`. |
 | Public manifest install path | Pass for fetchability | `https://github.com/VentysGrimm/Part-Time-Gods/releases/latest/download/system.json` returned HTTP 200 and advertises itself as the manifest URL. |
-| Public ZIP install path | Pass for fetchability | `https://github.com/VentysGrimm/Part-Time-Gods/releases/download/v0.0.2/part-time-gods-0.0.2.zip` returned HTTP 200 as a release asset. |
+| Public ZIP install path | Pending for 0.1.0 release asset | `https://github.com/VentysGrimm/Part-Time-Gods/releases/download/v0.1.0/part-time-gods-0.1.0.zip` must be published before this check can pass for the new version. |
 
 ## Required Runtime Flow
 
@@ -94,6 +94,7 @@ Foundry target: v14 only
 - Permission-boundary coverage now verifies non-GM Combat Controls denial and non-owner damage denial in automated tests; owner, observer, and non-owner role behavior still need live Foundry verification.
 - Migration coverage verifies both existing-world safety paths: schema migration preserves legacy attachment text in actor flags, and canonical embedded Item migration converts legacy condition/relic sheet notes into owned Items while skipping a duplicate already migrated bond field.
 - 2026-07-08 desktop continuation: Foundry v14.364 reported active world `ptg-v14-qa-smoke-test`, system `part-time-gods` 0.0.2, and one connected user. GM Setup opened from the Part-Time Gods scene controls, and `Combat Controls` opened the `PTG Combat Controls` dialog. GM panel controls are the supported runtime path for this pass; chat-command aliases are intentionally out of scope.
+- 2026-07-11 version alignment: local Foundry status API reported active world `ptg-v14-qa-smoke-test`, system `part-time-gods`, system version `0.1.0`; package, manifest, validation, and release ZIP references were aligned to `0.1.0`.
 - 2026-07-08 browser continuation joined the same active world through `http://127.0.0.1:30000/join` as `Player2`; the live page reached `/game`, showed `Player2`, and the visible non-GM UI did not contain `PTG GM Setup`, `Combat Controls`, `Territory Controls`, `Opposition Builder`, or `Mortal-Divine Balance`. Generic Foundry controls, chat cards, and sidebar tabs were visible. A browser click attempt against old chat-card `Health Damage` buttons could not be completed because the in-app browser click translation missed the Foundry sidebar coordinate, so live non-owner damage denial remains unresolved.
 - The live `PTG Combat Controls` Actor/Attacker selector exposed only `Encounter helper only` during this continuation. The God Territory Grid scene was viewed and its 10x10 grid was visible, but actor-sidebar token placement did not create tokens under automation, so action marker and combat-control healing proof still require adding actual actor combatants to the encounter.
 - 2026-07-08 desktop continuation: `QA Armor Live Proof` was created through the Items sidebar as an Armor item, configured to Rating 2, and marked Equipped. Repeated sidebar-to-sheet drag/drop attempts from the item icon and item row text did not attach it to `QA Character` in the automated desktop session; this leaves live drag/drop and equipped-armor UI proof unresolved even though direct sheet-drop handler coverage passes.

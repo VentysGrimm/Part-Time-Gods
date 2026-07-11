@@ -4,11 +4,12 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SYSTEM_ID = "part-time-gods";
-const SYSTEM_VERSION = "0.0.2";
 const CORE_VERSION = "14.364";
 const ROUTE_PREFIX = "systems/part-time-gods/";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const systemManifest = JSON.parse(await fs.readFile(path.join(root, "system.json"), "utf8"));
+const SYSTEM_VERSION = systemManifest.version;
 const { ClassicLevel } = await loadClassicLevel();
 
 installFoundrySourceMocks();

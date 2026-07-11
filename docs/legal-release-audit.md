@@ -10,7 +10,7 @@ This audit covers the public release boundary for the Foundry VTT v14 system pac
 
 | Area | Result | Evidence |
 | --- | --- | --- |
-| Release ZIP contents | Pass | `dist/part-time-gods-0.0.2.zip` contains 107 runtime files: `system.json`, `part-time-gods.js`, `module/**`, `templates/**`, `styles/**`, `lang/**`, declared `packs/**`, README, INSTALL, LICENSE, ATTRIBUTION, and CHANGELOG. |
+| Release ZIP contents | Pending 0.1.0 rebuild | `dist/part-time-gods-0.1.0.zip` must contain only runtime files: `system.json`, `part-time-gods.js`, `module/**`, `templates/**`, `styles/**`, `lang/**`, declared `packs/**`, README, INSTALL, LICENSE, ATTRIBUTION, and CHANGELOG. |
 | Source PDFs and extraction caches | Pass | Archive listing check found no `pdf`, `source-material`, `pymupdf`, `tmp`, `temp`, `node_modules`, `.git`, `.agents`, `.codex`, `LOCK`, `LOG`, `LOG.old`, or `lost` paths. |
 | Rules reference payload | Pass | `module/data/complete-rules.json` has 9 journals and 48 pages, reduced to 3,026 total plain-text words after stripping long extracted source text. Largest page summary is 120 words. |
 | Rules journal metadata | Pass | Every rules-reference page carries `flags.part-time-gods.safeSummary`, source page range metadata, stable `slug`, and stable `sourceId`. |

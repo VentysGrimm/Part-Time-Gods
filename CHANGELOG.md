@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Aligned the 0.1.0 system manifest, package metadata, release validation, and generated compendium metadata version source.
+
 ## 0.0.2 - 2026-06-30
 
 - Added world migration support that converts legacy embedded actor text into canonical owned Items.

@@ -1,6 +1,6 @@
 {
   "name": "part-time-gods",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "description": "Foundry VTT v14 system for Part-Time Gods Second Edition.",
