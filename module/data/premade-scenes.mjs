@@ -12,6 +12,9 @@ const WIDTH = COLUMNS * GRID_SIZE;
 const HEIGHT = ROWS * GRID_SIZE;
 const TERRITORY_DATA_VERSION = 1;
 const SYSTEM_AUTHOR_ID = "0000000000000000";
+const LEGEND_INSET = 8;
+const LEGEND_HEIGHT = 42;
+const LEGEND_FONT_SIZE = 14;
 
 const SHEET_BACKGROUND = "#f4f0e8";
 const SHEET_INK = "#000000";
@@ -572,7 +575,7 @@ function territorySheetDrawings(authorId) {
   const drawings = [
     sheetBand("top-number-band", 0, 0, WIDTH, GRID_SIZE, authorId, 1000),
     sheetBand("side-number-band", 0, 0, GRID_SIZE, HEIGHT, authorId, 1001),
-    sheetLabel("legend", "Legend", 0, 0, GRID_SIZE, GRID_SIZE, authorId, 2000, 18),
+    sheetLabel("legend", "Legend", LEGEND_INSET, LEGEND_INSET, GRID_SIZE - (LEGEND_INSET * 2), LEGEND_HEIGHT, authorId, 2000, LEGEND_FONT_SIZE),
     sheetBorder("play-grid-border", GRID_SIZE, GRID_SIZE, PLAY_GRID_SIZE * GRID_SIZE, PLAY_GRID_SIZE * GRID_SIZE, authorId, 3000)
   ];
 

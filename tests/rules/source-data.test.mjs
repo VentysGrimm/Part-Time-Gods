@@ -210,14 +210,17 @@ test("Premade territory scene drawings use Foundry v14 drawing schema", () => {
   const legend = drawingsByElement.get("legend");
   const rowOne = drawingsByElement.get("row-1");
   const columnOne = drawingsByElement.get("column-1");
-  assert.equal(legend.x, 0);
-  assert.equal(legend.y, 0);
+  assert.equal(legend.x, 8);
+  assert.equal(legend.y, 8);
+  assert.equal(legend.shape.width, 84);
+  assert.equal(legend.shape.height, 42);
+  assert.ok(legend.fontSize < columnOne.fontSize, "Legend uses smaller type than grid number labels");
   assert.equal(rowOne.x, 0);
   assert.equal(rowOne.y, 100);
   assert.equal(columnOne.x, 100);
   assert.equal(columnOne.y, 0);
-  assert.notEqual(`${legend.x},${legend.y}`, `${rowOne.x},${rowOne.y}`, "Legend does not overlap row 1 label");
-  assert.notEqual(`${legend.x},${legend.y}`, `${columnOne.x},${columnOne.y}`, "Legend does not overlap column 1 label");
+  assert.ok(legend.x + legend.shape.width < columnOne.x, "Legend box ends before the column 1 label cell");
+  assert.ok(legend.y + legend.shape.height < rowOne.y, "Legend box ends before the row 1 label cell");
 });
 
 test("Territory point model separates GM secrets from player-facing scene data", () => {
