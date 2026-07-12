@@ -48,7 +48,12 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.actor = this.actor;
     context.system = this.actor.system;
     context.members = await this.#prepareMembers();
-    context.canUseWorldTools = game.user?.isGM || this.actor.isOwner;
+    context.canManageMembers = canManagePantheonMembers(this.actor);
+    context.memberOptions = context.canManageMembers ? pantheonMemberAddOptions({
+      actors: game.actors,
+      currentMembers: this.actor.system.members
+    }) : [];
+    context.canUseWorldTools = canUsePantheonWorldTools(this.actor);
     context.canUseSetupTools = game.user?.isGM;
 
     return context;
@@ -62,6 +67,7 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       button.addEventListener("click", event => this.#onMemberAction(event.currentTarget));
     }
 
+    this.element.querySelector("[data-member-add]")?.addEventListener("click", () => this.#addSelectedMember());
     this.element.querySelector("[data-pantheon-pool-workflow]")?.addEventListener("click", () => openPantheonPoolDialog({ pantheon: this.actor }));
 
     for (const button of this.element.querySelectorAll("[data-pantheon-tool]")) {
@@ -75,7 +81,7 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return false;
     }
 
-    if (!this.actor.isOwner) {
+    if (!canManagePantheonMembers(this.actor)) {
       ui.notifications.warn("You need owner permission to add Pantheon members.");
       return false;
     }
@@ -106,29 +112,9 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         };
       }
 
-      const resources = actor.system.resources ?? {};
-      const identity = actor.system.identity ?? {};
-      const attachments = actor.items?.filter?.(item => ["bond", "worshipper", "vassal"].includes(item.type)) ?? [];
-      const strained = attachments.filter(item => Number(item.system.strain?.value ?? 0) > 0);
-      const ownerNames = Object.entries(actor.ownership ?? {})
-        .filter(([userId, level]) => userId !== "default" && Number(level) >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER)
-        .map(([userId]) => game.users.get(userId)?.name)
-        .filter(Boolean);
-
-      return {
-        uuid: actor.uuid,
-        name: actor.name,
-        img: actor.img,
-        dominion: identity.dominion || "No Dominion",
-        theology: identity.theology || "No Theology",
-        spark: Number(resources.spark ?? 1),
-        health: `${Number(resources.health?.value ?? 0)} / ${Number(resources.health?.max ?? 0)}`,
-        psyche: `${Number(resources.psyche?.value ?? 0)} / ${Number(resources.psyche?.max ?? 0)}`,
-        fragments: `${Number(resources.fragments?.value ?? 0)} / ${Number(resources.fragments?.max ?? 0)}`,
-        attachments: attachments.length,
-        warnings: strained.map(item => `${item.name} Strain ${Number(item.system.strain?.value ?? 0)} / ${Number(item.system.strain?.max ?? item.system.level ?? 0)}`),
-        owners: ownerNames.join(", ")
-      };
+      return preparePantheonMemberContext(actor, {
+        canManageMembers: canManagePantheonMembers(this.actor)
+      });
     }));
   }
 
@@ -143,14 +129,48 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     await this.actor.update({ "system.members": members });
   }
 
+  async #addSelectedMember() {
+    if (isSheetEditLocked(this, this.actor)) {
+      ui.notifications.warn("Unlock this sheet before adding Pantheon members.");
+      return;
+    }
+
+    if (!canManagePantheonMembers(this.actor)) {
+      ui.notifications.warn("You need owner permission to add Pantheon members.");
+      return;
+    }
+
+    const select = this.element.querySelector("[data-member-add-select]");
+    const uuid = select?.value;
+    if (!uuid) {
+      ui.notifications.warn("Choose a character to add to this Pantheon.");
+      return;
+    }
+
+    const actor = await fromUuid(uuid);
+    if (!actor || actor.type !== "character") {
+      ui.notifications.warn("Choose a Part-Time Gods character actor.");
+      return;
+    }
+
+    await this.#addMember(actor);
+  }
+
   async #onMemberAction(button) {
     const row = button.closest("[data-member-uuid]");
     const uuid = row?.dataset.memberUuid;
     if (!uuid) return;
 
-    if (["remove", "up", "down"].includes(button.dataset.memberAction) && !this.actor.isOwner) {
-      ui.notifications.warn("You need owner permission to manage Pantheon members.");
-      return;
+    if (["remove", "up", "down"].includes(button.dataset.memberAction)) {
+      if (isSheetEditLocked(this, this.actor)) {
+        ui.notifications.warn("Unlock this sheet before managing Pantheon members.");
+        return;
+      }
+
+      if (!canManagePantheonMembers(this.actor)) {
+        ui.notifications.warn("You need owner permission to manage Pantheon members.");
+        return;
+      }
     }
 
     if (button.dataset.memberAction === "remove") {
@@ -172,7 +192,8 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     if (button.dataset.memberAction === "open") {
       const actor = await fromUuid(uuid);
-      actor?.sheet?.render(true);
+      if (canViewPantheonMemberActor(actor)) actor?.sheet?.render(true);
+      else ui.notifications.warn("You do not have permission to open that character sheet.");
     }
 
     if (button.dataset.memberAction === "balance") {
@@ -197,7 +218,7 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     if (tool === "create-territory-scene") {
       const scene = await importGodTerritoryScene({ activate: false });
-      if (scene && this.actor.isOwner) await this.actor.update({ "system.territorySceneUuid": scene.uuid });
+      if (scene && canManagePantheonMembers(this.actor)) await this.actor.update({ "system.territorySceneUuid": scene.uuid });
       return scene;
     }
 
@@ -228,4 +249,108 @@ async function actorFromDropData(data) {
   if (data.uuid) return fromUuid(data.uuid);
   if (data.id) return game.actors.get(data.id);
   return null;
+}
+
+export function preparePantheonMemberContext(actor, { user = game.user, canManageMembers = false } = {}) {
+  const canViewDetails = canViewPantheonMemberActor(actor, user);
+  const canOpen = canViewDetails;
+  const base = {
+    uuid: actor.uuid,
+    name: actor.name,
+    img: actor.img,
+    canOpen,
+    limited: !canViewDetails,
+    summary: "You do not have permission to view this character's private resources."
+  };
+
+  if (!canViewDetails) return base;
+
+  const resources = actor.system.resources ?? {};
+  const identity = actor.system.identity ?? {};
+  const attachments = actor.items?.filter?.(item => ["bond", "worshipper", "vassal"].includes(item.type)) ?? [];
+  const strained = attachments.filter(item => Number(item.system.strain?.value ?? 0) > 0);
+  const ownerNames = canManageMembers ? Object.entries(actor.ownership ?? {})
+    .filter(([userId, level]) => userId !== "default" && ownershipLevelValue(level) >= ownershipLevelValue(ownerPermissionLevel()))
+    .map(([userId]) => game.users?.get?.(userId)?.name)
+    .filter(Boolean) : [];
+
+  return {
+    ...base,
+    limited: false,
+    dominion: identity.dominion || "No Dominion",
+    theology: identity.theology || "No Theology",
+    spark: Number(resources.spark ?? 1),
+    health: `${Number(resources.health?.value ?? 0)} / ${Number(resources.health?.max ?? 0)}`,
+    psyche: `${Number(resources.psyche?.value ?? 0)} / ${Number(resources.psyche?.max ?? 0)}`,
+    fragments: `${Number(resources.fragments?.value ?? 0)} / ${Number(resources.fragments?.max ?? 0)}`,
+    attachments: attachments.length,
+    warnings: strained.map(item => `${item.name} Strain ${Number(item.system.strain?.value ?? 0)} / ${Number(item.system.strain?.max ?? item.system.level ?? 0)}`),
+    owners: ownerNames.join(", ")
+  };
+}
+
+export function pantheonMemberAddOptions({ actors = game.actors, currentMembers = [], user = game.user } = {}) {
+  const currentUuids = new Set(Array.from(currentMembers ?? []).map(member => member.uuid).filter(Boolean));
+  return actorCollectionValues(actors)
+    .filter(actor => actor?.type === "character")
+    .filter(actor => actor.uuid && !currentUuids.has(actor.uuid))
+    .filter(actor => canViewPantheonMemberActor(actor, user))
+    .sort((a, b) => String(a.name).localeCompare(String(b.name)))
+    .map(actor => ({
+      uuid: actor.uuid,
+      name: actor.name
+    }));
+}
+
+export function canManagePantheonMembers(pantheon, user = game.user) {
+  if (!pantheon) return false;
+  if (user?.isGM || pantheon.isOwner) return true;
+  return hasDocumentPermission(pantheon, user, ownerPermissionLevel());
+}
+
+export function canUsePantheonWorldTools(pantheon, user = game.user) {
+  return Boolean(user?.isGM || canManagePantheonMembers(pantheon, user));
+}
+
+export function canViewPantheonMemberActor(actor, user = game.user) {
+  if (!actor) return false;
+  if (user?.isGM || actor.isOwner) return true;
+  return hasDocumentPermission(actor, user, observerPermissionLevel())
+    || hasDocumentPermission(actor, user, ownerPermissionLevel());
+}
+
+function hasDocumentPermission(document, user, level) {
+  if (!document || !user || typeof document.testUserPermission !== "function") return false;
+  try {
+    return Boolean(document.testUserPermission(user, level));
+  } catch (error) {
+    return false;
+  }
+}
+
+function actorCollectionValues(actors) {
+  if (!actors) return [];
+  if (typeof actors.filter === "function" && typeof actors.map === "function") return actors.filter(() => true);
+  if (typeof actors.values === "function") return Array.from(actors.values());
+  return Array.from(actors).map(entry => Array.isArray(entry) ? entry[1] : entry);
+}
+
+function ownerPermissionLevel() {
+  return "OWNER";
+}
+
+function observerPermissionLevel() {
+  return "OBSERVER";
+}
+
+function ownershipLevelValue(level) {
+  if (typeof level === "number") return level;
+  const key = String(level).toUpperCase();
+  const fallback = {
+    NONE: 0,
+    LIMITED: 1,
+    OBSERVER: 2,
+    OWNER: 3
+  };
+  return Number(globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS?.[key] ?? fallback[key] ?? 0);
 }

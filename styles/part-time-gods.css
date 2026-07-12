@@ -320,6 +320,24 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.ptg-pantheon-member-add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+  min-width: 0;
+}
+
+.ptg-pantheon-member-add label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ptg-pantheon-member-add select {
+  min-width: 0;
+}
+
 .ptg-pantheon-member {
   display: grid;
   grid-template-columns: 56px minmax(0, 1fr) auto;
@@ -376,6 +394,7 @@
 .ptg-pantheon-member-actions {
   display: grid;
   gap: 4px;
+  min-width: 5rem;
 }
 
 .ptg-pantheon-warnings {

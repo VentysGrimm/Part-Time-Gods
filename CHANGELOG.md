@@ -17,6 +17,7 @@
 - Added permission-aware edit locks to Character, Antagonist, Pantheon, and Item sheets so they open protected against accidental edits until explicitly unlocked.
 - Polished Character sheet ability rows so controls stay compact and player-facing detail text renders as readable prose instead of raw markup.
 - Corrected character Initiative to Intuition + Speed, wired PTG initiative into Foundry's native Combat Tracker, and made Skill Combo Check dialogs resizable with an internal scroll region.
+- Hardened the Pantheon party sheet with permission-aware member summaries and a GM/owner character add selector.
 
 ## 0.0.2 - 2026-06-30
 

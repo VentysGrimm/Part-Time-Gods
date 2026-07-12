@@ -212,6 +212,14 @@ async function assertProductionUxScaffold() {
   for (const key of ["PTG.Help.PantheonPool", "PTG.Help.Fragments", "PTG.Help.Spark", "PTG.Help.Strain"]) {
     if (!pantheonTemplate.includes(key)) errors.push(`Pantheon sheet missing localized help key ${key}`);
   }
+  for (const token of ["data-member-add", "canManageMembers", "member.canOpen", "member.limited"]) {
+    if (!pantheonTemplate.includes(token)) errors.push(`Pantheon party sheet missing member-management token ${token}`);
+  }
+
+  const pantheonSheet = await readText("module/sheets/pantheon-sheet.mjs");
+  for (const token of ["preparePantheonMemberContext", "pantheonMemberAddOptions", "canManagePantheonMembers", "canViewPantheonMemberActor"]) {
+    if (!pantheonSheet.includes(token)) errors.push(`Pantheon party sheet missing helper ${token}`);
+  }
 
   const stylesheet = await readText("styles/part-time-gods.css");
   const readableSurfaceTokens = [

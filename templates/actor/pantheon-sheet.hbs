@@ -67,6 +67,20 @@
   <section class="ptg-editor-section ptg-pantheon-members">
     <h2>Members</h2>
     <p class="ptg-sheet-note">Drop character actors here to link them. Member data is read live from each character.</p>
+    {{#if canManageMembers}}
+      <div class="ptg-pantheon-member-add">
+        <label>
+          <span>Add Character</span>
+          <select data-member-add-select>
+            <option value="">Choose a character</option>
+            {{#each memberOptions as |option|}}
+              <option value="{{option.uuid}}">{{option.name}}</option>
+            {{/each}}
+          </select>
+        </label>
+        <button type="button" data-member-add>Add Member</button>
+      </div>
+    {{/if}}
     <div class="ptg-pantheon-member-list">
       {{#each members as |member|}}
         <article class="ptg-pantheon-member{{#if member.missing}} missing{{/if}}" data-member-uuid="{{member.uuid}}">
@@ -75,6 +89,8 @@
             <h3>{{member.name}}</h3>
             {{#if member.missing}}
               <p>{{member.summary}}</p>
+            {{else if member.limited}}
+              <p class="ptg-sheet-note">{{member.summary}}</p>
             {{else}}
               <dl>
                 <div><dt>Dominion</dt><dd>{{member.dominion}}</dd></div>
@@ -84,7 +100,9 @@
                 <div><dt>Psyche</dt><dd>{{member.psyche}}</dd></div>
                 <div title="{{ptgLocalize "PTG.Help.Fragments"}}"><dt>Fragments</dt><dd>{{member.fragments}}</dd></div>
                 <div><dt>Attachments</dt><dd>{{member.attachments}}</dd></div>
-                <div><dt>Owners</dt><dd>{{member.owners}}</dd></div>
+                {{#if member.owners}}
+                  <div><dt>Owners</dt><dd>{{member.owners}}</dd></div>
+                {{/if}}
               </dl>
               {{#if member.warnings}}
                 <ul class="ptg-pantheon-warnings" title="{{ptgLocalize "PTG.Help.Strain"}}">
@@ -96,11 +114,13 @@
             {{/if}}
           </div>
           <div class="ptg-pantheon-member-actions">
-            <button type="button" data-member-action="open">Open</button>
+            {{#if member.canOpen}}
+              <button type="button" data-member-action="open">Open</button>
+            {{/if}}
             {{#if @root.canUseSetupTools}}
               <button type="button" data-member-action="balance">Balance</button>
             {{/if}}
-            {{#if @root.editable}}
+            {{#if @root.canManageMembers}}
               <button type="button" data-member-action="up">Up</button>
               <button type="button" data-member-action="down">Down</button>
               <button type="button" data-member-action="remove">Remove</button>
