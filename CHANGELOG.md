@@ -14,7 +14,7 @@
 - Expanded Territory points with rulebook-facing public/GM metadata for control source, boundary status, discovery state, footprint, linked records, and ritual/event tracking.
 - Reworked the Mortal-Divine Balance tracker startup into a party-style GM roster with tracked character persistence, character drag/drop/add/remove controls, and a read-only player view for owned characters.
 - Reworked Item sheet spacing so fields, selects, text areas, and rich-text sections keep readable sizing, with long rich-text Item sections now collapsible.
-- Added permission-aware edit locks to Character, Antagonist, Pantheon, and Item sheets so they open protected against accidental edits until explicitly unlocked.
+- Kept the permission-aware edit lock on Character sheets only, with validation guarding Antagonist, Pantheon, and Item sheets against receiving the character lock.
 - Polished Character sheet ability rows so controls stay compact and player-facing detail text renders as readable prose instead of raw markup.
 - Corrected character Initiative to Intuition + Speed, wired PTG initiative into Foundry's native Combat Tracker, and made Skill Combo Check dialogs resizable with an internal scroll region.
 - Hardened the Pantheon party sheet with permission-aware member summaries and a GM/owner character add selector.
