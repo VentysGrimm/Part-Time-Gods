@@ -36,9 +36,18 @@ Owned source-backed items and abilities can modify the Initiative value before t
 
 ## Manual QA
 
+Completed 2026-07-12 in Foundry v14.364 against the active `ptg-v14-qa-smoke-test` world:
+
+- The active Combat Tracker contained `QA Antagonist` and `QA Character` with visible native initiative fields.
+- `PTG GM Setup -> Combat Controls -> Roll PTG Initiative` rerolled both combatants and updated their native Combatant initiative values from `8/6` to `12/5`.
+- The resulting chat card stated the PTG procedure: 1d10 plus Initiative, characters use Intuition + Speed plus active Initiative modifiers, statblocks use listed Initiative plus active Initiative modifiers, and PTG2E normally rerolls each Round unless the table chooses a fixed order or alternate Skill basis.
+- `Start Combat` advanced the encounter to `Round 1` with `QA Character` before `QA Antagonist`, proving the rolled values are usable by Foundry's normal combat tracker turn order.
+
+Repeat checklist:
+
 1. Start a Foundry v14 Combat encounter containing a Character actor and an Antagonist actor.
 2. Open `PTG GM Setup -> Combat Controls`.
-3. Use the native Foundry Combat Tracker roll-initiative button and confirm both combatants receive PTG initiative values.
+3. In a fresh or unrolled encounter, use the native Foundry Combat Tracker roll-initiative button and confirm both combatants receive PTG initiative values.
 4. Open `PTG GM Setup -> Combat Controls`.
 5. Choose `Roll PTG Initiative`.
 6. Confirm the tracker receives new initiative values for both combatants.
