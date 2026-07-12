@@ -275,13 +275,16 @@ async function assertProductionUxScaffold() {
     "height: min(720px, calc(100vh - 32px))",
     "max-height: calc(100vh - 32px)",
     ".ptg-skill-combo-dialog .window-content > form",
+    ".ptg-skill-combo-dialog .window-content > .standard-form",
     "flex-direction: column",
     ".ptg-skill-combo-dialog .dialog-content",
     ".ptg-skill-combo-dialog [data-application-part=\"footer\"]",
+    ".ptg-skill-combo-dialog .ptg-skill-combo-scroll",
     ".ptg-skill-combo-dialog .ptg-skill-combo-options",
     "overflow-x: hidden",
     "overflow-y: auto",
-    "max-height: 100%"
+    "max-height: 100%",
+    "max-height: min(100%, clamp(160px, calc(100vh - 180px), 560px))"
   ];
   for (const token of readableSurfaceTokens) {
     if (!stylesheet.includes(token)) errors.push(`Readable sheet/dialog stylesheet guard missing ${token}`);

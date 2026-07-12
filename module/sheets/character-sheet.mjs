@@ -2561,6 +2561,7 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
     .join("");
 
   const content = `
+    <div class="ptg-skill-combo-scroll">
     <div class="ptg-roll-dialog ptg-skill-combo-options">
       <div class="form-group">
         <label>Primary Skill</label>
@@ -2646,6 +2647,7 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
       ${conditionSummaryHTML(conditionEffects)}
       <p class="ptg-sheet-note">${repetitionNote} Repetition penalties are ignored for Extended Checks.</p>
       <p class="ptg-sheet-note" data-pool-preview>${skillPoolPreview(actor, primary, secondary, 0, 0)}</p>
+    </div>
     </div>
   `;
 
