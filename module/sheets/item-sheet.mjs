@@ -1,5 +1,6 @@
 const { ItemSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
+const ITEM_IMAGE_FALLBACK = "icons/svg/item-bag.svg";
 
 export class PTGItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static DEFAULT_OPTIONS = {
@@ -24,8 +25,43 @@ export class PTGItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     context.system = this.item.system;
     context.itemTypeLabel = game.i18n.localize(`TYPES.Item.${this.item.type}`);
     context.config = CONFIG.PTG;
+    context.itemImg = itemImageSource(this.item);
+    context.itemImageFallback = ITEM_IMAGE_FALLBACK;
 
     return context;
+  }
+
+  async _onRender(context, options) {
+    await super._onRender(context, options);
+    wireItemSheetImageFallback(this.element);
+    annotateCompactFieldTitles(this.element);
+  }
+}
+
+function itemImageSource(item) {
+  const src = String(item?.img ?? "").trim();
+  return src || ITEM_IMAGE_FALLBACK;
+}
+
+function wireItemSheetImageFallback(root) {
+  for (const image of root?.querySelectorAll?.("img[data-fallback-src]") ?? []) {
+    const fallback = image.dataset.fallbackSrc || ITEM_IMAGE_FALLBACK;
+    if (!image.getAttribute("src")) image.setAttribute("src", fallback);
+    if (image.dataset.ptgFallbackWired) continue;
+    image.dataset.ptgFallbackWired = "true";
+    image.addEventListener("error", () => {
+      if (image.getAttribute("src") !== fallback) image.setAttribute("src", fallback);
+    });
+  }
+}
+
+function annotateCompactFieldTitles(root) {
+  for (const control of root?.querySelectorAll?.("input:not([type='checkbox']), select, textarea") ?? []) {
+    const value = control.tagName === "SELECT"
+      ? control.selectedOptions?.[0]?.textContent
+      : control.value;
+    const title = String(value ?? "").trim();
+    if (title && !control.getAttribute("title")) control.setAttribute("title", title);
   }
 }
 

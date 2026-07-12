@@ -212,7 +212,13 @@ async function assertProductionUxScaffold() {
   const readableSurfaceTokens = [
     "--ptg-sheet-paper",
     ".part-time-gods.sheet.item .window-content",
+    ".part-time-gods.sheet.item .window-content > form",
+    "max-width: calc(100vw - 16px)",
+    "max-height: calc(100vh - 16px)",
     ".part-time-gods.sheet.item :where(input:not([type=\"checkbox\"]), select, textarea)",
+    ".part-time-gods.sheet.item .ptg-header .profile-img",
+    ".part-time-gods.sheet.item :where(textarea[readonly])",
+    ".part-time-gods.sheet.item :where(input:not([type=\"checkbox\"])[readonly])",
     ".ptg-sheet :where(input:not([type=\"checkbox\"]), select, textarea)",
     "min-height: 2.5rem",
     "var(--ptg-sheet-field, #ffffff)",
@@ -225,6 +231,9 @@ async function assertProductionUxScaffold() {
     ".ptg-sheet-detail-body",
     ".ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable=\"true\"])",
     ".part-time-gods.sheet.item :where(.form-group.stacked) .editor",
+    "form.part-time-gods.sheet.item.ptg-power-sheet",
+    "form.part-time-gods.sheet.item.domain-sheet",
+    ".part-time-gods.sheet.item .sheet-body > .tab.active",
     ".ptg-condition-create-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-career-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-attachment-definition-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
@@ -257,8 +266,19 @@ async function assertProductionUxScaffold() {
   }
 
   const itemTemplate = await readText("templates/item/item-sheet.hbs");
-  for (const token of ["<details class=\"ptg-editor-section\" open>", "<summary><span>", "<details class=\"ptg-editor-section ptg-rules-explanation\" open>"]) {
+  for (const token of [
+    "<details class=\"ptg-editor-section\" open>",
+    "<summary><span>",
+    "<details class=\"ptg-editor-section ptg-rules-explanation\" open>",
+    "data-fallback-src=\"{{itemImageFallback}}\"",
+    "alt=\"{{item.name}}\""
+  ]) {
     if (!itemTemplate.includes(token)) errors.push(`Item sheet collapsible editor guard missing ${token}`);
+  }
+
+  const itemSheet = await readText("module/sheets/item-sheet.mjs");
+  for (const token of ["ITEM_IMAGE_FALLBACK", "itemImageSource", "wireItemSheetImageFallback", "annotateCompactFieldTitles", "img[data-fallback-src]"]) {
+    if (!itemSheet.includes(token)) errors.push(`Item sheet media/readability helper missing ${token}`);
   }
 
   const characterLockTemplate = await readText("templates/actor/character-sheet.hbs");
