@@ -1,28 +1,31 @@
-<form class="{{cssClass}} ptg-power-sheet" autocomplete="off">
+<form class="part-time-gods sheet item ptg-power-sheet {{cssClass}}" autocomplete="off">
 
   {{!-- ================= HEADER ================= --}}
-  <header class="sheet-header flexrow">
+  <header class="ptg-header sheet-header">
 
     <img
       class="profile-img"
       src="{{item.img}}"
+      data-fallback-src="icons/svg/item-bag.svg"
       data-edit="img"
       title="{{item.name}}"
+      alt="{{item.name}}"
       width="100"
       height="100"
     />
 
-    <div class="header-fields flexcol">
+    <div class="ptg-title header-fields">
 
       <input
-        class="item-name"
+        class="ptg-name item-name"
         name="name"
         type="text"
         value="{{item.name}}"
         placeholder="Power Name"
       />
+      <div class="ptg-subtitle">Power</div>
 
-      <div class="grid grid-3col">
+      <div class="ptg-item-fields three grid grid-3col">
 
         <div class="field">
           <label>Domain</label>
@@ -62,7 +65,7 @@
   </header>
 
   {{!-- ================= TABS ================= --}}
-  <nav class="sheet-tabs tabs" data-group="primary">
+  <nav class="ptg-tabs sheet-tabs tabs" data-group="primary">
     <a class="item" data-tab="description">Description</a>
     <a class="item" data-tab="mechanics">Mechanics</a>
     <a class="item" data-tab="advanced">Advanced</a>

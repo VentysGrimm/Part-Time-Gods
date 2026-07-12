@@ -645,6 +645,36 @@ form.part-time-gods.sheet.item.domain-sheet {
   border-bottom: 1px solid var(--color-border-light-tertiary);
 }
 
+.part-time-gods.sheet.item .ptg-tabs {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
+  padding-bottom: 6px;
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+}
+
+.part-time-gods.sheet.item .ptg-tabs a {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 2.25rem;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 4px 4px 0 0;
+  color: #000000;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+  white-space: normal;
+}
+
+.part-time-gods.sheet.item .ptg-tabs a.active {
+  background: var(--color-bg-btn-minor-active);
+}
+
 .ptg-tabs button {
   border: 0;
   border-radius: 6px 6px 0 0;

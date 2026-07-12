@@ -280,6 +280,7 @@ async function assertProductionUxScaffold() {
     "form.part-time-gods.sheet.item.ptg-power-sheet",
     "form.part-time-gods.sheet.item.domain-sheet",
     ".part-time-gods.sheet.item .sheet-body > .tab.active",
+    ".part-time-gods.sheet.item .ptg-tabs a",
     ".ptg-condition-create-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-career-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-attachment-definition-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
@@ -328,6 +329,27 @@ async function assertProductionUxScaffold() {
     "alt=\"{{item.name}}\""
   ]) {
     if (!itemTemplate.includes(token)) errors.push(`Item sheet collapsible editor guard missing ${token}`);
+  }
+
+  const legacyItemTemplates = [
+    ["templates/item/power-sheet.hbs", "ptg-power-sheet"],
+    ["templates/item/domain-sheet.hbs", "domain-sheet"]
+  ];
+  for (const [template, sheetClass] of legacyItemTemplates) {
+    const source = await readText(template);
+    for (const token of [
+      "part-time-gods sheet item",
+      sheetClass,
+      "data-fallback-src=\"icons/svg/item-bag.svg\"",
+      "alt=\"{{item.name}}\"",
+      "ptg-header",
+      "ptg-title",
+      "ptg-name",
+      "ptg-tabs",
+      "ptg-item-fields three"
+    ]) {
+      if (!source.includes(token)) errors.push(`${template} missing shared item sheet readability token ${token}`);
+    }
   }
 
   const itemSheet = await readText("module/sheets/item-sheet.mjs");

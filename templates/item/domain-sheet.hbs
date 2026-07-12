@@ -1,29 +1,31 @@
 <form class="part-time-gods sheet item domain-sheet {{cssClass}}" autocomplete="off">
 
     {{!-- HEADER --}}
-    <header class="sheet-header flexrow">
+    <header class="ptg-header sheet-header">
 
         <img
             class="profile-img"
             src="{{item.img}}"
+            data-fallback-src="icons/svg/item-bag.svg"
             data-edit="img"
             title="{{item.name}}"
+            alt="{{item.name}}"
             height="96"
             width="96"
         />
 
-        <div class="header-fields flexcol">
+        <div class="ptg-title header-fields">
 
-            <h1 class="charname">
-                <input
-                    name="name"
-                    type="text"
-                    value="{{item.name}}"
-                    placeholder="Domain Name"
-                />
-            </h1>
+            <input
+                class="ptg-name"
+                name="name"
+                type="text"
+                value="{{item.name}}"
+                placeholder="Domain Name"
+            />
+            <div class="ptg-subtitle">Domain</div>
 
-            <div class="stats grid grid-3col">
+            <div class="ptg-item-fields three stats grid grid-3col">
 
                 <div class="resource">
                     <label>Rank</label>
@@ -62,7 +64,7 @@
     </header>
 
     {{!-- NAVIGATION TABS --}}
-    <nav class="sheet-tabs tabs" data-group="primary">
+    <nav class="ptg-tabs sheet-tabs tabs" data-group="primary">
         <a class="item active" data-tab="details">Details</a>
         <a class="item" data-tab="powers">Powers</a>
         <a class="item" data-tab="notes">Notes</a>
