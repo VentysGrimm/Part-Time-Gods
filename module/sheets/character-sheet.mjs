@@ -952,6 +952,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       itemDetail("Description", system.description),
       itemDetail("Related Bonus", system.relatedBonus || system.bonus),
       itemDetail("Related Detriment", system.relatedDetriment),
+      itemDetail("Automation Hook", itemAutomationSummary(system)),
       itemDetail("Automation", system.automationNotes)
     ].filter(Boolean);
 
@@ -1686,6 +1687,33 @@ function itemDetail(label, value) {
     label,
     html
   };
+}
+
+export function itemAutomationSummary(system = {}) {
+  const automation = system?.automation ?? {};
+  if (!automation || typeof automation !== "object") return "";
+
+  const pieces = [];
+  if (automation.action) pieces.push(`Action: ${automationLabel(automation.action)}`);
+  if (automation.roll?.type) pieces.push(`Roll: ${automationLabel(automation.roll.type)}`);
+  if (automation.resourceChange?.resource) {
+    const amount = Number(automation.resourceChange.amount ?? automation.resourceChange.value ?? 0);
+    pieces.push(`Resource: ${automationLabel(automation.resourceChange.resource)} ${amount > 0 ? "+" : ""}${Number.isFinite(amount) ? amount : 0}`);
+  }
+  if (automation.healing) pieces.push("Healing metadata");
+  if (automation.damage) pieces.push("Damage metadata");
+  if (automation.condition) pieces.push("Condition metadata");
+  if (automation.bonus) pieces.push("Bonus metadata");
+  if (automation.penalty) pieces.push("Penalty metadata");
+  if (!pieces.length) return "";
+
+  const mode = automation.enabled ? "enabled" : "manual confirmation";
+  const chat = automation.chatCard ? " Posts a use card." : "";
+  return `Structured automation hook (${mode}): ${pieces.join("; ")}.${chat}`;
+}
+
+function automationLabel(value) {
+  return labelCase(String(value ?? "").replace(/[-_]+/g, " "));
 }
 
 const DETAIL_ALLOWED_TAGS = new Set(["a", "blockquote", "br", "code", "em", "i", "li", "ol", "p", "pre", "strong", "b", "table", "tbody", "td", "th", "thead", "tr", "ul"]);

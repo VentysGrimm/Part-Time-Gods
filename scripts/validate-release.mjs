@@ -219,7 +219,7 @@ async function assertProductionUxScaffold() {
   for (const token of ["ptg-print-ability-actions", "ptg-print-truth-actions", "ptg-sheet-detail-body"]) {
     if (!characterTemplate.includes(token)) errors.push(`Character sheet ability readability markup missing ${token}`);
   }
-  for (const token of ["sheetDetailDisplayHTML", "sanitizeSheetDetailHTML", "decodeSheetDetailEntities", "data-random-god-apply", "identity.divineName", "identity.divineMythSeed"]) {
+  for (const token of ["sheetDetailDisplayHTML", "sanitizeSheetDetailHTML", "decodeSheetDetailEntities", "itemAutomationSummary", "Automation Hook", "data-random-god-apply", "identity.divineName", "identity.divineMythSeed"]) {
     if (!characterSheet.includes(token)) errors.push(`Character sheet detail display helper missing ${token}`);
   }
 
