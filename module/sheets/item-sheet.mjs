@@ -1,5 +1,3 @@
-import { mergeSheetEditLockContext, wireSheetEditLock } from "./sheet-edit-lock.mjs";
-
 const { ItemSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -20,7 +18,7 @@ export class PTGItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   };
 
   async _prepareContext(options) {
-    const context = mergeSheetEditLockContext(await super._prepareContext(options), this, this.item);
+    const context = await super._prepareContext(options);
 
     context.item = this.item;
     context.system = this.item.system;
@@ -28,11 +26,6 @@ export class PTGItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     context.config = CONFIG.PTG;
 
     return context;
-  }
-
-  async _onRender(context, options) {
-    await super._onRender(context, options);
-    wireSheetEditLock(this, this.element, this.item);
   }
 }
 

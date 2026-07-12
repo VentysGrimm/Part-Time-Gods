@@ -6,7 +6,6 @@ import { openPTGCombatControls } from "../combat/ptg-combat.mjs";
 import { openMortalDivineBalanceTracker } from "../apps/mortal-divine-tracker.mjs";
 import { openPantheonPoolDialog } from "../workflows/pantheon-pool-workflow.mjs";
 import { openPTGStoryWorkflow } from "../workflows/story-workflow.mjs";
-import { isSheetEditLocked, mergeSheetEditLockContext, wireSheetEditLock } from "./sheet-edit-lock.mjs";
 
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -37,13 +36,12 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   };
 
   static async _onSubmit(event, form, formData) {
-    if (isSheetEditLocked(this, this.actor)) return false;
     const data = formData?.object ?? {};
     return this.actor.update(data);
   }
 
   async _prepareContext(options) {
-    const context = mergeSheetEditLockContext(await super._prepareContext(options), this, this.actor);
+    const context = await super._prepareContext(options);
 
     context.actor = this.actor;
     context.system = this.actor.system;
@@ -61,7 +59,6 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   async _onRender(context, options) {
     await super._onRender(context, options);
-    wireSheetEditLock(this, this.element, this.actor);
 
     for (const button of this.element.querySelectorAll("[data-member-action]")) {
       button.addEventListener("click", event => this.#onMemberAction(event.currentTarget));
@@ -76,11 +73,6 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   async _onDrop(event) {
-    if (isSheetEditLocked(this, this.actor)) {
-      ui.notifications.warn("Unlock this sheet before adding Pantheon members.");
-      return false;
-    }
-
     if (!canManagePantheonMembers(this.actor)) {
       ui.notifications.warn("You need owner permission to add Pantheon members.");
       return false;
@@ -130,11 +122,6 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   async #addSelectedMember() {
-    if (isSheetEditLocked(this, this.actor)) {
-      ui.notifications.warn("Unlock this sheet before adding Pantheon members.");
-      return;
-    }
-
     if (!canManagePantheonMembers(this.actor)) {
       ui.notifications.warn("You need owner permission to add Pantheon members.");
       return;
@@ -162,11 +149,6 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!uuid) return;
 
     if (["remove", "up", "down"].includes(button.dataset.memberAction)) {
-      if (isSheetEditLocked(this, this.actor)) {
-        ui.notifications.warn("Unlock this sheet before managing Pantheon members.");
-        return;
-      }
-
       if (!canManagePantheonMembers(this.actor)) {
         ui.notifications.warn("You need owner permission to manage Pantheon members.");
         return;

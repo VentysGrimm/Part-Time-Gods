@@ -261,19 +261,34 @@ async function assertProductionUxScaffold() {
     if (!itemTemplate.includes(token)) errors.push(`Item sheet collapsible editor guard missing ${token}`);
   }
 
+  const characterLockTemplate = await readText("templates/actor/character-sheet.hbs");
+  if (!characterLockTemplate.includes("data-ptg-edit-lock-toggle")) errors.push("Character sheet missing sheet edit lock toggle");
+  if (!characterLockTemplate.includes("sheetLocked") || !characterLockTemplate.includes("canEditSheet")) errors.push("Character sheet missing sheet edit lock context");
+
   for (const template of [
-    "templates/actor/character-sheet.hbs",
     "templates/actor/antagonist-sheet.hbs",
     "templates/actor/pantheon-sheet.hbs",
     "templates/item/item-sheet.hbs"
   ]) {
     const source = await readText(template);
-    if (!source.includes("data-ptg-edit-lock-toggle")) errors.push(`${template} missing sheet edit lock toggle`);
-    if (!source.includes("sheetLocked") || !source.includes("canEditSheet")) errors.push(`${template} missing sheet edit lock context`);
+    if (source.includes("data-ptg-edit-lock-toggle") || source.includes("sheetLocked") || source.includes("canEditSheet")) {
+      errors.push(`${template} should not include the character sheet edit lock`);
+    }
   }
 
   const lockHelper = await readText("module/sheets/sheet-edit-lock.mjs");
-  for (const token of ["sheetEditLockContext", "wireSheetEditLock", "isSheetEditLocked", "toggleSheetEditLock", "WeakSet", "[data-item-action='toggle-details']"]) {
+  for (const token of [
+    "sheetEditLockContext",
+    "wireSheetEditLock",
+    "isSheetEditLocked",
+    "toggleSheetEditLock",
+    "WeakSet",
+    "[data-roll-skill]",
+    "[data-roll-manifestation]",
+    "[data-ritual-action]",
+    "[data-item-action='use']",
+    "[data-item-action='toggle-details']"
+  ]) {
     if (!lockHelper.includes(token)) errors.push(`Sheet edit lock helper missing ${token}`);
   }
 }

@@ -1,18 +1,4 @@
 <form class="ptg-sheet ptg-compact-sheet" autocomplete="off">
-  <section class="ptg-edit-lock-bar {{#if sheetLocked}}is-locked{{else}}{{#if sheetUnlocked}}is-unlocked{{else}}is-readonly{{/if}}{{/if}}" aria-label="Sheet edit lock">
-    {{#if canEditSheet}}
-      <button type="button" class="ptg-edit-lock-toggle" data-ptg-edit-lock-toggle aria-pressed="{{#if sheetUnlocked}}true{{else}}false{{/if}}" title="{{sheetLockTitle}}">
-        <span>{{sheetLockState}}</span>
-        <small>{{sheetLockHint}}</small>
-      </button>
-    {{else}}
-      <div class="ptg-edit-lock-readonly">
-        <span>{{sheetLockState}}</span>
-        <small>{{sheetLockHint}}</small>
-      </div>
-    {{/if}}
-  </section>
-
   <header class="ptg-header">
     <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}">
     <div class="ptg-title">

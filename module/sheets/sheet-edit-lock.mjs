@@ -3,6 +3,29 @@ const unlockedSheets = new WeakSet();
 const ALLOWED_LOCKED_BUTTON_SELECTOR = [
   "[data-ptg-edit-lock-toggle]",
   "[data-ptg-tab]",
+  "[data-roll-skill]",
+  "[data-roll-manifestation]",
+  "[data-ritual-action]",
+  "[data-resource-workflow]",
+  "[data-mortality-workflow]",
+  "[data-pantheon-pool-workflow]",
+  "[data-item-action='toggle-details']",
+  "[data-item-action='use']",
+  "[data-item-action='worshipper-request']",
+  "[data-item-action='vassal-task']",
+  "[data-item-action='favor']",
+  "[data-item-action='lead']",
+  "[data-item-action='follow-up']",
+  "[data-item-action='devote']",
+  "[data-item-action='split-attention']",
+  "[data-item-action='delay']",
+  "[data-item-action='lose']",
+  ".tabs [data-tab]",
+  ".sheet-tabs [data-tab]"
+].join(", ");
+
+const ALLOWED_READONLY_BUTTON_SELECTOR = [
+  "[data-ptg-tab]",
   "[data-item-action='toggle-details']",
   ".tabs [data-tab]",
   ".sheet-tabs [data-tab]"
@@ -72,6 +95,9 @@ export function isSheetEditLocked(application, document = null) {
 
 function applySheetEditLock(root, context) {
   if (!context.sheetLocked && context.canEditSheet) return;
+  const allowedButtonSelector = context.canEditSheet
+    ? ALLOWED_LOCKED_BUTTON_SELECTOR
+    : ALLOWED_READONLY_BUTTON_SELECTOR;
 
   for (const control of root.querySelectorAll("input, select, textarea")) {
     if (control.matches("[data-ptg-edit-lock-toggle]")) continue;
@@ -80,7 +106,7 @@ function applySheetEditLock(root, context) {
   }
 
   for (const button of root.querySelectorAll("button")) {
-    if (button.matches(ALLOWED_LOCKED_BUTTON_SELECTOR)) continue;
+    if (button.matches(allowedButtonSelector)) continue;
     button.disabled = true;
     button.setAttribute("aria-disabled", "true");
   }
