@@ -100,6 +100,32 @@ test("PTG initiative updates collection-backed combatants", async () => {
   }]);
 });
 
+test("PTG statblock combat rolls count d10 successes", async () => {
+  installFoundryTestEnvironment();
+
+  globalThis.Roll = class {
+    constructor(formula) {
+      this.formula = formula;
+      this.dice = [];
+    }
+
+    async evaluate() {
+      this.dice = [{ results: [7, 9, 10, 4].map(result => ({ result })) }];
+      return this;
+    }
+  };
+
+  const { rollPTGStatblockPool } = await import("../../module/combat/ptg-combat.mjs?statblock-roll");
+  const result = await rollPTGStatblockPool({
+    name: "QA Antagonist",
+    system: { attack: 4 }
+  }, "attack");
+
+  assert.equal(result.pool, 4);
+  assert.equal(result.successes, 4);
+  assert.equal(result.roll.formula, "4d10");
+});
+
 test("PTG combat controls records action markers for a selected combatant", async () => {
   installFoundryTestEnvironment();
 

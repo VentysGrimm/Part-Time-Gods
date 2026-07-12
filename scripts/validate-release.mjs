@@ -286,6 +286,8 @@ async function assertProductionUxScaffold() {
     "[data-roll-skill]",
     "[data-roll-manifestation]",
     "[data-ritual-action]",
+    "[data-combat-roll]",
+    "[data-combat-controls]",
     "[data-item-action='use']",
     "[data-item-action='toggle-details']"
   ]) {
@@ -320,7 +322,7 @@ async function assertChapterFourRulesScaffold() {
 
 async function assertChapterFiveCombatScaffold() {
   const entryPoint = await readText("part-time-gods.js");
-  for (const token of ["registerPTGCombatHooks", "openPTGCombatControls", "PartTimeGodsCombatant", "CONFIG.Combatant.documentClass", "CONFIG.Combat.initiative", "quick: \"Quick Action\"", "standard: \"Standard Action\""]) {
+  for (const token of ["registerPTGCombatHooks", "openPTGCombatControls", "rollPTGStatblockPool", "PartTimeGodsCombatant", "CONFIG.Combatant.documentClass", "CONFIG.Combat.initiative", "quick: \"Quick Action\"", "standard: \"Standard Action\""]) {
     if (!entryPoint.includes(token)) errors.push(`Main entry point/config missing Chapter 5 combat token ${token}`);
   }
 
@@ -330,7 +332,7 @@ async function assertChapterFiveCombatScaffold() {
   }
 
   const combat = await readText("module/combat/ptg-combat.mjs");
-  for (const token of ["PTG_INITIATIVE_FORMULA", "actorInitiative", "initiativeProcedureHTML", "quickAction", "standardAction", "quickDefense", "standardDefense", "battleFists", "battleWits", "physicalDamage", "mentalDamage", "healing", "rollPTGInitiative", "applyConditionToActor", "conditionCombatModifier"]) {
+  for (const token of ["PTG_INITIATIVE_FORMULA", "actorInitiative", "initiativeProcedureHTML", "quickAction", "standardAction", "quickDefense", "standardDefense", "battleFists", "battleWits", "physicalDamage", "mentalDamage", "healing", "rollPTGInitiative", "rollPTGStatblockPool", "applyConditionToActor", "conditionCombatModifier"]) {
     if (!combat.includes(token)) errors.push(`Combat workflow missing Chapter 5 token ${token}`);
   }
 
@@ -350,8 +352,13 @@ async function assertChapterFiveCombatScaffold() {
   }
 
   const characterTemplate = await readText("templates/actor/character-sheet.hbs");
-  for (const token of ["data-item-action=\"condition-reduce\"", "data-item-action=\"condition-increase\"", "data-item-action=\"condition-recover\""]) {
-    if (!characterTemplate.includes(token)) errors.push(`Character sheet missing Condition action ${token}`);
+  for (const token of ["data-item-action=\"condition-reduce\"", "data-item-action=\"condition-increase\"", "data-item-action=\"condition-recover\"", "data-combat-roll=\"{{roll.key}}\"", "data-combat-controls"]) {
+    if (!characterTemplate.includes(token)) errors.push(`Character sheet missing Chapter 5 action ${token}`);
+  }
+
+  const antagonistTemplate = await readText("templates/actor/antagonist-sheet.hbs");
+  for (const token of ["data-antagonist-combat-roll=\"attack\"", "data-antagonist-combat-roll=\"defense\"", "data-antagonist-combat-controls"]) {
+    if (!antagonistTemplate.includes(token)) errors.push(`Antagonist sheet missing combat action ${token}`);
   }
 }
 

@@ -72,6 +72,8 @@ test("locked character sheets leave gameplay buttons usable while blocking edit 
     skill: fakeElement({ tagName: "button", attrs: { "data-roll-skill": "athletics" } }),
     manifestation: fakeElement({ tagName: "button", attrs: { "data-roll-manifestation": "aegis" } }),
     ritual: fakeElement({ tagName: "button", attrs: { "data-ritual-action": "territory" } }),
+    combatRoll: fakeElement({ tagName: "button", attrs: { "data-combat-roll": "fists" } }),
+    combatControls: fakeElement({ tagName: "button", attrs: { "data-combat-controls": "" } }),
     resourceWorkflow: fakeElement({ tagName: "button", attrs: { "data-resource-workflow": "work" } }),
     itemUse: fakeElement({ tagName: "button", attrs: { "data-item-action": "use" } }),
     details: fakeElement({ tagName: "button", attrs: { "data-item-action": "toggle-details" } }),
@@ -90,7 +92,7 @@ test("locked character sheets leave gameplay buttons usable while blocking edit 
   const context = lock.wireSheetEditLock(app, root, document);
 
   assert.equal(context.sheetLocked, true);
-  for (const key of ["toggle", "tab", "skill", "manifestation", "ritual", "resourceWorkflow", "itemUse", "details"]) {
+  for (const key of ["toggle", "tab", "skill", "manifestation", "ritual", "combatRoll", "combatControls", "resourceWorkflow", "itemUse", "details"]) {
     assert.equal(buttons[key].disabled, false, `${key} should remain usable while locked`);
   }
   for (const key of ["itemEdit", "itemDelete", "creator", "resourceStep"]) {

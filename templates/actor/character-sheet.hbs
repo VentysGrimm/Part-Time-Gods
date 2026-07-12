@@ -22,6 +22,12 @@
     <button type="button" data-character-creator title="{{ptgLocalize "PTG.Help.CharacterCreator"}}">{{ptgLocalize "PTG.Sheet.Creator"}}</button>
     <button type="button" data-mortality-workflow title="{{ptgLocalize "PTG.Help.MortalDivineBalance"}}">{{ptgLocalize "PTG.Sheet.Mortality"}}: {{system.mortality.state}}</button>
     <button type="button" data-resource-workflow="work" title="{{ptgLocalize "PTG.Help.FreeTime"}}">{{ptgLocalize "PTG.Sheet.GoToWork"}}</button>
+    {{#each combatRolls as |roll|}}
+      <button type="button" data-combat-roll="{{roll.key}}" title="{{roll.source}}">{{roll.label}}</button>
+    {{/each}}
+    {{#if canUseCombatControls}}
+      <button type="button" data-combat-controls title="{{ptgLocalize "PTG.Setup.Actions.CombatControls.Hint"}}">Combat Controls</button>
+    {{/if}}
     {{#each pantheonMembership as |pantheon|}}
       <button type="button" data-pantheon-pool-workflow data-pantheon-uuid="{{pantheon.uuid}}" title="{{ptgLocalize "PTG.Help.PantheonPool"}}">{{pantheon.name}} {{ptgLocalize "PTG.Sheet.Pool"}} {{pantheon.pool}}</button>
     {{/each}}

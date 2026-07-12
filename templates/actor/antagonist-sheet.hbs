@@ -83,6 +83,18 @@
     </label>
   </section>
 
+  <section class="ptg-editor-section ptg-antagonist-combat-panel">
+    <h2>Combat Actions</h2>
+    <div class="ptg-action-row">
+      <button type="button" data-antagonist-combat-roll="attack">Roll Attack</button>
+      <button type="button" data-antagonist-combat-roll="defense">Roll Defense</button>
+      {{#if canUseCombatControls}}
+        <button type="button" data-antagonist-combat-controls>Combat Controls</button>
+      {{/if}}
+    </div>
+    <p class="ptg-sheet-note">Attack and Defense roll the listed statblock pool as d10 successes. Use Combat Controls for action markers, Battle resolution, Health/Psyche damage, armor, and Conditions.</p>
+  </section>
+
   <section class="ptg-editor-section">
     <h2>Description</h2>
     {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}

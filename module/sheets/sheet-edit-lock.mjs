@@ -6,6 +6,8 @@ const ALLOWED_LOCKED_BUTTON_SELECTOR = [
   "[data-roll-skill]",
   "[data-roll-manifestation]",
   "[data-ritual-action]",
+  "[data-combat-roll]",
+  "[data-combat-controls]",
   "[data-resource-workflow]",
   "[data-mortality-workflow]",
   "[data-pantheon-pool-workflow]",

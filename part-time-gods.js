@@ -34,7 +34,7 @@ import { populatePremadeCompendiums } from "./module/data/premade-compendiums.mj
 import { PTG_PREMADE_MACROS } from "./module/data/premade-macros.mjs";
 import { getPremadeJournals } from "./module/data/premade-journals.mjs";
 import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
-import { openPTGCombatControls, PTG_INITIATIVE_FORMULA, registerPTGCombatHooks, rollPTGInitiative } from "./module/combat/ptg-combat.mjs";
+import { openPTGCombatControls, PTG_INITIATIVE_FORMULA, registerPTGCombatHooks, rollPTGInitiative, rollPTGStatblockPool } from "./module/combat/ptg-combat.mjs";
 import { PartTimeGodsCombatant } from "./module/combat/ptg-combatant.mjs";
 import { maybeOpenMortalDivineBalanceTrackerOnReady, openMortalDivineBalanceTracker, registerMortalDivineTrackerSettings } from "./module/apps/mortal-divine-tracker.mjs";
 import {
@@ -105,6 +105,7 @@ Hooks.once("init", async () => {
     runPTGMigrations,
     migrateWorldActorsToCanonicalEmbeddedItems,
     rollPTGInitiative,
+    rollPTGStatblockPool,
     openAntagonistBuilder,
     populatePremadeCompendiums
   };

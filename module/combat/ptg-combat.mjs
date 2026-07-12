@@ -560,6 +560,10 @@ function actorArmor(actor) {
 }
 
 async function rollStatblockSuccesses(actor, stat) {
+  return rollPTGStatblockPool(actor, stat);
+}
+
+export async function rollPTGStatblockPool(actor, stat) {
   const pool = statblockPool(actor, stat);
   if (pool <= 0) return null;
 

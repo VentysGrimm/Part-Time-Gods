@@ -3,10 +3,25 @@ import { getDragEventData, itemFromDropData } from "../util/drop-data.mjs";
 import { localizeFallback } from "../util/localization.mjs";
 import { openPantheonPoolDialog, pantheonPoolMax, pantheonPoolOptions, spendPantheonDiceForActor } from "../workflows/pantheon-pool-workflow.mjs";
 import { generateDivineIdentity, generateRandomGod } from "../util/random-god-generator.mjs";
+import { openPTGCombatControls } from "../combat/ptg-combat.mjs";
 import { isSheetEditLocked, mergeSheetEditLockContext, wireSheetEditLock } from "./sheet-edit-lock.mjs";
 
 const SYSTEM_ID = "part-time-gods";
 const PTG_DIALOG_CLASSES = ["part-time-gods", "ptg-sheet-dialog"];
+const CHARACTER_COMBAT_ROLLS = {
+  fists: {
+    label: "Battle of Fists",
+    primary: "fighting",
+    secondary: "speed",
+    source: "Close Combat Attack and Block use Fighting + Speed in Chapter 5."
+  },
+  wits: {
+    label: "Battle of Wits",
+    primary: "influence",
+    secondary: "deception",
+    source: "Mislead and Big Reveal use Influence + Deception in Chapter 5."
+  }
+};
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -60,6 +75,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     context.inventorySections = this.#prepareInventorySections(context.inventory);
     context.creationSteps = this.#prepareCreationSteps(context.inventory);
     context.choiceDetails = this.actor.getFlag("part-time-gods", "choiceDetails") ?? {};
+    context.combatRolls = Object.entries(CHARACTER_COMBAT_ROLLS).map(([key, roll]) => ({ key, ...roll }));
+    context.canUseCombatControls = game.user?.isGM;
     const resourceTracks = this.#prepareResourceTracks();
     context.resourceTracks = resourceTracks;
     context.frontResourceTracks = resourceTracks.filter(track => track.key !== "fragments");
@@ -94,6 +111,11 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     for (const button of this.element.querySelectorAll("[data-roll-manifestation]")) {
       button.addEventListener("click", event => this.#rollManifestation(event.currentTarget));
     }
+
+    for (const button of this.element.querySelectorAll("[data-combat-roll]")) {
+      button.addEventListener("click", event => this.#rollCombatPreset(event.currentTarget));
+    }
+    this.element.querySelector("[data-combat-controls]")?.addEventListener("click", () => openPTGCombatControls());
 
     for (const button of this.element.querySelectorAll("[data-item-action]")) {
       button.addEventListener("click", event => this.#onItemAction(event.currentTarget));
@@ -217,12 +239,33 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
   async #rollSkill(button) {
     const primary = button.dataset.rollSkill;
-    const secondary = primary;
+    await this.#resolveSkillComboRoll({
+      primary,
+      secondary: primary,
+      difficulty: 1,
+      reason: "Skill Combo Check"
+    });
+  }
+
+  async #rollCombatPreset(button) {
+    const preset = CHARACTER_COMBAT_ROLLS[button.dataset.combatRoll];
+    if (!preset) return;
+
+    await this.#resolveSkillComboRoll({
+      primary: preset.primary,
+      secondary: preset.secondary,
+      difficulty: 1,
+      reason: preset.label,
+      flavor: `${this.actor.name}: ${preset.label}`
+    });
+  }
+
+  async #resolveSkillComboRoll({ primary, secondary, difficulty = 1, reason = "Skill Combo Check", flavor = "" } = {}) {
     const selection = await selectSkillComboRollOptions({
       actor: this.actor,
       primary,
       secondary,
-      difficulty: 1,
+      difficulty,
       repetition: skillRepetitionState(this.actor, primary, secondary)
     });
 
@@ -231,7 +274,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     if (selection.pantheonDice > 0) {
       const spent = await spendPantheonDiceForActor(this.actor, selection.pantheonDice, {
         pantheonUuid: selection.pantheonUuid,
-        reason: "Skill Combo Check",
+        reason,
         notes: skillComboLabel(selection.primary, selection.secondary),
         permissionConfirmed: true
       });
@@ -245,7 +288,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       modifierDetails: selection.modifierDetails,
       checkMode: selection.checkMode,
       extended: selection.extended,
-      boostChoice: selection.boostChoice
+      boostChoice: selection.boostChoice,
+      flavor
     });
 
     await recordSkillRepetition(this.actor, selection.primary, selection.secondary, selection.checkMode);
