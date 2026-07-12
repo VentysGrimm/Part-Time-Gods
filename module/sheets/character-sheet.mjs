@@ -29,6 +29,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   #activeTab = "front";
   #expandedItemDetails = new Set();
   #tabScrollPositions = new Map();
+  #pendingScrollAnchorItemId = null;
 
   static DEFAULT_OPTIONS = {
     classes: ["part-time-gods", "sheet", "character"],
@@ -99,6 +100,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   async _onRender(context, options) {
     await super._onRender(context, options);
     wireSheetEditLock(this, this.element, this.actor);
+    this.#wireScrollPersistence();
 
     for (const tab of this.element.querySelectorAll("[data-ptg-tab]")) {
       tab.addEventListener("click", event => this.#activateTab(event.currentTarget.dataset.ptgTab));
@@ -159,7 +161,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
 
     this.element.querySelector("[data-character-creator]")?.addEventListener("click", () => this.#openCharacterCreator());
-    this.#activateTab(this.#activeTab, { restoreScroll: true });
+    this.#activateTab(this.#activeTab, { restoreScroll: true, captureCurrent: false });
+    this.#restorePendingScrollAnchor();
   }
 
   async _onDrop(event) {
@@ -204,6 +207,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     const selection = await promptAttachmentOfChoice(sourceItem);
     if (!selection) return false;
 
+    this.#captureActivePageScroll();
     const itemData = attachmentOfChoiceItemData(sourceItem, selection);
     await this.actor.createEmbeddedDocuments("Item", [itemData]);
     this.render(false);
@@ -218,9 +222,44 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     event.dataTransfer.effectAllowed = "copyMove";
   }
 
-  #activateTab(tabName, { restoreScroll = true } = {}) {
-    const currentPanel = this.element.querySelector(`[data-ptg-panel="${this.#activeTab}"]`);
-    if (currentPanel) this.#tabScrollPositions.set(this.#activeTab, currentPanel.scrollTop);
+  #wireScrollPersistence() {
+    for (const panel of this.element.querySelectorAll("[data-ptg-panel]")) {
+      if (panel.dataset.ptgScrollPersistenceWired) continue;
+      panel.dataset.ptgScrollPersistenceWired = "true";
+      panel.addEventListener("scroll", () => {
+        if (panel.dataset.ptgPanel) this.#tabScrollPositions.set(panel.dataset.ptgPanel, panel.scrollTop);
+      }, { passive: true });
+    }
+
+    if (this.element.dataset.ptgScrollPersistenceWired) return;
+    this.element.dataset.ptgScrollPersistenceWired = "true";
+    this.element.addEventListener("pointerdown", () => this.#captureActivePageScroll(), { capture: true });
+    this.element.addEventListener("contextmenu", () => this.#captureActivePageScroll(), { capture: true });
+    this.element.addEventListener("change", () => this.#captureActivePageScroll(), { capture: true });
+    this.element.addEventListener("keydown", event => {
+      if (["Enter", " ", "Spacebar"].includes(event.key)) this.#captureActivePageScroll();
+    }, { capture: true });
+  }
+
+  #captureActivePageScroll() {
+    const activePanel = this.#activePagePanel();
+    if (!activePanel) return;
+
+    const tabName = activePanel.dataset.ptgPanel ?? this.#activeTab;
+    this.#activeTab = tabName;
+    this.#tabScrollPositions.set(tabName, activePanel.scrollTop);
+  }
+
+  #activePagePanel() {
+    const panels = Array.from(this.element?.querySelectorAll("[data-ptg-panel]") ?? []);
+    return panels.find(panel => panel.dataset.ptgPanel === this.#activeTab && !panel.hidden)
+      ?? panels.find(panel => panel.classList?.contains?.("active") && !panel.hidden)
+      ?? panels.find(panel => !panel.hidden)
+      ?? null;
+  }
+
+  #activateTab(tabName, { restoreScroll = true, captureCurrent = true } = {}) {
+    if (captureCurrent) this.#captureActivePageScroll();
     this.#activeTab = tabName;
 
     for (const tab of this.element.querySelectorAll("[data-ptg-tab]")) {
@@ -235,6 +274,20 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
 
     if (activePanel && restoreScroll) activePanel.scrollTop = this.#tabScrollPositions.get(tabName) ?? 0;
+  }
+
+  #restorePendingScrollAnchor() {
+    const itemId = this.#pendingScrollAnchorItemId;
+    this.#pendingScrollAnchorItemId = null;
+    if (!itemId) return;
+
+    const row = Array.from(this.element.querySelectorAll("[data-item-id]"))
+      .find(candidate => candidate.dataset.itemId === itemId);
+    const panel = row?.closest?.("[data-ptg-panel]");
+    if (!row || !panel) return;
+
+    row.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    this.#tabScrollPositions.set(panel.dataset.ptgPanel ?? this.#activeTab, panel.scrollTop);
   }
 
   async #rollSkill(button) {
@@ -1230,6 +1283,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
   #toggleItemDetails(itemId) {
     if (!itemId) return;
+    this.#captureActivePageScroll();
+    this.#pendingScrollAnchorItemId = itemId;
     if (this.#expandedItemDetails.has(itemId)) this.#expandedItemDetails.delete(itemId);
     else this.#expandedItemDetails.add(itemId);
     this.render(false);
@@ -1247,6 +1302,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     if (!itemData) return null;
 
+    this.#captureActivePageScroll();
     const [item] = await this.actor.createEmbeddedDocuments("Item", [itemData]);
 
     item.sheet.render({ force: true });

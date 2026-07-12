@@ -222,6 +222,9 @@ async function assertProductionUxScaffold() {
   for (const token of ["sheetDetailDisplayHTML", "sanitizeSheetDetailHTML", "decodeSheetDetailEntities", "itemAutomationSummary", "Automation Hook", "data-random-god-apply", "identity.divineName", "identity.divineMythSeed"]) {
     if (!characterSheet.includes(token)) errors.push(`Character sheet detail display helper missing ${token}`);
   }
+  for (const token of ["#wireScrollPersistence", "#captureActivePageScroll", "#pendingScrollAnchorItemId", "captureCurrent: false", "scrollIntoView"]) {
+    if (!characterSheet.includes(token)) errors.push(`Character sheet scroll persistence missing ${token}`);
+  }
 
   const characterModel = await readText("module/documents/models/actor/character-model.mjs");
   for (const token of ["divineName", "divineTitle", "divineEpithet", "divineSymbol", "divineOmen", "divineTaboo", "divineOffering", "divineMythSeed", "divineTone"]) {
