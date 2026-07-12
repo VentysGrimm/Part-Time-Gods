@@ -238,6 +238,61 @@ test("PTG combat controls applies healing to a selected combatant actor", async 
   assert.match(createdMessages[0].content, /QA combat healing/);
 });
 
+test("PTG combat controls restores scalar statblock health above zero", async () => {
+  installFoundryTestEnvironment();
+
+  foundry.applications.api.DialogV2.prompt = async () => ({
+    combatantId: "qa-antagonist",
+    action: "healing",
+    healingResource: "health",
+    healingAmount: 1,
+    notes: "QA antagonist restore"
+  });
+  game.user = { isGM: true };
+
+  const createdMessages = [];
+  ChatMessage.create = async data => {
+    createdMessages.push(data);
+    return data;
+  };
+
+  const updates = [];
+  const actor = {
+    name: "QA Antagonist",
+    items: [],
+    system: {
+      health: 0,
+      psyche: 2
+    },
+    async update(update) {
+      updates.push(update);
+      if ("system.health" in update) {
+        this.system.health = update["system.health"];
+      }
+    }
+  };
+  const combatant = {
+    id: "qa-antagonist",
+    name: "QA Antagonist",
+    actor
+  };
+  const combat = {
+    name: "QA Combat",
+    round: 3,
+    combatants: new Map([[combatant.id, combatant]])
+  };
+
+  const { openPTGCombatControls } = await import("../../module/combat/ptg-combat.mjs?scalar-healing");
+  const result = await openPTGCombatControls({ combat });
+
+  assert.equal(result, combatant);
+  assert.deepEqual(updates, [{ "system.health": 1 }]);
+  assert.equal(actor.system.health, 1);
+  assert.match(createdMessages[0].content, /Recover or Heal/);
+  assert.match(createdMessages[0].content, /Health 0 -&gt; 1/);
+  assert.match(createdMessages[0].content, /QA antagonist restore/);
+});
+
 test("PTG combat controls applies selected Psyche damage to a combatant actor", async () => {
   installFoundryTestEnvironment();
 

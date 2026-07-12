@@ -583,7 +583,7 @@ async function applyHealing(actor, selection) {
   }
 
   if (selection.conditionName && amount > 0) {
-    const condition = actor.items.find(item => item.type === "condition" && item.name === selection.conditionName);
+    const condition = actorItems(actor).find(item => item.type === "condition" && item.name === selection.conditionName);
     if (condition) {
       const current = Number(condition.system.severity ?? 1);
       const next = Math.max(0, current - amount);
@@ -615,10 +615,29 @@ function actorResource(actor, resource) {
     return {
       path: `system.${resource}`,
       value: Number(actor.system[resource] ?? 0),
-      max: Number(actor.system[resource] ?? 0)
+      max: scalarResourceMax(actor, resource)
     };
   }
 
+  return null;
+}
+
+function scalarResourceMax(actor, resource) {
+  const system = actor?.system ?? {};
+  const label = resource.charAt(0).toUpperCase() + resource.slice(1);
+  return firstFiniteNumber(
+    system[`${resource}Max`],
+    system[`${resource}Maximum`],
+    system[`max${label}`],
+    system.resources?.[resource]?.max
+  ) ?? Number.POSITIVE_INFINITY;
+}
+
+function firstFiniteNumber(...values) {
+  for (const value of values) {
+    const number = Number(value);
+    if (Number.isFinite(number)) return number;
+  }
   return null;
 }
 
@@ -658,10 +677,9 @@ function conditionCombatModifier(actor, mode) {
 }
 
 function actorWeapons(actor) {
-  return actor?.items
-    ?.filter(item => item.type === "weapon")
-    ?.filter(item => item.system.held !== false || item.system.equipped)
-    ?? [];
+  return actorItems(actor)
+    .filter(item => item.type === "weapon")
+    .filter(item => item.system.held !== false || item.system.equipped);
 }
 
 function weaponDamageBonus(weapon) {
@@ -681,7 +699,7 @@ function armorProofBonus(actor, tag) {
   const needle = String(tag ?? "").trim().toLowerCase();
   if (!needle) return 0;
 
-  return actor.items
+  return actorItems(actor)
     .filter(item => item.type === "armor" && item.system.equipped)
     .reduce((total, armor) => total + proofQualityBonus(armor, needle), 0);
 }
@@ -700,7 +718,7 @@ function proofQualityBonus(armor, tag) {
 }
 
 function equippedArmorQualities(actor) {
-  return actor.items
+  return actorItems(actor)
     .filter(item => item.type === "armor" && item.system.equipped)
     .flatMap(item => qualityEntries(item));
 }
