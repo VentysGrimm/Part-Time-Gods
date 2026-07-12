@@ -324,7 +324,58 @@ export function actorInitiative(actor) {
   const base = actor.type === "character"
     ? Number(actor.system.derived?.initiative ?? 0)
     : Number(actor.system.initiative ?? actor.system.derived?.initiative ?? 0);
-  return base + conditionCombatModifier(actor, "initiative");
+  return base + itemInitiativeModifier(actor) + conditionCombatModifier(actor, "initiative");
+}
+
+export function itemInitiativeModifier(actor) {
+  return actorItems(actor).reduce((total, item) => {
+    if (!initiativeItemIsActive(item)) return total;
+    return total + itemAutomationInitiativeModifier(item) + qualityInitiativeModifier(item);
+  }, 0);
+}
+
+function actorItems(actor) {
+  const items = actor?.items;
+  if (!items) return [];
+  if (Array.isArray(items)) return items;
+  if (Array.isArray(items.contents)) return items.contents;
+  if (typeof items.values === "function") return Array.from(items.values());
+  if (typeof items[Symbol.iterator] === "function") return Array.from(items);
+  if (typeof items.filter === "function") return items.filter(() => true);
+  return [];
+}
+
+function initiativeItemIsActive(item) {
+  const system = item?.system ?? {};
+  if (system.equipped === false || system.held === false || system.active === false) return false;
+  return true;
+}
+
+function itemAutomationInitiativeModifier(item) {
+  const automation = item?.system?.automation ?? {};
+  if (automation.enabled === false) return 0;
+  return numericModifier(automation.bonus?.initiative) + penaltyModifier(automation.penalty?.initiative);
+}
+
+function qualityInitiativeModifier(item) {
+  if (!["weapon", "armor"].includes(item?.type)) return 0;
+
+  return qualityEntries(item).reduce((total, quality) => {
+    const automationBonus = quality.automation?.bonus?.initiative ?? quality.automation?.initiativeBonus;
+    if (automationBonus !== undefined) return total + numericModifier(automationBonus);
+    if (quality.key === "quick") return total + (numericModifier(quality.value) || 1);
+    return total;
+  }, 0);
+}
+
+function numericModifier(value) {
+  const number = Number(value ?? 0);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function penaltyModifier(value) {
+  const number = numericModifier(value);
+  return number > 0 ? -number : number;
 }
 
 async function resetCombatRoundActions(combat) {

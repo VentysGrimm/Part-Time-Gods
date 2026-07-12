@@ -1637,6 +1637,7 @@ function ritualDuration(name) {
 function blessing(name, sourceName, page, effect, { flags = {}, originalName = name } = {}) {
   const fullText = abilityPlayerText("blessing", name, sourceName, effect);
   const itemFlags = flags.kind ? { ...flags, originalName } : flags;
+  const bonus = abilityBonusMetadata(effect);
 
   return baseItem("blessing", name, page, {
     source: sourceName,
@@ -1646,10 +1647,12 @@ function blessing(name, sourceName, page, effect, { flags = {}, originalName = n
     notes: source(page),
     ...itemRules("blessing", name, page, effect, {
       fullText,
-      kind: "triggered",
-      trigger: "gm",
+      kind: bonus ? "passive" : "triggered",
+      trigger: bonus ? "combat-initiative" : "gm",
       target: "self",
-      action: "apply-bonus"
+      action: "apply-bonus",
+      bonus,
+      enabled: Boolean(bonus)
     })
   }, itemFlags);
 }
@@ -2349,6 +2352,11 @@ function bondPlayerText(name, kind, description) {
 function bonusText(effect) {
   const match = String(effect ?? "").match(/(?:Gain|Add) \+?\d+[^.]+/i);
   return match?.[0] ?? "";
+}
+
+function abilityBonusMetadata(effect) {
+  const initiative = Number(String(effect ?? "").match(/\+(\d+)\s+Initiative\b/i)?.[1] ?? 0);
+  return initiative > 0 ? { initiative } : null;
 }
 
 function paragraph(text) {

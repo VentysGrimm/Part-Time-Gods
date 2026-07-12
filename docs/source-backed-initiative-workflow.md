@@ -20,7 +20,7 @@ Antagonists and other statblock actors use:
 1d10 + listed Initiative
 ```
 
-Active Conditions can modify the Initiative value before the roll. The GM can still choose an alternate Skill basis when the scene calls for it, such as chases, unusual terrain, or scene-specific social pressure.
+Owned source-backed items and abilities can modify the Initiative value before the roll when they carry explicit automation metadata, such as the Crossovers `Reactive` Blessing (`+2 Initiative`) or the `Quick` gear quality (`+1 Initiative`). Active Conditions are added after those item and ability modifiers. The GM can still choose an alternate Skill basis when the scene calls for it, such as chases, unusual terrain, or scene-specific social pressure.
 
 ## Implementation
 
@@ -30,6 +30,7 @@ Active Conditions can modify the Initiative value before the roll. The GM can st
 - `rollPTGInitiative()` rolls `1d10 + @initiative` for every combatant in the active Foundry Combat encounter.
 - Character combatants use `system.derived.initiative`.
 - Antagonist/statblock combatants use `system.initiative`, falling back to `system.derived.initiative` if needed.
+- `itemInitiativeModifier()` adds active owned `system.automation.bonus.initiative` metadata and held/equipped Quick weapon quality bonuses before the roll.
 - `conditionRollEffects({ mode: "initiative" })` contributes active Condition modifiers to both actor families.
 - `PTG Combat Controls -> Roll PTG Initiative` updates Foundry Combatant initiative values through `combat.updateEmbeddedDocuments("Combatant", updates)`.
 
@@ -42,4 +43,4 @@ Active Conditions can modify the Initiative value before the roll. The GM can st
 5. Choose `Roll PTG Initiative`.
 6. Confirm the tracker receives new initiative values for both combatants.
 7. Confirm the chat card states the character formula and statblock behavior.
-8. If a Condition with Initiative modifiers is active, confirm the modifier is reflected in the resulting initiative value.
+8. If Reactive, Quick, or a Condition with Initiative modifiers is active, confirm the modifier is reflected in the resulting initiative value.

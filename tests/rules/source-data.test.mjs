@@ -146,6 +146,19 @@ test("Chapter 5 battle data covers actions, defenses, gear, and conditions", asy
   assert.ok((counts.get("weapon") ?? []).length >= 9);
 });
 
+test("Premade source data exposes initiative modifiers for automation", () => {
+  const reactive = items.PTG_PREMADE_ITEMS.find(item => item.type === "blessing" && item.name === "Reactive");
+  const quick = items.PTG_PREMADE_ITEMS.find(item => item.type === "gearQuality" && item.name === "Quick");
+
+  assert.ok(reactive, "Reactive blessing item");
+  assert.equal(reactive.system.automation.enabled, true);
+  assert.deepEqual(reactive.system.automation.bonus, { initiative: 2 });
+
+  assert.ok(quick, "Quick gear quality item");
+  assert.equal(quick.system.automation.enabled, true);
+  assert.equal(quick.system.automation.bonus.initiative, 1);
+});
+
 test("Premade Items stay in valid item folders without journal-style leaks", () => {
   const validTypes = new Set([
     "armor",

@@ -402,7 +402,7 @@ async function assertChapterFiveCombatScaffold() {
   }
 
   const combat = await readText("module/combat/ptg-combat.mjs");
-  for (const token of ["PTG_INITIATIVE_FORMULA", "actorInitiative", "initiativeProcedureHTML", "quickAction", "standardAction", "quickDefense", "standardDefense", "battleFists", "battleWits", "physicalDamage", "mentalDamage", "healing", "rollPTGInitiative", "rollPTGStatblockPool", "applyConditionToActor", "conditionCombatModifier"]) {
+  for (const token of ["PTG_INITIATIVE_FORMULA", "actorInitiative", "itemInitiativeModifier", "initiativeProcedureHTML", "quickAction", "standardAction", "quickDefense", "standardDefense", "battleFists", "battleWits", "physicalDamage", "mentalDamage", "healing", "rollPTGInitiative", "rollPTGStatblockPool", "applyConditionToActor", "conditionCombatModifier", "automation.bonus?.initiative"]) {
     if (!combat.includes(token)) errors.push(`Combat workflow missing Chapter 5 token ${token}`);
   }
 
@@ -603,6 +603,9 @@ async function validatePremadeSourceData() {
   if (chapterFiveAudit.missingGearFamilies.length) {
     errors.push(`Chapter 5 gear/condition families incomplete:\n${chapterFiveAudit.missingGearFamilies.map(key => `- ${key}`).join("\n")}`);
   }
+  if (chapterFiveAudit.missingInitiativeModifiers.length) {
+    errors.push(`Chapter 5 initiative modifier metadata incomplete:\n${chapterFiveAudit.missingInitiativeModifiers.map(key => `- ${key}`).join("\n")}`);
+  }
 
   const importFacingMacros = documents.macros
     .filter(macro => /\bimport\b|populate compendiums/i.test(`${macro.name} ${macro.command} ${macro.flags?.[SYSTEM_ID]?.summary ?? ""}`))
@@ -756,8 +759,24 @@ function chapterFiveBattleAudit(items, journals) {
   ]
     .filter(([type, minimum]) => Number(familyCounts[type] ?? 0) < minimum)
     .map(([type, minimum]) => `${type}: expected at least ${minimum}, got ${Number(familyCounts[type] ?? 0)}`);
+  const missingInitiativeModifiers = initiativeModifierAudit(items);
 
-  return { misplacedRuleItems, missingJournalPages, missingActions, missingActionMetadata, missingGearFamilies };
+  return { misplacedRuleItems, missingJournalPages, missingActions, missingActionMetadata, missingGearFamilies, missingInitiativeModifiers };
+}
+
+function initiativeModifierAudit(items) {
+  const missing = [];
+  const reactive = items.find(item => item.type === "blessing" && item.name === "Reactive");
+  const quick = items.find(item => item.type === "gearQuality" && item.name === "Quick");
+
+  if (reactive?.system?.automation?.enabled !== true || Number(reactive?.system?.automation?.bonus?.initiative ?? 0) !== 2) {
+    missing.push("Reactive blessing: expected enabled +2 Initiative automation");
+  }
+  if (quick?.system?.automation?.enabled !== true || Number(quick?.system?.automation?.bonus?.initiative ?? 0) !== 1) {
+    missing.push("Quick gear quality: expected enabled +1 Initiative automation");
+  }
+
+  return missing;
 }
 
 function missingRulesJournalPages(journals, expectedPages) {
