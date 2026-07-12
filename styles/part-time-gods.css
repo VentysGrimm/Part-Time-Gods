@@ -778,7 +778,7 @@ details.ptg-editor-section:not([open]) {
 .ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable="true"]),
 .part-time-gods.sheet.item :where(.form-group.stacked) :where(.editor-content, .editor-container, .ProseMirror, [contenteditable="true"]),
 .ptg-item-details,
-.ptg-item-details > div {
+.ptg-item-details > :where(div, .ptg-sheet-detail) {
   box-sizing: border-box;
   min-width: 0;
   max-width: 100%;
@@ -2249,12 +2249,19 @@ details.ptg-editor-section:not([open]) {
 
 .ptg-item-row {
   display: grid;
-  grid-template-columns: 36px minmax(120px, 1fr) minmax(180px, 1.4fr) auto;
+  grid-template-columns: 36px minmax(0, 1fr) minmax(0, 1.1fr) minmax(7rem, auto);
   gap: 8px;
   align-items: center;
+  min-width: 0;
+  max-width: 100%;
   padding: 6px;
   border: 1px solid var(--color-border-light-tertiary);
   border-radius: 6px;
+  overflow: hidden;
+}
+
+.ptg-item-row > * {
+  min-width: 0;
 }
 
 .ptg-item-row img {
@@ -2268,35 +2275,81 @@ details.ptg-editor-section:not([open]) {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+}
+
+.ptg-item-main strong {
+  min-width: 0;
+  max-width: 100%;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.ptg-item-meta {
+  min-width: 0;
+  max-width: 100%;
+  max-height: 5.4rem;
+  align-content: flex-start;
+  overflow: auto;
+  scrollbar-gutter: stable;
 }
 
 .ptg-item-main span,
 .ptg-item-meta span {
+  min-width: 0;
+  max-width: 100%;
   color: #000000;
   font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .ptg-item-main .ptg-item-summary {
+  max-height: 4.25rem;
   color: #000000;
   font-size: 12px;
   line-height: 1.3;
+  overflow: auto;
+  scrollbar-gutter: stable;
 }
 
-.ptg-item-actions button {
-  padding: 2px 6px;
+.ptg-item-actions,
+.ptg-gear-actions,
+.ptg-print-mini-actions,
+.ptg-print-ability-actions {
+  min-width: 0;
+  max-width: 100%;
+  align-content: flex-start;
+}
+
+.ptg-item-actions {
+  justify-content: flex-end;
+  max-width: min(100%, 14rem);
+}
+
+.ptg-item-actions button,
+.ptg-gear-actions button,
+.ptg-print-mini-actions button,
+.ptg-print-ability-actions button,
+.ptg-detail-toggle {
+  min-width: 2.25rem;
+  max-width: 7rem;
+  min-height: 24px;
+  padding: 2px 7px;
+  border: 1px solid #8d74b8;
+  border-radius: 3px;
+  background: #f7f3fb;
+  color: #111111;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  box-shadow: none;
 }
 
 .ptg-detail-toggle,
 .ptg-gear-actions button {
-  min-height: 24px;
-  padding: 2px 7px;
-  border: 1px solid #3d1f5d;
-  border-radius: 4px;
-  background: #5b2c83;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.2;
   white-space: nowrap;
 }
 
@@ -2354,9 +2407,9 @@ details.ptg-editor-section:not([open]) {
 
 .ptg-gear-name strong {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .ptg-gear-row > span {
@@ -3368,14 +3421,17 @@ details.ptg-editor-section:not([open]) {
   line-height: 1.35;
 }
 
-.ptg-item-details > div {
+.ptg-item-details > :where(div, .ptg-sheet-detail) {
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  max-height: 12rem;
+  overflow: auto;
+  overscroll-behavior: contain;
   padding: 5px 6px;
   border: 1px solid rgba(141, 116, 184, 0.35);
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.62);
+  scrollbar-gutter: stable;
 }
 
 .ptg-item-details strong {
@@ -3519,6 +3575,8 @@ details.ptg-editor-section:not([open]) {
 .ptg-print-xp button,
 .ptg-print-resource button,
 .ptg-print-condition button {
+  min-width: 2.25rem;
+  max-width: 7rem;
   min-height: 24px;
   border: 1px solid #5b2879;
   border-radius: 2px;
@@ -3527,7 +3585,8 @@ details.ptg-editor-section:not([open]) {
   font-size: 11px;
   font-weight: 800;
   line-height: 1.1;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .ptg-print-front-grid {
@@ -4060,13 +4119,17 @@ details.ptg-editor-section:not([open]) {
 .ptg-print-ability-actions button,
 .ptg-print-truth-actions button,
 .ptg-print-back .ptg-print-section-heading > button {
+  min-width: 2.25rem;
+  max-width: 7rem;
   min-height: 20px;
   padding: 2px 6px;
   border-color: #6d5680;
   background: #f7f3fb;
   color: #111111;
   font-size: 10px;
-  line-height: 1;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+  white-space: normal;
   box-shadow: none;
 }
 
@@ -4208,9 +4271,16 @@ details.ptg-editor-section:not([open]) {
 
 .ptg-print-attachment-name strong {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.ptg-print-attachment-row > span {
+  min-width: 0;
+  max-width: 100%;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .ptg-print-box {
