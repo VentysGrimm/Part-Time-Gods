@@ -55,13 +55,17 @@ const packBuilds = [
     folderLabels: {
       attachment: "Attachments",
       armor: "Armor",
+      "battle-fists": "Battle of Fists Actions",
+      "battle-wits": "Battle of Wits Actions",
       blessing: "Blessings",
       bond: "Bonds",
       condition: "Conditions",
+      "critical-failure-effects": "Critical Failure Effects",
       curse: "Curses and Failings",
       domain: "Specific Dominions",
       gearQuality: "Gear Qualities",
       manifestation: "Manifestations",
+      "manifestation-application": "Manifestation Applications",
       occupation: "Occupation Careers",
       otherworld: "Otherworld Travel",
       power: "Powers",
@@ -303,7 +307,7 @@ function documentSourceKey(document, documentName) {
 
 function documentTypeKey(document, documentName) {
   if (documentName === "Actor") return document.flags?.[SYSTEM_ID]?.category ?? document.type ?? "actor";
-  if (documentName === "Item" && document.type === "power") return document.flags?.[SYSTEM_ID]?.folder ?? "power";
+  if (documentName === "Item") return document.flags?.[SYSTEM_ID]?.folder ?? document.type ?? "item";
   return document.type ?? documentName.toLowerCase();
 }
 

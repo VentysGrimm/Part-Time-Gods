@@ -146,6 +146,62 @@ test("Chapter 5 battle data covers actions, defenses, gear, and conditions", asy
   assert.ok((counts.get("weapon") ?? []).length >= 9);
 });
 
+test("Premade Items stay in valid item folders without journal-style leaks", () => {
+  const validTypes = new Set([
+    "armor",
+    "attachment",
+    "blessing",
+    "bond",
+    "condition",
+    "curse",
+    "domain",
+    "gearQuality",
+    "occupation",
+    "power",
+    "relic",
+    "truth",
+    "vassal",
+    "weapon",
+    "worshipper"
+  ]);
+  const validFolders = new Set([
+    ...validTypes,
+    "battle-fists",
+    "battle-wits",
+    "critical-failure-effects",
+    "manifestation",
+    "manifestation-application",
+    "otherworld",
+    "ritual"
+  ]);
+  const journalStyleKinds = new Set(["chapter-4-rule", "chapter-5-rule", "rules-reference", "complete-rules"]);
+  const typeNames = new Set();
+  const sourceIds = new Set();
+  const folderCounts = new Map();
+
+  for (const item of items.PTG_PREMADE_ITEMS) {
+    const flags = item.flags?.[SYSTEM_ID] ?? {};
+    const typeName = `${item.type}:${item.name}`;
+    const sourceId = flags.sourceId ?? item.system?.sourceId;
+    const folderKey = flags.folder ?? item.type;
+
+    assert.ok(validTypes.has(item.type), `${typeName} has invalid Item type`);
+    assert.ok(validFolders.has(folderKey), `${typeName} has invalid folder key ${folderKey}`);
+    assert.ok(!journalStyleKinds.has(flags.kind), `${typeName} should be a JournalEntry page, not an Item`);
+    assert.ok(!typeNames.has(typeName), `${typeName} duplicate type/name`);
+    assert.ok(!sourceIds.has(sourceId), `${typeName} duplicate sourceId ${sourceId}`);
+
+    typeNames.add(typeName);
+    sourceIds.add(sourceId);
+    folderCounts.set(folderKey, (folderCounts.get(folderKey) ?? 0) + 1);
+  }
+
+  assert.equal(folderCounts.get("battle-fists"), 23);
+  assert.equal(folderCounts.get("battle-wits"), 23);
+  assert.equal(folderCounts.get("critical-failure-effects"), 11);
+  assert.equal(folderCounts.get("manifestation-application"), 27);
+});
+
 test("Workflow macros are compatibility launchers with native UI homes", () => {
   const workflowMacros = macros.PTG_PREMADE_MACROS.filter(macro => macro.flags?.[SYSTEM_ID]?.kind === "workflow-macro");
 
