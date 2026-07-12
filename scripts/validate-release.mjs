@@ -280,6 +280,8 @@ async function assertProductionUxScaffold() {
     ".ptg-skill-combo-dialog .dialog-content",
     ".ptg-skill-combo-dialog [data-application-part=\"footer\"]",
     ".ptg-skill-combo-dialog .ptg-skill-combo-scroll",
+    "max-height: min(100%, calc(100vh - 180px))",
+    "padding-right: 4px",
     ".ptg-skill-combo-dialog .ptg-skill-combo-options",
     "overflow-x: hidden",
     "overflow-y: auto",
