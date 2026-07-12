@@ -23,12 +23,39 @@ test("divine identity suggestions include editable identity fields", () => {
   assert.match(identity.divineMythSeed, /Cult of the Saints/);
 });
 
+test("divine identity generation falls back cleanly when choices are missing", () => {
+  const identity = generateDivineIdentity();
+
+  assert.equal(identity.concept, "God/dess of Crossroads");
+  assert.match(identity.divineTitle, /Crossroads/);
+  assert.match(identity.divineEpithet, /Wanderer/);
+  assert.match(identity.divineMythSeed, /Household Saints/);
+});
+
+test("divine identity generation follows selected creation themes", () => {
+  const identity = generateDivineIdentity({
+    occupation: "Artist",
+    archetype: "The Guardian",
+    dominion: "Rivers",
+    theology: "The Old Gods"
+  });
+
+  assert.equal(identity.concept, "God/dess of Rivers");
+  assert.match(identity.divineTitle, /Rivers/);
+  assert.match(identity.divineEpithet, /Guardian/);
+  assert.match(identity.divineTaboo, /guardian/i);
+  assert.match(identity.divineOffering, /artist/i);
+  assert.match(identity.divineMythSeed, /Old Gods/);
+});
+
 test("random god helper returns source choices plus a divine identity package", () => {
   const result = generateRandomGod();
 
   assert.ok(result.choices);
   assert.ok(result.notes);
   assert.ok(Array.isArray(result.log));
+  assert.ok(result.log.some(entry => entry.startsWith("Random Occupation - Class:")));
+  assert.ok(result.log.some(entry => entry.startsWith("Random Dominion - Type:")));
   assert.ok(result.identity?.concept);
   assert.ok(result.identity?.divineName);
   assert.ok(result.identity?.divineMythSeed);
