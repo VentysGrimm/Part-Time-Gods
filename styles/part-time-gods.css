@@ -4432,6 +4432,7 @@ details.ptg-editor-section:not([open]) {
 
 .ptg-balance-tracker {
   --ptg-balance-purple: #6f5aa0;
+  container-type: inline-size;
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -4547,9 +4548,11 @@ details.ptg-editor-section:not([open]) {
 }
 
 .ptg-balance-party {
+  grid-template-rows: auto minmax(0, 1fr);
   padding: 8px;
   border: 1px solid #b49bd8;
   background: #f4effa;
+  overflow: hidden;
 }
 
 .ptg-balance-party header {
@@ -4570,9 +4573,15 @@ details.ptg-editor-section:not([open]) {
 
 .ptg-balance-party-list {
   display: grid;
+  align-content: start;
   gap: 6px;
   min-width: 0;
   min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .ptg-balance-party-card {
@@ -4805,6 +4814,24 @@ details.ptg-editor-section:not([open]) {
 .ptg-balance-log li small,
 .ptg-balance-log li p {
   display: block;
+}
+
+@container (max-width: 680px) {
+  .ptg-balance-body {
+    grid-template-columns: 1fr;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .ptg-balance-party {
+    max-height: min(340px, 45vh);
+  }
+
+  .ptg-balance-detail {
+    max-height: none;
+    overflow: visible;
+  }
 }
 
 @media (max-width: 820px) {
