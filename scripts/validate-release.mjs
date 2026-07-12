@@ -17,30 +17,14 @@ const EXPECTED_MANIFESTATION_APPLICATIONS = {
   soul: ["Call Spirit", "Figments", "Redefine"]
 };
 const EXPECTED_MANIFESTATION_MEASURES = ["damage", "range", "targets", "duration", "scale", "detail", "magnitude", "modifier", "area", "trigger"];
-const EXPECTED_CHAPTER_FOUR_RULES = [
-  "Blessings",
-  "Curses",
-  "Skill-Combo Checks",
-  "Rolling Dice",
-  "Difficulties and Modifiers",
-  "Fate Die",
-  "Opposed Checks",
-  "Extended Checks",
-  "Rounding",
-  "Support",
-  "Boosts",
-  "Critical Failure",
-  "Specialties",
-  "Tools and High-Quality Tools",
-  "Repetitive Skill Usage",
-  "Pantheon Pool",
-  "Strength and Encumbrance",
-  "Free Time",
-  "Wealth",
-  "Going to Work",
-  "Interacting with Attachments",
-  "Interacting with Territory"
-];
+const EXPECTED_CHAPTER_FOUR_JOURNAL_PAGES = {
+  "Blessings, Curses, and the Skill-Combo System": [175, 176, 177],
+  "Skill List": [178, 179, 180, 181, 182],
+  "Rolling Dice and Checks": [183, 184, 185, 186],
+  "Pantheon Pool, Strength, and Movement": [187, 188, 189],
+  "Free Time and Wealth": [190, 191, 192],
+  "Interacting with Attachments and Territory": [193, 194, 195]
+};
 const EXPECTED_CHAPTER_FOUR_CRITICAL_FAILURE_EFFECTS = [
   "Critical Failure: Harm",
   "Critical Failure: New Condition",
@@ -61,24 +45,12 @@ const EXPECTED_CHAPTER_FOUR_ROLL_TABLES = [
   "Attachment Interaction Choices",
   "Wealth Cost Tiers"
 ];
-const EXPECTED_CHAPTER_FIVE_RULES = [
-  "Divine Battles",
-  "Battle Timing",
-  "Determining Initiative",
-  "Alternative Initiative",
-  "Turn Sequence",
-  "Actions and Defenses",
-  "Taking Damage",
-  "Anatomy of Damage",
-  "Conditions in Battle",
-  "Healing",
-  "Natural Healing",
-  "Medical Treatment",
-  "Armor",
-  "Weapons",
-  "Range",
-  "Battle Examples"
-];
+const EXPECTED_CHAPTER_FIVE_JOURNAL_PAGES = {
+  "Timing, Initiative, and Turns": [197, 198, 199],
+  "Actions and Defenses": [200, 201, 202, 203],
+  "Damage, Conditions, and Healing": [204, 205, 206, 207, 208],
+  "Armor, Weapons, and Range": [209, 210, 211, 212]
+};
 const EXPECTED_CHAPTER_FIVE_BATTLE_ACTIONS = {
   fists: {
     "quick-action": ["Feint", "Move", "Prepare", "Pulling Punches", "Resist Condition", "Touch"],
@@ -216,6 +188,11 @@ async function assertProductionUxScaffold() {
   const randomGodGenerator = await readText("module/util/random-god-generator.mjs");
   for (const token of ["generateDivineIdentity", "divineSymbol", "divineOmen", "divineTaboo", "divineOffering", "divineMythSeed", "divineTone"]) {
     if (!randomGodGenerator.includes(token)) errors.push(`Random god generator missing ${token}`);
+  }
+
+  const compendiumModule = await readText("module/data/premade-compendiums.mjs");
+  for (const token of ["removeStale: true", "isPremadeItemDocument", "PACKS.items"]) {
+    if (!compendiumModule.includes(token)) errors.push(`Premade Item compendium stale-cleanup guard missing ${token}`);
   }
 
   const pantheonTemplate = await readText("templates/actor/pantheon-sheet.hbs");
@@ -466,23 +443,26 @@ async function validatePremadeSourceData() {
     errors.push(`Manifestation measure metadata missing:\n${manifestationAudit.missingMeasures.map(key => `- ${key}`).join("\n")}`);
   }
 
-  const chapterFourAudit = chapterFourRulesAudit(documents.items, documents.rollTables);
-  if (chapterFourAudit.missingRules.length) {
-    errors.push(`Missing Chapter 4 rule Items:\n${chapterFourAudit.missingRules.map(key => `- ${key}`).join("\n")}`);
+  const chapterFourAudit = chapterFourRulesAudit(documents.items, documents.rollTables, documents.journals);
+  if (chapterFourAudit.misplacedRuleItems.length) {
+    errors.push(`Chapter 4 reference content should be JournalEntry pages, not Items:\n${chapterFourAudit.misplacedRuleItems.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFourAudit.missingJournalPages.length) {
+    errors.push(`Missing Chapter 4 rules JournalEntry pages:\n${chapterFourAudit.missingJournalPages.map(key => `- ${key}`).join("\n")}`);
   }
   if (chapterFourAudit.missingCriticalFailureEffects.length) {
     errors.push(`Missing Chapter 4 Critical Failure consequence Conditions:\n${chapterFourAudit.missingCriticalFailureEffects.map(key => `- ${key}`).join("\n")}`);
-  }
-  if (chapterFourAudit.missingRuleMetadata.length) {
-    errors.push(`Chapter 4 rule Items missing automation/source metadata:\n${chapterFourAudit.missingRuleMetadata.map(key => `- ${key}`).join("\n")}`);
   }
   if (chapterFourAudit.missingRollTables.length) {
     errors.push(`Missing Chapter 4 procedural RollTables:\n${chapterFourAudit.missingRollTables.map(key => `- ${key}`).join("\n")}`);
   }
 
-  const chapterFiveAudit = chapterFiveBattleAudit(documents.items);
-  if (chapterFiveAudit.missingRules.length) {
-    errors.push(`Missing Chapter 5 battle rule Items:\n${chapterFiveAudit.missingRules.map(key => `- ${key}`).join("\n")}`);
+  const chapterFiveAudit = chapterFiveBattleAudit(documents.items, documents.journals);
+  if (chapterFiveAudit.misplacedRuleItems.length) {
+    errors.push(`Chapter 5 battle reference content should be JournalEntry pages, not Items:\n${chapterFiveAudit.misplacedRuleItems.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFiveAudit.missingJournalPages.length) {
+    errors.push(`Missing Chapter 5 battle JournalEntry pages:\n${chapterFiveAudit.missingJournalPages.map(key => `- ${key}`).join("\n")}`);
   }
   if (chapterFiveAudit.missingActions.length) {
     errors.push(`Missing Chapter 5 Battle action/defense Items:\n${chapterFiveAudit.missingActions.map(key => `- ${key}`).join("\n")}`);
@@ -580,43 +560,34 @@ function manifestationApplicationAudit(items) {
   return { missing, missingMetadata, missingMeasures };
 }
 
-function chapterFourRulesAudit(items, rollTables) {
-  const rulesBySourceId = new Map(
-    items
-      .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-4-rule")
-      .map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item])
-  );
+function chapterFourRulesAudit(items, rollTables, journals) {
+  const misplacedRuleItems = items
+    .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-4-rule")
+    .map(item => item.name);
   const criticalEffectsBySourceId = new Map(
     items
       .filter(item => item.type === "condition" && item.flags?.[SYSTEM_ID]?.kind === "critical-failure-effect")
       .map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item])
   );
-  const missingRules = EXPECTED_CHAPTER_FOUR_RULES
-    .filter(name => !rulesBySourceId.has(`ptg2e.chapter-4.rule.${sourceSlug(name)}`));
+  const missingJournalPages = missingRulesJournalPages(journals, EXPECTED_CHAPTER_FOUR_JOURNAL_PAGES);
   const missingCriticalFailureEffects = EXPECTED_CHAPTER_FOUR_CRITICAL_FAILURE_EFFECTS
     .filter(name => !criticalEffectsBySourceId.has(`ptg2e.chapter-4.critical-failure.${sourceSlug(name)}`));
-  const missingRuleMetadata = [...rulesBySourceId.values()]
-    .filter(item => item.system?.usage?.kind !== "chapter-4-rule" || !item.system?.automation?.action || Number(item.flags?.[SYSTEM_ID]?.page ?? 0) < 175)
-    .map(item => item.name);
   const tableNames = new Set(rollTables.map(table => table.name));
   const missingRollTables = EXPECTED_CHAPTER_FOUR_ROLL_TABLES.filter(name => !tableNames.has(name));
 
-  return { missingRules, missingCriticalFailureEffects, missingRuleMetadata, missingRollTables };
+  return { misplacedRuleItems, missingJournalPages, missingCriticalFailureEffects, missingRollTables };
 }
 
-function chapterFiveBattleAudit(items) {
-  const rulesBySourceId = new Map(
-    items
-      .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-5-rule")
-      .map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item])
-  );
+function chapterFiveBattleAudit(items, journals) {
+  const misplacedRuleItems = items
+    .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-5-rule")
+    .map(item => item.name);
   const actionsBySourceId = new Map(
     items
       .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "battle-action")
       .map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item])
   );
-  const missingRules = EXPECTED_CHAPTER_FIVE_RULES
-    .filter(name => !rulesBySourceId.has(`ptg2e.chapter-5.rule.${sourceSlug(name)}`));
+  const missingJournalPages = missingRulesJournalPages(journals, EXPECTED_CHAPTER_FIVE_JOURNAL_PAGES);
   const expectedActions = Object.entries(EXPECTED_CHAPTER_FIVE_BATTLE_ACTIONS)
     .flatMap(([battle, groups]) => Object.entries(groups)
       .flatMap(([actionType, names]) => names.map(name => ({
@@ -656,7 +627,23 @@ function chapterFiveBattleAudit(items) {
     .filter(([type, minimum]) => Number(familyCounts[type] ?? 0) < minimum)
     .map(([type, minimum]) => `${type}: expected at least ${minimum}, got ${Number(familyCounts[type] ?? 0)}`);
 
-  return { missingRules, missingActions, missingActionMetadata, missingGearFamilies };
+  return { misplacedRuleItems, missingJournalPages, missingActions, missingActionMetadata, missingGearFamilies };
+}
+
+function missingRulesJournalPages(journals, expectedPages) {
+  const pagesByName = new Map(
+    journals.flatMap(journal => (journal.pages ?? []).map(page => [page.name, page]))
+  );
+
+  return Object.entries(expectedPages)
+    .filter(([name, expectedSourcePages]) => {
+      const page = pagesByName.get(name);
+      if (!page) return true;
+
+      const sourcePages = new Set(page.flags?.[SYSTEM_ID]?.sourcePages ?? []);
+      return expectedSourcePages.some(sourcePage => !sourcePages.has(sourcePage));
+    })
+    .map(([name]) => name);
 }
 
 function rulesJournalTextAudit(journals) {

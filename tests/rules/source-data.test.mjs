@@ -64,27 +64,28 @@ test("Choice data covers all core choice families with usable grants", () => {
   }
 });
 
-test("Chapter 4 rules data covers dice, resource, and consequence procedures", () => {
+test("Chapter 4 rules journals cover dice, resource, and consequence procedures", async () => {
   const chapterFourRules = items.PTG_PREMADE_ITEMS.filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-4-rule");
   const criticalFailureEffects = items.PTG_PREMADE_ITEMS.filter(item => item.type === "condition" && item.flags?.[SYSTEM_ID]?.kind === "critical-failure-effect");
   const tableNames = new Set(rollTables.PTG_PREMADE_ROLL_TABLES.map(table => table.name));
+  const rulesJournals = await journals.getPremadeJournals();
+  const diceJournal = rulesJournals.find(journal => journal.name === "05. Dice, Skills, and Resources");
 
-  assert.equal(chapterFourRules.length, 22);
-  assert.equal(criticalFailureEffects.length, 11);
-  for (const name of ["Rolling Dice", "Fate Die", "Boosts", "Pantheon Pool", "Going to Work", "Interacting with Territory"]) {
-    const item = chapterFourRules.find(candidate => candidate.name === name);
-    assert.ok(item, `${name} Chapter 4 rule item`);
-    assert.equal(item.system.usage.kind, "chapter-4-rule");
-    assert.ok(item.system.automation.action, `${name} automation action`);
-    assert.match(item.system.sourceId, /^ptg2e\.chapter-4\.rule\./);
+  assert.equal(chapterFourRules.length, 0);
+  assert.ok(diceJournal, "Chapter 4 rules are stored as a JournalEntry");
+  for (const name of [
+    "Blessings, Curses, and the Skill-Combo System",
+    "Rolling Dice and Checks",
+    "Pantheon Pool, Strength, and Movement",
+    "Free Time and Wealth",
+    "Interacting with Attachments and Territory"
+  ]) {
+    const page = diceJournal.pages.find(candidate => candidate.name === name);
+    assert.ok(page, `${name} JournalEntry page`);
+    assert.ok(page.flags?.[SYSTEM_ID]?.sourcePages?.length, `${name} source pages`);
   }
 
-  const fateDie = chapterFourRules.find(item => item.name === "Fate Die");
-  assert.equal(fateDie.system.automation.roll.fateDie, true);
-  assert.equal(fateDie.system.automation.roll.successesOnSuccess, 2);
-
-  const boosts = chapterFourRules.find(item => item.name === "Boosts");
-  assert.equal(boosts.system.automation.roll.boostThreshold, 3);
+  assert.equal(criticalFailureEffects.length, 11);
 
   for (const name of ["Possible Critical Failure Effects", "Boost Effect Menu", "Pantheon Pool Uses", "Attachment Interaction Choices", "Wealth Cost Tiers"]) {
     assert.ok(tableNames.has(name), `${name} RollTable`);
@@ -98,7 +99,7 @@ test("Chapter 4 rules data covers dice, resource, and consequence procedures", (
   }
 });
 
-test("Chapter 5 battle data covers actions, defenses, gear, and conditions", () => {
+test("Chapter 5 battle data covers actions, defenses, gear, and conditions", async () => {
   const chapterFiveRules = items.PTG_PREMADE_ITEMS.filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-5-rule");
   const battleActions = items.PTG_PREMADE_ITEMS.filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "battle-action");
   const chapterFiveItems = items.PTG_PREMADE_ITEMS.filter(item => {
@@ -106,15 +107,23 @@ test("Chapter 5 battle data covers actions, defenses, gear, and conditions", () 
     return page >= 205 && page <= 212;
   });
   const counts = groupByType(chapterFiveItems);
+  const rulesJournals = await journals.getPremadeJournals();
+  const battleJournal = rulesJournals.find(journal => journal.name === "06. Divine Battles");
 
-  assert.equal(chapterFiveRules.length, 16);
-  assert.equal(battleActions.length, 46);
-  for (const name of ["Determining Initiative", "Turn Sequence", "Taking Damage", "Anatomy of Damage", "Armor", "Weapons", "Range"]) {
-    const item = chapterFiveRules.find(candidate => candidate.name === name);
-    assert.ok(item, `${name} Chapter 5 rule item`);
-    assert.equal(item.system.usage.kind, "chapter-5-rule");
-    assert.match(item.system.sourceId, /^ptg2e\.chapter-5\.rule\./);
+  assert.equal(chapterFiveRules.length, 0);
+  assert.ok(battleJournal, "Chapter 5 battle rules are stored as a JournalEntry");
+  for (const name of [
+    "Timing, Initiative, and Turns",
+    "Actions and Defenses",
+    "Damage, Conditions, and Healing",
+    "Armor, Weapons, and Range"
+  ]) {
+    const page = battleJournal.pages.find(candidate => candidate.name === name);
+    assert.ok(page, `${name} JournalEntry page`);
+    assert.ok(page.flags?.[SYSTEM_ID]?.sourcePages?.length, `${name} source pages`);
   }
+
+  assert.equal(battleActions.length, 46);
 
   for (const name of [
     "Battle of Fists Quick Action: Feint",

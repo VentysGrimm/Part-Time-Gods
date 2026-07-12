@@ -396,8 +396,6 @@ const OTHERWORLD_STAGE_DEFINITIONS = [
 ];
 
 export const PTG_PREMADE_ITEMS = [
-  ...CHAPTER_FOUR_RULE_DEFINITIONS.map(chapterFourRulePower),
-  ...CHAPTER_FIVE_RULE_DEFINITIONS.map(chapterFiveRulePower),
   ...BATTLE_ACTION_DEFINITIONS.map(battleActionPower),
   ...MANIFESTATION_POWER_DEFINITIONS.map(manifestationPower),
   ...MANIFESTATION_APPLICATION_DEFINITIONS.map(manifestationApplicationPower),

@@ -21,7 +21,10 @@ const PACKS = {
 export async function populatePremadeCompendiums({ notify = true } = {}) {
   const actors = await populatePack(PACKS.actors, PTG_PREMADE_ACTORS, actorFolderLabels, "Actor");
   const choices = await populatePack(PACKS.choices, PTG_PREMADE_CHOICES, choiceFolderLabels, "Item");
-  const items = await populatePack(PACKS.items, PTG_PREMADE_ITEMS, itemFolderLabels, "Item");
+  const items = await populatePack(PACKS.items, PTG_PREMADE_ITEMS, itemFolderLabels, "Item", {
+    removeStale: true,
+    stalePredicate: isPremadeItemDocument
+  });
   const maps = await populatePack(PACKS.maps, getPremadeScenes(), sceneFolderLabels, "Scene");
   const macros = await populatePack(PACKS.macros, PTG_PREMADE_MACROS, macroFolderLabels, "Macro");
   const rollTables = await populatePack(PACKS.rollTables, PTG_PREMADE_ROLL_TABLES, rollTableFolderLabels, "RollTable");
@@ -85,7 +88,9 @@ async function populatePack(packId, documents, folderLabels, documentName, { rem
 
   if (removed) {
     const staleKeys = sourceKeySet(documents, documentName);
-    packDocuments = packDocuments.filter(document => documentKeys(document, documentName).some(key => staleKeys.has(key)) || !isPremadeRulesJournal(document));
+    packDocuments = packDocuments.filter(document =>
+      documentKeys(document, documentName).some(key => staleKeys.has(key)) || !stalePredicate?.(document)
+    );
   }
 
   const moved = await organizeExistingDocuments(packDocuments, folders, documentName);
@@ -356,6 +361,14 @@ function isPremadeRulesJournal(document) {
   const kind = document.getFlag?.(SYSTEM_ID, "kind") ?? document.flags?.[SYSTEM_ID]?.kind;
 
   return premade === true && ["complete-rules", "rules-reference"].includes(kind);
+}
+
+function isPremadeItemDocument(document) {
+  const premade = document.getFlag?.(SYSTEM_ID, "premade") ?? document.flags?.[SYSTEM_ID]?.premade;
+  const source = document.getFlag?.(SYSTEM_ID, "source") ?? document.flags?.[SYSTEM_ID]?.source;
+  const sourceBook = document.getFlag?.(SYSTEM_ID, "sourceBook") ?? document.flags?.[SYSTEM_ID]?.sourceBook;
+
+  return premade === true && [source, sourceBook].some(value => String(value ?? "").includes("Part-Time Gods"));
 }
 
 const choiceFolderLabels = {
