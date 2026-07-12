@@ -8,6 +8,20 @@ import { isSheetEditLocked, mergeSheetEditLockContext, wireSheetEditLock } from 
 
 const SYSTEM_ID = "part-time-gods";
 const PTG_DIALOG_CLASSES = ["part-time-gods", "ptg-sheet-dialog"];
+const SCROLL_CAPTURE_ACTION_SELECTOR = [
+  "button",
+  "[role='button']",
+  "input",
+  "select",
+  "textarea",
+  "[data-item-action]",
+  "[data-item-create]",
+  "[data-resource-box]",
+  "[data-resource-step]",
+  "[data-flat-resource-box]",
+  "[data-flat-resource-step]",
+  "[data-ptg-tab]"
+].join(", ");
 const CHARACTER_COMBAT_ROLLS = {
   fists: {
     label: "Battle of Fists",
@@ -24,6 +38,10 @@ const CHARACTER_COMBAT_ROLLS = {
 };
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+export function shouldCaptureCharacterSheetScroll(target) {
+  return Boolean(target?.closest?.(SCROLL_CAPTURE_ACTION_SELECTOR));
+}
 
 export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   #activeTab = "front";
@@ -57,6 +75,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
   static async _onSubmit(event, form, formData) {
     if (isSheetEditLocked(this, this.actor)) return false;
+    this.#captureActivePageScroll();
     const data = formData?.object ?? {};
     return this.actor.update(data);
   }
@@ -235,7 +254,11 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     this.element.dataset.ptgScrollPersistenceWired = "true";
     this.element.addEventListener("pointerdown", () => this.#captureActivePageScroll(), { capture: true });
     this.element.addEventListener("contextmenu", () => this.#captureActivePageScroll(), { capture: true });
+    this.element.addEventListener("click", event => {
+      if (shouldCaptureCharacterSheetScroll(event.target)) this.#captureActivePageScroll();
+    }, { capture: true });
     this.element.addEventListener("change", () => this.#captureActivePageScroll(), { capture: true });
+    this.element.addEventListener("submit", () => this.#captureActivePageScroll(), { capture: true });
     this.element.addEventListener("keydown", event => {
       if (["Enter", " ", "Spacebar"].includes(event.key)) this.#captureActivePageScroll();
     }, { capture: true });
@@ -1056,6 +1079,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
   async #onResourceBox(event) {
     event.preventDefault();
+    this.#captureActivePageScroll();
     const button = event.currentTarget;
     const key = button.dataset.resourceBox;
     const value = Number(button.dataset.resourceValue ?? 0);
@@ -1069,6 +1093,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   }
 
   async #onResourceStep(button) {
+    this.#captureActivePageScroll();
     const key = button.dataset.resourceStep;
     const delta = Number(button.dataset.resourceDelta ?? 0);
     const current = Number(foundry.utils.getProperty(this.actor, `system.resources.${key}.value`) ?? 0);
@@ -1077,6 +1102,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
   async #onFlatResourceBox(event) {
     event.preventDefault();
+    this.#captureActivePageScroll();
     const button = event.currentTarget;
     const key = button.dataset.flatResourceBox;
     const value = Number(button.dataset.resourceValue ?? 0);
@@ -1090,6 +1116,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   }
 
   async #onFlatResourceStep(button) {
+    this.#captureActivePageScroll();
     const key = button.dataset.flatResourceStep;
     const delta = Number(button.dataset.resourceDelta ?? 0);
     const current = Number(foundry.utils.getProperty(this.actor, `system.resources.${key}`) ?? 0);
@@ -1226,6 +1253,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     const action = button.dataset.itemAction;
 
     if (!item) return;
+    this.#captureActivePageScroll();
 
     if (action === "toggle-details") {
       this.#toggleItemDetails(item.id);

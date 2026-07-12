@@ -18,6 +18,7 @@
 - Polished Character sheet ability rows so controls stay compact and player-facing detail text renders as readable prose instead of raw markup.
 - Added structured Blessing automation hooks for clear damage-prevention, reroll-cost, damage-threshold, and Pantheon Dice effects, with readable Character sheet hook summaries.
 - Corrected character Initiative to Intuition + Speed, wired PTG initiative into Foundry's native Combat Tracker, and made Skill Combo Check dialogs resizable with an internal scroll region.
+- Preserved Character sheet scroll position across click, submit, item, and resource button actions so sheet interactions do not jump back to the top after re-rendering.
 - Hardened the Pantheon party sheet with permission-aware member summaries and a GM/owner character add selector.
 - Expanded the Character Creator random god helper with apply-only divine identity suggestions for names, titles, epithets, symbols, omens, taboos, offerings, myth seeds, and tone.
 - Removed Chapter 4 and Chapter 5 reference-only rule stubs from the Premade Items source so those rules live in the Rules Reference journals instead of the Item compendium.
