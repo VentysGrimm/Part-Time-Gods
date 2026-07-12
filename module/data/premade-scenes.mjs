@@ -572,7 +572,7 @@ function territorySheetDrawings(authorId) {
   const drawings = [
     sheetBand("top-number-band", 0, 0, WIDTH, GRID_SIZE, authorId, 1000),
     sheetBand("side-number-band", 0, 0, GRID_SIZE, HEIGHT, authorId, 1001),
-    sheetLabel("legend", "Legend", 0, GRID_SIZE, GRID_SIZE, GRID_SIZE, authorId, 2000, 22),
+    sheetLabel("legend", "Legend", 0, 0, GRID_SIZE, GRID_SIZE, authorId, 2000, 18),
     sheetBorder("play-grid-border", GRID_SIZE, GRID_SIZE, PLAY_GRID_SIZE * GRID_SIZE, PLAY_GRID_SIZE * GRID_SIZE, authorId, 3000)
   ];
 

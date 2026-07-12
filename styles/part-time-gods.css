@@ -829,6 +829,27 @@ details.ptg-editor-section:not([open]) {
   resize: vertical;
 }
 
+.ptg-territory-file-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.ptg-territory-file-row button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  border: 1px solid #3d1f5d;
+  border-radius: 4px;
+  background: #5b2c83;
+  color: #ffffff;
+  font-weight: 800;
+}
+
 .ptg-territory-grid-window .window-content,
 .ptg-territory-grid-window [data-application-part="form"] {
   display: flex;

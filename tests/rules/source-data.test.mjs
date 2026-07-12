@@ -166,6 +166,19 @@ test("Premade territory scene drawings use Foundry v14 drawing schema", () => {
     assert.equal(typeof drawing.shape?.width, "number", `${drawing.name} shape width`);
     assert.equal(typeof drawing.shape?.height, "number", `${drawing.name} shape height`);
   }
+
+  const drawingsByElement = new Map(scene.drawings.map(drawing => [drawing.flags?.[SYSTEM_ID]?.territorySheetElement, drawing]));
+  const legend = drawingsByElement.get("legend");
+  const rowOne = drawingsByElement.get("row-1");
+  const columnOne = drawingsByElement.get("column-1");
+  assert.equal(legend.x, 0);
+  assert.equal(legend.y, 0);
+  assert.equal(rowOne.x, 0);
+  assert.equal(rowOne.y, 100);
+  assert.equal(columnOne.x, 100);
+  assert.equal(columnOne.y, 0);
+  assert.notEqual(`${legend.x},${legend.y}`, `${rowOne.x},${rowOne.y}`, "Legend does not overlap row 1 label");
+  assert.notEqual(`${legend.x},${legend.y}`, `${columnOne.x},${columnOne.y}`, "Legend does not overlap column 1 label");
 });
 
 test("Territory point model separates GM secrets from player-facing scene data", () => {
@@ -368,6 +381,45 @@ test("Territory scene background controls update scene and foreground overlay", 
     ]);
   } finally {
     game.user = originalUser;
+  }
+});
+
+test("Territory scene background controls report scene update failures", async () => {
+  const originalUser = game.user;
+  const originalError = ui.notifications.error;
+  const originalWarn = console.warn;
+  const errors = [];
+  const warnings = [];
+  game.user = { isGM: true };
+  ui.notifications.error = message => errors.push(message);
+  console.warn = (...args) => warnings.push(args);
+
+  try {
+    const missingUpdate = await territory.setTerritorySceneBackground({}, {
+      backgroundSrc: "worlds/ptg/territory.jpg",
+      backgroundColor: "#112233"
+    });
+    assert.equal(missingUpdate, null);
+
+    const failedScene = {
+      async update() {
+        throw new Error("locked scene");
+      }
+    };
+    const failedUpdate = await territory.setTerritorySceneBackground(failedScene, {
+      backgroundSrc: "worlds/ptg/territory.jpg",
+      backgroundColor: "#112233"
+    });
+    assert.equal(failedUpdate, null);
+    assert.deepEqual(errors, [
+      "Unable to update the Territory scene background: the selected scene cannot be edited.",
+      "Unable to update the Territory scene background. See the console for details."
+    ]);
+    assert.equal(warnings.length, 1);
+  } finally {
+    game.user = originalUser;
+    ui.notifications.error = originalError;
+    console.warn = originalWarn;
   }
 });
 

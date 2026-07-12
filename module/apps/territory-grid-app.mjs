@@ -326,22 +326,36 @@ export async function clearTerritoryGrid(scene = getTerritoryScene()) {
 }
 
 export async function setTerritorySceneBackground(scene, options = {}) {
+  const { notify = true, ...backgroundOptions } = options ?? {};
   if (!scene) return null;
   if (!game.user?.isGM) {
     ui.notifications.warn("Only a GM can change the Territory scene background.");
     return null;
   }
 
-  const updateData = territorySceneBackgroundUpdateData(options);
-  await scene.update(updateData);
-  if (typeof scene.setFlag === "function") {
-    await scene.setFlag(SYSTEM_ID, "territoryBackground", {
-      src: updateData["background.src"] ?? "",
-      color: updateData.backgroundColor,
-      updatedAt: new Date().toISOString()
-    });
+  if (typeof scene.update !== "function") {
+    ui.notifications.error("Unable to update the Territory scene background: the selected scene cannot be edited.");
+    return null;
   }
-  await ensureTerritoryGridOverlayForeground(scene);
+
+  const updateData = territorySceneBackgroundUpdateData(backgroundOptions);
+  try {
+    await scene.update(updateData);
+    if (typeof scene.setFlag === "function") {
+      await scene.setFlag(SYSTEM_ID, "territoryBackground", {
+        src: updateData["background.src"] ?? "",
+        color: updateData.backgroundColor,
+        updatedAt: new Date().toISOString()
+      });
+    }
+    await ensureTerritoryGridOverlayForeground(scene);
+  } catch (error) {
+    console.warn("Part-Time Gods 2E | Unable to update Territory scene background.", scene, error);
+    ui.notifications.error("Unable to update the Territory scene background. See the console for details.");
+    return null;
+  }
+
+  if (notify) ui.notifications.info("Updated the Territory scene background and kept the grid overlay in front.");
   return updateData;
 }
 
@@ -796,7 +810,8 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const selection = await promptTerritorySceneBackground(scene);
     if (!selection) return null;
 
-    await setTerritorySceneBackground(scene, selection);
+    const applied = await setTerritorySceneBackground(scene, selection);
+    if (!applied) return null;
     await ensureStoredTerritoryGrid(scene);
     await fitTerritorySceneToCanvas(scene);
     this.render({ force: true });
@@ -1163,14 +1178,23 @@ function sortPointContext(a, b) {
 }
 
 async function promptTerritorySceneBackground(scene) {
-  const existingSrc = String(scene?.background?.src ?? scene?.backgroundSrc ?? "").trim();
-  const existingColor = normalizeColor(scene?.backgroundColor, DEFAULT_TERRITORY_BACKGROUND_COLOR);
+  const storedBackground = scene?.getFlag?.(SYSTEM_ID, "territoryBackground") ?? {};
+  const sceneSrc = String(scene?.background?.src ?? scene?.backgroundSrc ?? "").trim();
+  const storedSrc = String(storedBackground.src ?? "").trim();
+  const existingSrc = sceneSrc || storedSrc;
+  const existingColor = normalizeColor(scene?.backgroundColor || storedBackground.color, DEFAULT_TERRITORY_BACKGROUND_COLOR);
   const content = `
     <div class="ptg-dialog-body ptg-territory-background-dialog">
       <p class="ptg-dialog-help">Set a scene background image or color. The Territory Grid overlay remains locked in the foreground.</p>
       <label class="ptg-dialog-label">
         <span>Background Image Path or URL</span>
-        <input type="text" name="backgroundSrc" value="${escapeHTML(existingSrc)}" placeholder="worlds/.../territory.png or https://...">
+        <div class="ptg-territory-file-row">
+          <input type="text" name="backgroundSrc" value="${escapeHTML(existingSrc)}" placeholder="worlds/.../territory.png or https://...">
+          <button type="button" data-territory-background-browse title="Choose a background image from Foundry user data">
+            <i class="fas fa-folder-open"></i>
+            <span>Browse</span>
+          </button>
+        </div>
       </label>
       <label class="ptg-dialog-label">
         <span>Background Color</span>
@@ -1189,6 +1213,7 @@ async function promptTerritorySceneBackground(scene) {
     content,
     rejectClose: false,
     modal: true,
+    render: (event, dialog) => wireTerritoryBackgroundDialog(dialog.element ?? dialog),
     ok: {
       label: "Update Background",
       callback: (event, button) => ({
@@ -1197,6 +1222,33 @@ async function promptTerritorySceneBackground(scene) {
         clearImage: Boolean(button.form.elements.clearImage?.checked)
       })
     }
+  });
+}
+
+function wireTerritoryBackgroundDialog(element) {
+  const root = element instanceof HTMLElement ? element : element?.querySelector?.(".ptg-territory-background-dialog")?.closest("form");
+  const input = root?.querySelector?.("[name='backgroundSrc']");
+  const browse = root?.querySelector?.("[data-territory-background-browse]");
+  if (!input || !browse) return;
+
+  browse.addEventListener("click", event => {
+    event.preventDefault();
+    const FilePickerClass = globalThis.FilePicker ?? foundry.applications.apps?.FilePicker;
+    if (!FilePickerClass) {
+      ui.notifications.warn("Foundry's File Picker is not available. Paste a user-data image path into the field.");
+      input.focus();
+      return;
+    }
+
+    const picker = new FilePickerClass({
+      type: "image",
+      current: input.value,
+      callback: path => {
+        input.value = String(path ?? "").trim();
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+    picker.render(true);
   });
 }
 

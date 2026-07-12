@@ -182,7 +182,7 @@ async function assertProductionUxScaffold() {
   }
 
   const territoryModule = await readText("module/apps/territory-grid-app.mjs");
-  for (const token of ["registerTerritoryGridSettings", "maybeOpenTerritoryInterfaceOnReady", "autoOpenTerritoryInterface", "openTerritoryScene", "fitTerritorySceneToCanvas", "territorySceneFitPan", "setTerritorySceneBackground", "territorySceneBackgroundUpdateData", "ensureTerritoryGridOverlayForeground", "openTerritoryControls", "territoryPointsFromActor", "dropEventData", "canEditTerritory", "findTerritoryScene", "LOCATION_TYPES", "CONTROL_TYPES", "TERRITORY_STATUSES", "DISCOVERY_STATES", "RITUAL_EVENT_TYPES", "gmNotes", "publicNotes", "footprint", "ritualEvents"]) {
+  for (const token of ["registerTerritoryGridSettings", "maybeOpenTerritoryInterfaceOnReady", "autoOpenTerritoryInterface", "openTerritoryScene", "fitTerritorySceneToCanvas", "territorySceneFitPan", "setTerritorySceneBackground", "territorySceneBackgroundUpdateData", "ensureTerritoryGridOverlayForeground", "openTerritoryControls", "territoryPointsFromActor", "dropEventData", "canEditTerritory", "findTerritoryScene", "LOCATION_TYPES", "CONTROL_TYPES", "TERRITORY_STATUSES", "DISCOVERY_STATES", "RITUAL_EVENT_TYPES", "gmNotes", "publicNotes", "footprint", "ritualEvents", "data-territory-background-browse", "wireTerritoryBackgroundDialog", "FilePicker"]) {
     if (!territoryModule.includes(token)) errors.push(`Integrated Territory interface missing ${token}`);
   }
 
@@ -261,6 +261,7 @@ async function assertProductionUxScaffold() {
     ".ptg-territory-point-details",
     ".ptg-territory-status-contested",
     ".ptg-territory-control-pantheon",
+    ".ptg-territory-file-row",
     ".ptg-balance-tracker.is-player",
     ".ptg-balance-body.is-player",
     ".ptg-balance-party-card summary",
