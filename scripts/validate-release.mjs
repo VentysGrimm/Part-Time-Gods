@@ -304,11 +304,12 @@ async function assertProductionUxScaffold() {
     "height: min(720px, calc(100vh - 32px))",
     "max-height: calc(100vh - 32px)",
     ".ptg-skill-combo-dialog .window-content > form",
+    "grid-template-rows: minmax(0, 1fr) auto",
     ".ptg-skill-combo-dialog .dialog-content",
     ".ptg-skill-combo-dialog [data-application-part=\"footer\"]",
     ".ptg-skill-combo-dialog .ptg-skill-combo-options",
     "overflow-x: hidden",
-    "max-height: min(620px, calc(100vh - 112px))"
+    "max-height: none"
   ];
   for (const token of readableSurfaceTokens) {
     if (!stylesheet.includes(token)) errors.push(`Readable sheet/dialog stylesheet guard missing ${token}`);
