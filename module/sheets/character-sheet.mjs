@@ -1448,6 +1448,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
               <button type="button" data-random-god="identity">Generate Divine Identity</button>
               <button type="button" data-random-god-apply disabled>Apply Identity Suggestion</button>
             </div>
+            <div class="ptg-random-god-preview" data-random-god-preview hidden></div>
             <label>God/dess Of <input type="text" name="identity.concept" value="${escapeHTML(identity.concept ?? "")}"></label>
             <label>Divine Name <input type="text" name="identity.divineName" value="${escapeHTML(identity.divineName ?? "")}"></label>
             <label>Title <input type="text" name="identity.divineTitle" value="${escapeHTML(identity.divineTitle ?? "")}"></label>
@@ -2266,6 +2267,7 @@ function wireRandomGodButton(root, choices) {
   const buttons = Array.from(root.querySelectorAll("[data-random-god]"));
   const applyButtons = Array.from(root.querySelectorAll("[data-random-god-apply]"));
   const summaries = Array.from(root.querySelectorAll("[data-random-god-summary]"));
+  const previews = Array.from(root.querySelectorAll("[data-random-god-preview]"));
   if (!buttons.length) return;
 
   for (const button of buttons) button.addEventListener("click", () => {
@@ -2298,6 +2300,7 @@ function wireRandomGodButton(root, choices) {
     const manual = Object.values(result.choices).includes("GM Choice") || Object.values(result.notes).includes("GM Choice");
     const text = `${manual ? "Randomized with GM Choice result" : "Randomized"}; identity suggestion ready: ${result.identity.divineName}, ${result.identity.concept}.`;
     for (const summary of summaries) summary.textContent = text;
+    renderRandomGodPreview(previews, result);
   });
 
   for (const applyButton of applyButtons) applyButton.addEventListener("click", () => {
@@ -2305,7 +2308,47 @@ function wireRandomGodButton(root, choices) {
     if (!result?.identity) return;
     applyRandomGodIdentity(root, result.identity);
     for (const summary of summaries) summary.textContent = `Applied identity suggestion: ${result.identity.divineName}, ${result.identity.concept}.`;
+    renderRandomGodPreview(previews, result, { applied: true });
   });
+}
+
+function renderRandomGodPreview(previews, result, { applied = false } = {}) {
+  for (const preview of previews) {
+    preview.hidden = false;
+    preview.innerHTML = randomGodPreviewHTML(result, { applied });
+  }
+}
+
+export function randomGodPreviewHTML(result = {}, { applied = false } = {}) {
+  const identity = result.identity ?? {};
+  const fields = [
+    ["God/dess Of", identity.concept],
+    ["Divine Name", identity.divineName],
+    ["Title", identity.divineTitle],
+    ["Epithet", identity.divineEpithet],
+    ["Symbol", identity.divineSymbol],
+    ["Omen", identity.divineOmen],
+    ["Taboo", identity.divineTaboo],
+    ["Offering", identity.divineOffering],
+    ["Tone", identity.divineTone],
+    ["Myth Seed", identity.divineMythSeed]
+  ].filter(([, value]) => String(value ?? "").trim());
+  const log = Array.isArray(result.log) ? result.log : [];
+
+  return `
+    <section>
+      <h4>${applied ? "Applied Divine Identity" : "Divine Identity Suggestion"}</h4>
+      <dl>
+        ${fields.map(([label, value]) => `<dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd>`).join("")}
+      </dl>
+      ${log.length ? `
+        <details>
+          <summary>Roll-table path</summary>
+          <ul>${log.map(entry => `<li>${escapeHTML(entry)}</li>`).join("")}</ul>
+        </details>
+      ` : ""}
+    </section>
+  `;
 }
 
 function currentCreatorIdentityContext(root) {

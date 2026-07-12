@@ -4,7 +4,7 @@ import { installFoundryTestEnvironment } from "../helpers/foundry-test-env.mjs";
 
 installFoundryTestEnvironment();
 
-const { itemAutomationSummary, sheetDetailDisplayHTML } = await import("../../module/sheets/character-sheet.mjs?detail-format");
+const { itemAutomationSummary, randomGodPreviewHTML, sheetDetailDisplayHTML } = await import("../../module/sheets/character-sheet.mjs?detail-format");
 
 test("character sheet details render escaped HTML as readable prose", () => {
   const html = sheetDetailDisplayHTML("&lt;p&gt;Borrowed Lives keeps the ability text readable.&lt;/p&gt;");
@@ -37,4 +37,23 @@ test("character sheet item automation renders as readable hook prose", () => {
 
   assert.equal(summary, "Structured automation hook (enabled): Action: Gain pantheon dice; Resource: Pantheon +2. Posts a use card.");
   assert.equal(summary.includes("{"), false);
+});
+
+test("random god previews show escaped identity and roll-table path", () => {
+  const html = randomGodPreviewHTML({
+    identity: {
+      concept: "God/dess of Smoke <script>",
+      divineName: "Aurel of Small Mercies",
+      divineTitle: "Keeper of Smoke",
+      divineMythSeed: "First woke after a holy errand."
+    },
+    log: ["Random Dominion - Type: 12 -> Crossover"]
+  });
+
+  assert.match(html, /Divine Identity Suggestion/);
+  assert.match(html, /Aurel of Small Mercies/);
+  assert.match(html, /Roll-table path/);
+  assert.match(html, /Random Dominion - Type: 12 -&gt; Crossover/);
+  assert.equal(html.includes("<script>"), false);
+  assert.match(html, /&lt;script&gt;/);
 });

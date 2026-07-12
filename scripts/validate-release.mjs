@@ -219,13 +219,12 @@ async function assertProductionUxScaffold() {
   for (const token of ["ptg-print-ability-actions", "ptg-print-truth-actions", "ptg-sheet-detail-body"]) {
     if (!characterTemplate.includes(token)) errors.push(`Character sheet ability readability markup missing ${token}`);
   }
-  for (const token of ["sheetDetailDisplayHTML", "sanitizeSheetDetailHTML", "decodeSheetDetailEntities", "itemAutomationSummary", "Automation Hook", "data-random-god-apply", "identity.divineName", "identity.divineMythSeed"]) {
+  for (const token of ["sheetDetailDisplayHTML", "sanitizeSheetDetailHTML", "decodeSheetDetailEntities", "itemAutomationSummary", "Automation Hook", "data-random-god-apply", "data-random-god-preview", "randomGodPreviewHTML", "identity.divineName", "identity.divineMythSeed"]) {
     if (!characterSheet.includes(token)) errors.push(`Character sheet detail display helper missing ${token}`);
   }
   for (const token of ["#wireScrollPersistence", "#captureActivePageScroll", "#pendingScrollAnchorItemId", "captureCurrent: false", "scrollIntoView"]) {
     if (!characterSheet.includes(token)) errors.push(`Character sheet scroll persistence missing ${token}`);
   }
-
   const characterModel = await readText("module/documents/models/actor/character-model.mjs");
   for (const token of ["divineName", "divineTitle", "divineEpithet", "divineSymbol", "divineOmen", "divineTaboo", "divineOffering", "divineMythSeed", "divineTone"]) {
     if (!characterModel.includes(token)) errors.push(`Character identity model missing ${token}`);
@@ -275,6 +274,7 @@ async function assertProductionUxScaffold() {
     ".ptg-print-ability-actions",
     ".ptg-print-truth-actions button",
     ".ptg-sheet-detail-body",
+    ".ptg-random-god-preview",
     ".ptg-editor-section :where(.editor-content, .editor-container, .ProseMirror, [contenteditable=\"true\"])",
     ".part-time-gods.sheet.item :where(.form-group.stacked) .editor",
     "form.part-time-gods.sheet.item.ptg-power-sheet",

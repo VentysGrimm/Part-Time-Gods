@@ -2658,6 +2658,61 @@ details.ptg-editor-section:not([open]) {
   font-weight: 700;
 }
 
+.ptg-random-god-preview {
+  display: grid;
+  gap: 8px;
+  max-height: 220px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid rgba(91, 44, 131, 0.45);
+  background: #fffdf8;
+  color: #000000;
+  scrollbar-gutter: stable;
+}
+
+.ptg-random-god-preview[hidden] {
+  display: none;
+}
+
+.ptg-random-god-preview h4 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ptg-random-god-preview dl {
+  display: grid;
+  grid-template-columns: minmax(88px, auto) minmax(0, 1fr);
+  gap: 4px 8px;
+  margin: 0;
+}
+
+.ptg-random-god-preview dt {
+  font-weight: 800;
+}
+
+.ptg-random-god-preview dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ptg-random-god-preview details {
+  min-width: 0;
+}
+
+.ptg-random-god-preview summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.ptg-random-god-preview ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
 .ptg-creator-dialog fieldset {
   min-width: 0;
   margin: 0;
