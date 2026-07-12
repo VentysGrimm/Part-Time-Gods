@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { auditCreatedItemDocuments, itemAuditHasIssues, itemAuditIssueLines } from "../module/data/premade-item-audit.mjs";
 
 const SYSTEM_ID = "part-time-gods";
 const ROUTE_PREFIX = "systems/part-time-gods/";
@@ -65,49 +66,6 @@ const EXPECTED_CHAPTER_FIVE_BATTLE_ACTIONS = {
     "standard-defense": ["Laugh It Off", "Stand My Ground", "Turn It Around", "Divine Powers"]
   }
 };
-const VALID_PREMADE_ITEM_TYPES = new Set([
-  "armor",
-  "attachment",
-  "blessing",
-  "bond",
-  "condition",
-  "curse",
-  "domain",
-  "gearQuality",
-  "occupation",
-  "power",
-  "relic",
-  "truth",
-  "vassal",
-  "weapon",
-  "worshipper"
-]);
-const VALID_PREMADE_ITEM_FOLDER_KEYS = new Set([
-  "armor",
-  "attachment",
-  "battle-fists",
-  "battle-wits",
-  "blessing",
-  "bond",
-  "condition",
-  "critical-failure-effects",
-  "curse",
-  "domain",
-  "gearQuality",
-  "manifestation",
-  "manifestation-application",
-  "occupation",
-  "otherworld",
-  "power",
-  "relic",
-  "ritual",
-  "truth",
-  "vassal",
-  "weapon",
-  "worshipper"
-]);
-const JOURNAL_STYLE_ITEM_KINDS = new Set(["chapter-4-rule", "chapter-5-rule", "rules-reference", "complete-rules"]);
-
 installFoundrySourceMocks();
 
 const system = await readJson("system.json");
@@ -467,6 +425,9 @@ async function assertChapterFiveCombatScaffold() {
 async function assertPremadeItemFolderScaffold() {
   const compendiumSource = await readText("module/data/premade-compendiums.mjs");
   const packBuilder = await readText("scripts/build-compendium-packs.mjs");
+  const itemAudit = await readText("module/data/premade-item-audit.mjs");
+  const itemAuditScript = await readText("scripts/audit-premade-items.mjs");
+  const itemAuditDoc = await readText("docs/premade-item-compendium-audit.md");
   const folderTokens = [
     "\"battle-fists\": \"Battle of Fists Actions\"",
     "\"battle-wits\": \"Battle of Wits Actions\"",
@@ -478,6 +439,15 @@ async function assertPremadeItemFolderScaffold() {
   for (const token of folderTokens) {
     if (!compendiumSource.includes(token)) errors.push(`Runtime premade Item folder scaffold missing ${token}`);
     if (!packBuilder.includes(token)) errors.push(`Pack-builder premade Item folder scaffold missing ${token}`);
+  }
+  for (const token of ["auditCreatedItemDocuments", "JOURNAL_STYLE_ITEM_KINDS", "journalSourceItems"]) {
+    if (!itemAudit.includes(token)) errors.push(`Premade Item audit helper missing ${token}`);
+  }
+  for (const token of ["PTG_PREMADE_CHOICES", "PTG_PREMADE_ITEMS", "auditCreatedItemDocuments"]) {
+    if (!itemAuditScript.includes(token)) errors.push(`Premade Item audit command missing ${token}`);
+  }
+  for (const token of ["Total created Item documents", "No journal-style Item kinds", "`packs/**` LevelDB churn"]) {
+    if (!itemAuditDoc.includes(token)) errors.push(`Premade Item audit note missing ${token}`);
   }
 }
 
@@ -556,21 +526,12 @@ async function validatePremadeSourceData() {
     errors.push(`Item documents missing system.slug/system.sourceId:\n${missingSystemSourceKeys.map(key => `- ${key}`).join("\n")}`);
   }
 
-  const placementAudit = premadeItemPlacementAudit(documents.items);
-  if (placementAudit.invalidTypes.length) {
-    errors.push(`Premade Items contain invalid Item types:\n${placementAudit.invalidTypes.map(key => `- ${key}`).join("\n")}`);
-  }
-  if (placementAudit.invalidFolderKeys.length) {
-    errors.push(`Premade Items use unapproved folder keys:\n${placementAudit.invalidFolderKeys.map(key => `- ${key}`).join("\n")}`);
-  }
-  if (placementAudit.duplicateNames.length) {
-    errors.push(`Premade Items contain duplicate type/name pairs:\n${placementAudit.duplicateNames.map(key => `- ${key}`).join("\n")}`);
-  }
-  if (placementAudit.duplicateSourceIds.length) {
-    errors.push(`Premade Items contain duplicate source IDs:\n${placementAudit.duplicateSourceIds.map(key => `- ${key}`).join("\n")}`);
-  }
-  if (placementAudit.journalStyleItems.length) {
-    errors.push(`Premade Items contain journal/reference entries that belong in rules-reference Journals:\n${placementAudit.journalStyleItems.map(key => `- ${key}`).join("\n")}`);
+  const itemAudit = auditCreatedItemDocuments([
+    { name: "character-creation", documents: documents.choices },
+    { name: "premade-items", documents: documents.items }
+  ]);
+  if (itemAuditHasIssues(itemAudit)) {
+    errors.push(`Created Item audit failed; journal-style entries belong in rules-reference Journals:\n${itemAuditIssueLines(itemAudit).map(key => `- ${key}`).join("\n")}`);
   }
 
   const weakItems = weakItemExplanations(documents.items);
@@ -825,47 +786,6 @@ function missingRulesJournalPages(journals, expectedPages) {
       return expectedSourcePages.some(sourcePage => !sourcePages.has(sourcePage));
     })
     .map(([name]) => name);
-}
-
-function premadeItemPlacementAudit(items) {
-  const typeNames = new Map();
-  const sourceIds = new Map();
-  const invalidTypes = [];
-  const invalidFolderKeys = [];
-  const journalStyleItems = [];
-
-  for (const item of items) {
-    const flags = item.flags?.[SYSTEM_ID] ?? {};
-    const itemKey = `${item.type}:${item.name}`;
-    const folderKey = itemFolderKey(item);
-    const sourceId = flags.sourceId ?? item.system?.sourceId;
-
-    if (!VALID_PREMADE_ITEM_TYPES.has(item.type)) invalidTypes.push(itemKey);
-    if (!VALID_PREMADE_ITEM_FOLDER_KEYS.has(folderKey)) invalidFolderKeys.push(`${itemKey}:${folderKey}`);
-    if (JOURNAL_STYLE_ITEM_KINDS.has(flags.kind)) journalStyleItems.push(`${itemKey}:${flags.kind}`);
-
-    typeNames.set(itemKey, [...(typeNames.get(itemKey) ?? []), item]);
-    if (sourceId) sourceIds.set(sourceId, [...(sourceIds.get(sourceId) ?? []), item]);
-  }
-
-  const duplicateNames = [...typeNames.entries()]
-    .filter(([, entries]) => entries.length > 1)
-    .map(([key, entries]) => `${key} x${entries.length}`);
-  const duplicateSourceIds = [...sourceIds.entries()]
-    .filter(([, entries]) => entries.length > 1)
-    .map(([key, entries]) => `${key}: ${entries.map(entry => `${entry.type}:${entry.name}`).join(", ")}`);
-
-  return {
-    invalidTypes,
-    invalidFolderKeys,
-    duplicateNames,
-    duplicateSourceIds,
-    journalStyleItems
-  };
-}
-
-function itemFolderKey(item) {
-  return item.flags?.[SYSTEM_ID]?.folder ?? item.type ?? "item";
 }
 
 function rulesJournalTextAudit(journals) {
