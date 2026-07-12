@@ -1658,9 +1658,21 @@ details.ptg-editor-section:not([open]) {
   overflow: hidden;
 }
 
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) {
+  width: min(540px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  height: min(720px, calc(100vh - 32px));
+  max-height: calc(100vh - 32px);
+  min-height: min(360px, calc(100vh - 32px));
+  overflow: hidden;
+}
+
 .ptg-skill-combo-dialog .window-content,
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) .window-content,
 .ptg-skill-combo-dialog .window-content > form,
-.ptg-skill-combo-dialog [data-application-part="form"] {
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) .window-content > form,
+.ptg-skill-combo-dialog [data-application-part="form"],
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) [data-application-part="form"] {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -1671,28 +1683,38 @@ details.ptg-editor-section:not([open]) {
 }
 
 .ptg-skill-combo-dialog .dialog-content,
-.ptg-skill-combo-dialog [data-application-part="content"] {
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) .dialog-content,
+.ptg-skill-combo-dialog [data-application-part="content"],
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) [data-application-part="content"] {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   flex-direction: column;
-  height: 100%;
-  max-height: 100%;
   min-height: 0;
   overflow: hidden;
 }
 
 .ptg-skill-combo-dialog .window-content > footer,
+.ptg-skill-combo-dialog footer,
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) .window-content > footer,
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) footer,
 .ptg-skill-combo-dialog .window-content > form > footer,
+.ptg-skill-combo-dialog form > footer,
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) .window-content > form > footer,
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) form > footer,
 .ptg-skill-combo-dialog [data-application-part="footer"],
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) [data-application-part="footer"],
 .ptg-skill-combo-dialog .dialog-buttons,
-.ptg-skill-combo-dialog .form-footer {
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) .dialog-buttons,
+.ptg-skill-combo-dialog .form-footer,
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) .form-footer {
   flex: 0 0 auto;
 }
 
-.ptg-skill-combo-dialog .ptg-skill-combo-options {
-  flex: 1 1 auto;
-  height: 100%;
-  max-height: 100%;
+.ptg-skill-combo-dialog .ptg-skill-combo-options,
+:is(.application, .app, .window-app):has(.ptg-skill-combo-options) .ptg-skill-combo-options {
+  flex: 1 1 0;
+  height: auto;
+  max-height: min(640px, calc(100vh - 140px));
   min-height: 0;
   box-sizing: border-box;
   overflow-x: hidden;
