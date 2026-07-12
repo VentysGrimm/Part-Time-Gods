@@ -634,9 +634,12 @@ function bond(name, kind, page, description) {
   });
 }
 
-function curse(name, sourceName, page, pantheonDice, effect, { flags = {}, originalName = name } = {}) {
+function curse(name, sourceName, page, pantheonDice, effect, { flags = {}, originalName = name, automation = null } = {}) {
   const fullText = abilityPlayerText("curse", name, sourceName, effect, { pantheonDice });
   const itemFlags = flags.kind ? { ...flags, originalName } : flags;
+  const sourceAutomation = automation && typeof automation === "object" ? automation : {};
+  const resourceChange = sourceAutomation.resourceChange ?? { resource: "pantheon", amount: pantheonDice };
+  const enabled = sourceAutomation.enabled ?? pantheonDice > 0;
 
   return baseItem("curse", name, page, {
     source: sourceName,
@@ -649,9 +652,15 @@ function curse(name, sourceName, page, pantheonDice, effect, { flags = {}, origi
       kind: "triggered",
       trigger: "gm",
       target: "self",
-      action: "gain-pantheon-dice",
-      resourceChange: { resource: "pantheon", amount: pantheonDice },
-      enabled: pantheonDice > 0
+      action: sourceAutomation.action || "gain-pantheon-dice",
+      bonus: sourceAutomation.bonus ?? null,
+      penalty: sourceAutomation.penalty ?? null,
+      roll: sourceAutomation.roll ?? null,
+      healing: sourceAutomation.healing ?? null,
+      damage: sourceAutomation.damage ?? null,
+      condition: sourceAutomation.condition ?? null,
+      resourceChange,
+      enabled
     })
   }, itemFlags);
 }
@@ -1634,10 +1643,18 @@ function ritualDuration(name) {
   }[name] ?? "By ritual";
 }
 
-function blessing(name, sourceName, page, effect, { flags = {}, originalName = name } = {}) {
+function blessing(name, sourceName, page, effect, { flags = {}, originalName = name, automation = null } = {}) {
   const fullText = abilityPlayerText("blessing", name, sourceName, effect);
   const itemFlags = flags.kind ? { ...flags, originalName } : flags;
-  const bonus = abilityBonusMetadata(effect);
+  const sourceAutomation = automation && typeof automation === "object" ? automation : {};
+  const bonus = abilityBonusMetadata(effect) ?? sourceAutomation.bonus ?? null;
+  const roll = sourceAutomation.roll ?? null;
+  const healing = sourceAutomation.healing ?? null;
+  const damage = sourceAutomation.damage ?? null;
+  const condition = sourceAutomation.condition ?? null;
+  const resourceChange = sourceAutomation.resourceChange ?? null;
+  const enabled = Boolean(sourceAutomation.enabled || bonus || roll || healing || damage || condition || resourceChange);
+  const action = sourceAutomation.action || abilityItemAction({ bonus, roll, healing, damage, condition, resourceChange });
 
   return baseItem("blessing", name, page, {
     source: sourceName,
@@ -1647,14 +1664,30 @@ function blessing(name, sourceName, page, effect, { flags = {}, originalName = n
     notes: source(page),
     ...itemRules("blessing", name, page, effect, {
       fullText,
-      kind: bonus ? "passive" : "triggered",
-      trigger: bonus ? "combat-initiative" : "gm",
+      kind: enabled && !roll && !damage ? "passive" : "triggered",
+      trigger: bonus?.initiative ? "combat-initiative" : "gm",
       target: "self",
-      action: "apply-bonus",
+      action,
       bonus,
-      enabled: Boolean(bonus)
+      roll,
+      healing,
+      damage,
+      condition,
+      resourceChange,
+      enabled
     })
   }, itemFlags);
+}
+
+function abilityItemAction({ bonus, roll, healing, damage, condition, resourceChange } = {}) {
+  if (damage?.mode === "negate-successes") return "prevent-damage";
+  if (damage?.mode === "cost" && roll?.mode === "reroll") return "reroll";
+  if (healing) return "healing";
+  if (condition) return "apply-condition";
+  if (resourceChange) return "change-resource";
+  if (roll) return "roll";
+  if (bonus) return "apply-bonus";
+  return "";
 }
 
 function occupationCareerItems() {
@@ -2042,7 +2075,7 @@ function choiceAbilityItems() {
   const duplicateSeen = new Map();
 
   for (const grant of grants) {
-    const { type, name, sourceName, page, effect, pantheonDice } = grant;
+    const { type, name, sourceName, page, effect, pantheonDice, automation } = grant;
     const duplicateKey = `${type}:${name}`;
     const occurrence = (duplicateSeen.get(duplicateKey) ?? 0) + 1;
     duplicateSeen.set(duplicateKey, occurrence);
@@ -2055,8 +2088,8 @@ function choiceAbilityItems() {
     seen.add(key);
 
     items.push(type === "blessing"
-      ? blessing(itemName, sourceName, page, effect, { flags: { kind: "choice-ability", choiceSource: sourceName }, originalName: name })
-      : curse(itemName, sourceName, page, pantheonDice ?? 1, effect, { flags: { kind: "choice-ability", choiceSource: sourceName }, originalName: name }));
+      ? blessing(itemName, sourceName, page, effect, { flags: { kind: "choice-ability", choiceSource: sourceName }, originalName: name, automation })
+      : curse(itemName, sourceName, page, pantheonDice ?? 1, effect, { flags: { kind: "choice-ability", choiceSource: sourceName }, originalName: name, automation }));
   }
 
   return items;
@@ -2132,7 +2165,8 @@ function choiceAbilityData(type, grant, sourceName, page, defaultPantheonDice = 
     sourceName,
     page: grant.sourcePage ?? page,
     pantheonDice: type === "curse" ? grant.pantheonDice ?? defaultPantheonDice : undefined,
-    effect: grant.rules?.summary ?? grant.rulesText ?? grant.effect
+    effect: grant.rules?.summary ?? grant.rulesText ?? grant.effect,
+    automation: grant.automation ?? null
   };
 }
 

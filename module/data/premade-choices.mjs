@@ -784,24 +784,31 @@ function abilityAutomation(type, name, effect, { pantheonDice = type === "curse"
       strain: 0
     }
   };
+  const bonus = bonusAutomation(effect);
+  const penalty = penaltyAutomation(effect);
+  const roll = rollAutomation(effect);
+  const healing = healingAutomation(effect);
+  const damage = damageAutomation(effect);
+  const condition = conditionAutomation(effect);
+  const resourceChange = type === "curse" && pantheonDice > 0
+    ? {
+      resource: "pantheonDice",
+      amount: pantheonDice,
+      target: "pantheonPool"
+    }
+    : type === "curse"
+      ? null
+      : resourceChangeAutomation(effect);
   const automation = {
-    enabled: false,
-    action: type === "curse" && pantheonDice > 0 ? "gain-pantheon-die" : "",
-    bonus: bonusAutomation(effect),
-    penalty: penaltyAutomation(effect),
-    roll: rollAutomation(effect),
-    healing: healingAutomation(effect),
-    damage: null,
-    condition: conditionAutomation(effect),
-    resourceChange: type === "curse" && pantheonDice > 0
-      ? {
-        resource: "pantheonDice",
-        amount: pantheonDice,
-        target: "pantheonPool"
-      }
-      : type === "curse"
-        ? null
-        : resourceChangeAutomation(effect),
+    enabled: Boolean(bonus || penalty || roll || healing || damage || condition || resourceChange),
+    action: abilityAutomationAction(type, { bonus, penalty, roll, healing, damage, condition, resourceChange }, { pantheonDice }),
+    bonus,
+    penalty,
+    roll,
+    healing,
+    damage,
+    condition,
+    resourceChange,
     chatCard: true
   };
   const notes = type === "curse"
@@ -811,6 +818,19 @@ function abilityAutomation(type, name, effect, { pantheonDice = type === "curse"
     : "Archetype Blessing metadata is source-backed; effects requiring judgment remain chat-card guided unless a structured automation field is present.";
 
   return { usage, automation, notes };
+}
+
+function abilityAutomationAction(type, automation, { pantheonDice = 0 } = {}) {
+  if (type === "curse" && pantheonDice > 0) return "gain-pantheon-die";
+  if (automation.damage?.mode === "negate-successes") return "prevent-damage";
+  if (automation.damage?.mode === "cost" && automation.roll?.mode === "reroll") return "reroll";
+  if (automation.healing) return "healing";
+  if (automation.condition) return "apply-condition";
+  if (automation.resourceChange) return "change-resource";
+  if (automation.roll) return "roll";
+  if (automation.bonus) return "apply-bonus";
+  if (automation.penalty) return "apply-penalty";
+  return "";
 }
 
 function resourceChangeAutomation(effect) {
@@ -827,7 +847,9 @@ function resourceChangeAutomation(effect) {
 }
 
 function bonusAutomation(effect) {
-  const match = effect.match(/Gain \+(\d+) ([A-Za-z]+)(?: when| to|$)/i) ?? effect.match(/\+(\d+) bonus to (?:any )?(?:roll|check)/i);
+  const match = effect.match(/Gain (?:a )?\+(\d+) ([A-Za-z]+) bonus(?: when|$|\.)/i)
+    ?? effect.match(/Gain \+(\d+) ([A-Za-z]+)(?: when| to|$|\.)/i)
+    ?? effect.match(/\+(\d+) bonus to (?:any )?(?:roll|check)/i);
   if (!match) return null;
   return {
     amount: Number(match[1]),
@@ -849,12 +871,64 @@ function penaltyAutomation(effect) {
 
 function rollAutomation(effect) {
   const match = effect.match(/roll ([A-Za-z]+) \+ ([A-Za-z]+)/i);
-  if (!match) return null;
-  return {
-    primary: labelKey(match[1]),
-    secondary: labelKey(match[2]),
-    difficulty: effect.match(/Simple \(1\)/i) ? 1 : null
-  };
+  if (match) {
+    return {
+      primary: labelKey(match[1]),
+      secondary: labelKey(match[2]),
+      difficulty: effect.match(/Simple \(1\)/i) ? 1 : null
+    };
+  }
+
+  const reflexive = effect.match(/roll ([A-Za-z]+) reflexively/i);
+  if (reflexive) {
+    return {
+      primary: labelKey(reflexive[1]),
+      mode: "reflexive"
+    };
+  }
+
+  if (/reroll (?:a )?die/i.test(effect)) {
+    return {
+      mode: "reroll",
+      target: "die-showing-1"
+    };
+  }
+
+  return null;
+}
+
+function damageAutomation(effect) {
+  const negate = effect.match(/negate (physical|mental)?\s*damage successes/i);
+  if (negate) {
+    const type = String(negate[1] ?? "").toLowerCase();
+    return {
+      mode: "negate-successes",
+      resource: type === "mental" ? "psyche" : type === "physical" ? "health" : "healthOrPsyche",
+      timing: "reflexive"
+    };
+  }
+
+  const cost = effect.match(/take (\d+) damage to/i);
+  if (cost) {
+    return {
+      mode: "cost",
+      resource: "healthOrPsyche",
+      amount: Number(cost[1]),
+      timing: "use"
+    };
+  }
+
+  const threshold = effect.match(/taking (\d+) or more damage/i);
+  if (threshold) {
+    return {
+      mode: "trigger-threshold",
+      resource: "healthOrPsyche",
+      threshold: Number(threshold[1]),
+      timing: "after-damage"
+    };
+  }
+
+  return null;
 }
 
 function healingAutomation(effect) {

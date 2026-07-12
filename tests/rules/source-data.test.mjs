@@ -160,6 +160,28 @@ test("Premade source data exposes initiative modifiers for automation", () => {
   assert.equal(quick.system.automation.bonus.initiative, 1);
 });
 
+test("Premade source data exposes structured Blessing hooks beyond visible prose", () => {
+  const sturdy = items.PTG_PREMADE_ITEMS.find(item => item.type === "blessing" && item.name === "Made of Sturdy Stuff");
+  const compliance = items.PTG_PREMADE_ITEMS.find(item => item.type === "blessing" && item.name === "Fate's Compliance");
+  const martyrdom = items.PTG_PREMADE_ITEMS.find(item => item.type === "blessing" && item.name === "Martyrdom");
+
+  assert.ok(sturdy, "Made of Sturdy Stuff blessing item");
+  assert.equal(sturdy.system.automation.enabled, true);
+  assert.equal(sturdy.system.automation.action, "prevent-damage");
+  assert.deepEqual(sturdy.system.automation.damage, { mode: "negate-successes", resource: "health", timing: "reflexive" });
+  assert.deepEqual(sturdy.system.automation.roll, { primary: "fortitude", mode: "reflexive" });
+
+  assert.ok(compliance, "Fate's Compliance blessing item");
+  assert.equal(compliance.system.automation.action, "reroll");
+  assert.deepEqual(compliance.system.automation.damage, { mode: "cost", resource: "healthOrPsyche", amount: 1, timing: "use" });
+  assert.deepEqual(compliance.system.automation.roll, { mode: "reroll", target: "die-showing-1" });
+
+  assert.ok(martyrdom, "Martyrdom blessing item");
+  assert.equal(martyrdom.system.automation.action, "change-resource");
+  assert.deepEqual(martyrdom.system.automation.damage, { mode: "trigger-threshold", resource: "healthOrPsyche", threshold: 3, timing: "after-damage" });
+  assert.deepEqual(martyrdom.system.automation.resourceChange, { resource: "pantheonDice", amount: 1, target: "pantheonPool" });
+});
+
 test("Premade Items stay in valid item folders without journal-style leaks", () => {
   const audit = auditCreatedItemDocuments([
     { name: "character-creation", documents: choices.PTG_PREMADE_CHOICES },

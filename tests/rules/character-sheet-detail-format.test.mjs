@@ -39,6 +39,21 @@ test("character sheet item automation renders as readable hook prose", () => {
   assert.equal(summary.includes("{"), false);
 });
 
+test("character sheet item automation names structured Blessing hooks", () => {
+  const summary = itemAutomationSummary({
+    automation: {
+      enabled: true,
+      action: "prevent-damage",
+      roll: { primary: "fortitude", mode: "reflexive" },
+      damage: { mode: "negate-successes", resource: "health", timing: "reflexive" },
+      chatCard: true
+    }
+  });
+
+  assert.equal(summary, "Structured automation hook (enabled): Action: Prevent damage; Roll: Reflexive; Damage: Negate successes. Posts a use card.");
+  assert.equal(summary.includes("{"), false);
+});
+
 test("random god previews show escaped identity and roll-table path", () => {
   const html = randomGodPreviewHTML({
     identity: {

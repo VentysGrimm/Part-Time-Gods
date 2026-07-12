@@ -1753,15 +1753,16 @@ export function itemAutomationSummary(system = {}) {
   const pieces = [];
   if (automation.action) pieces.push(`Action: ${automationLabel(automation.action)}`);
   if (automation.roll?.type) pieces.push(`Roll: ${automationLabel(automation.roll.type)}`);
+  else if (automation.roll) pieces.push(`Roll: ${automationObjectSummary(automation.roll)}`);
   if (automation.resourceChange?.resource) {
     const amount = Number(automation.resourceChange.amount ?? automation.resourceChange.value ?? 0);
     pieces.push(`Resource: ${automationLabel(automation.resourceChange.resource)} ${amount > 0 ? "+" : ""}${Number.isFinite(amount) ? amount : 0}`);
   }
-  if (automation.healing) pieces.push("Healing metadata");
-  if (automation.damage) pieces.push("Damage metadata");
-  if (automation.condition) pieces.push("Condition metadata");
-  if (automation.bonus) pieces.push("Bonus metadata");
-  if (automation.penalty) pieces.push("Penalty metadata");
+  if (automation.healing) pieces.push(`Healing: ${automationObjectSummary(automation.healing)}`);
+  if (automation.damage) pieces.push(`Damage: ${automationObjectSummary(automation.damage)}`);
+  if (automation.condition) pieces.push(`Condition: ${automationObjectSummary(automation.condition)}`);
+  if (automation.bonus) pieces.push(`Bonus: ${automationObjectSummary(automation.bonus)}`);
+  if (automation.penalty) pieces.push(`Penalty: ${automationObjectSummary(automation.penalty)}`);
   if (!pieces.length) return "";
 
   const mode = automation.enabled ? "enabled" : "manual confirmation";
@@ -1770,7 +1771,27 @@ export function itemAutomationSummary(system = {}) {
 }
 
 function automationLabel(value) {
-  return labelCase(String(value ?? "").replace(/[-_]+/g, " "));
+  return labelCase(String(value ?? "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " "));
+}
+
+function automationObjectSummary(value) {
+  if (!value || typeof value !== "object") return automationLabel(value);
+
+  if (value.mode) return automationLabel(value.mode);
+  if (value.name) {
+    const severity = Number(value.severity ?? 0);
+    return `${automationLabel(value.name)}${severity ? ` ${severity}` : ""}`;
+  }
+  if (value.initiative !== undefined) return `Initiative ${signedNumber(value.initiative)}`;
+  if (value.amount !== undefined && value.appliesTo) return `${automationLabel(value.appliesTo)} ${signedNumber(value.amount)}`;
+  if (value.amount !== undefined && value.resource) return `${automationLabel(value.resource)} ${signedNumber(value.amount)}`;
+  if (value.resource) return automationLabel(value.resource);
+  if (value.primary && value.secondary) return `${automationLabel(value.primary)} + ${automationLabel(value.secondary)}`;
+  if (value.primary) return automationLabel(value.primary);
+
+  return "Structured";
 }
 
 const DETAIL_ALLOWED_TAGS = new Set(["a", "blockquote", "br", "code", "em", "i", "li", "ol", "p", "pre", "strong", "b", "table", "tbody", "td", "th", "thead", "tr", "ul"]);
