@@ -15,7 +15,16 @@ export class PTGCharacterData extends foundry.abstract.TypeDataModel {
         dominionLimitations: new fields.StringField({ initial: "" }),
         dominionLandmarkBondUuid: new fields.StringField({ initial: "" }),
         dominionLandmarkBondName: new fields.StringField({ initial: "" }),
-        theology: new fields.StringField({ initial: "" })
+        theology: new fields.StringField({ initial: "" }),
+        divineName: new fields.StringField({ initial: "" }),
+        divineTitle: new fields.StringField({ initial: "" }),
+        divineEpithet: new fields.StringField({ initial: "" }),
+        divineSymbol: new fields.StringField({ initial: "" }),
+        divineOmen: new fields.StringField({ initial: "" }),
+        divineTaboo: new fields.StringField({ initial: "" }),
+        divineOffering: new fields.StringField({ initial: "" }),
+        divineMythSeed: new fields.StringField({ initial: "" }),
+        divineTone: new fields.StringField({ initial: "" })
       }),
 
       resources: new fields.SchemaField({

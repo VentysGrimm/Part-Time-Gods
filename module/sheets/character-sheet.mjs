@@ -2,7 +2,7 @@ import { conditionItemFromSelection, loadPremadeConditions } from "../conditions
 import { getDragEventData, itemFromDropData } from "../util/drop-data.mjs";
 import { localizeFallback } from "../util/localization.mjs";
 import { openPantheonPoolDialog, pantheonPoolMax, pantheonPoolOptions, spendPantheonDiceForActor } from "../workflows/pantheon-pool-workflow.mjs";
-import { generateRandomGod } from "../util/random-god-generator.mjs";
+import { generateDivineIdentity, generateRandomGod } from "../util/random-god-generator.mjs";
 import { isSheetEditLocked, mergeSheetEditLockContext, wireSheetEditLock } from "./sheet-edit-lock.mjs";
 
 const SYSTEM_ID = "part-time-gods";
@@ -1260,7 +1260,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
           `).join("")}
         </nav>
         <div class="ptg-creator-toolbar">
-          <button type="button" data-random-god>Random God</button>
+          <button type="button" data-random-god="full">Random God</button>
+          <button type="button" data-random-god-apply disabled>Apply Identity Suggestion</button>
           <span data-random-god-summary></span>
         </div>
         <div class="ptg-creator-body">
@@ -1339,7 +1340,24 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
             <label>Spark <input type="number" name="creator.spark" value="${Number(resources.spark ?? 1)}" min="1"></label>
             <label>Starting Fragments <input type="number" name="creator.fragments" value="${Number(resources.fragments?.value ?? 3)}" min="0"></label>
           </section>
-          <label>God/dess Of <input type="text" name="identity.concept" value="${escapeHTML(identity.concept ?? "")}"></label>
+          <section class="ptg-creator-budget-block ptg-creator-identity-block">
+            <h3>Divine Identity</h3>
+            <p class="ptg-sheet-note">Type your own identity, or generate a source-backed suggestion from the selected character creation themes. Rerolling does not replace these fields until you apply the suggestion.</p>
+            <div class="ptg-action-row">
+              <button type="button" data-random-god="identity">Generate Divine Identity</button>
+              <button type="button" data-random-god-apply disabled>Apply Identity Suggestion</button>
+            </div>
+            <label>God/dess Of <input type="text" name="identity.concept" value="${escapeHTML(identity.concept ?? "")}"></label>
+            <label>Divine Name <input type="text" name="identity.divineName" value="${escapeHTML(identity.divineName ?? "")}"></label>
+            <label>Title <input type="text" name="identity.divineTitle" value="${escapeHTML(identity.divineTitle ?? "")}"></label>
+            <label>Epithet <input type="text" name="identity.divineEpithet" value="${escapeHTML(identity.divineEpithet ?? "")}"></label>
+            <label>Symbol <input type="text" name="identity.divineSymbol" value="${escapeHTML(identity.divineSymbol ?? "")}"></label>
+            <label>Omen <input type="text" name="identity.divineOmen" value="${escapeHTML(identity.divineOmen ?? "")}"></label>
+            <label>Taboo <input type="text" name="identity.divineTaboo" value="${escapeHTML(identity.divineTaboo ?? "")}"></label>
+            <label>Offering <input type="text" name="identity.divineOffering" value="${escapeHTML(identity.divineOffering ?? "")}"></label>
+            <label>Myth Seed <textarea name="identity.divineMythSeed">${escapeHTML(identity.divineMythSeed ?? "")}</textarea></label>
+            <label>Tone <input type="text" name="identity.divineTone" value="${escapeHTML(identity.divineTone ?? "")}"></label>
+          </section>
           <label>Age & Ethnicity <input type="text" name="identity.ageEthnicity" value="${escapeHTML(identity.ageEthnicity ?? "")}"></label>
           <label>Specialties <textarea name="specialties">${escapeHTML(this.actor.system.specialties ?? "")}</textarea></label>
           <label>Legendary Acts <textarea name="resources.legendaryActs">${escapeHTML(resources.legendaryActs ?? "")}</textarea></label>
@@ -1376,6 +1394,15 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
           },
           updates: {
             "system.identity.concept": button.form.elements["identity.concept"]?.value ?? "",
+            "system.identity.divineName": button.form.elements["identity.divineName"]?.value ?? "",
+            "system.identity.divineTitle": button.form.elements["identity.divineTitle"]?.value ?? "",
+            "system.identity.divineEpithet": button.form.elements["identity.divineEpithet"]?.value ?? "",
+            "system.identity.divineSymbol": button.form.elements["identity.divineSymbol"]?.value ?? "",
+            "system.identity.divineOmen": button.form.elements["identity.divineOmen"]?.value ?? "",
+            "system.identity.divineTaboo": button.form.elements["identity.divineTaboo"]?.value ?? "",
+            "system.identity.divineOffering": button.form.elements["identity.divineOffering"]?.value ?? "",
+            "system.identity.divineMythSeed": button.form.elements["identity.divineMythSeed"]?.value ?? "",
+            "system.identity.divineTone": button.form.elements["identity.divineTone"]?.value ?? "",
             "system.identity.ageEthnicity": button.form.elements["identity.ageEthnicity"]?.value ?? "",
             "system.specialties": button.form.elements.specialties?.value ?? "",
             "system.resources.legendaryActs": button.form.elements["resources.legendaryActs"]?.value ?? "",
@@ -2108,30 +2135,64 @@ function wireCharacterCreatorDialog(element, { choices = {} } = {}) {
 }
 
 function wireRandomGodButton(root, choices) {
-  const button = root.querySelector("[data-random-god]");
-  const summary = root.querySelector("[data-random-god-summary]");
-  if (!button) return;
+  const buttons = Array.from(root.querySelectorAll("[data-random-god]"));
+  const applyButtons = Array.from(root.querySelectorAll("[data-random-god-apply]"));
+  const summaries = Array.from(root.querySelectorAll("[data-random-god-summary]"));
+  if (!buttons.length) return;
 
-  button.addEventListener("click", () => {
-    const result = generateRandomGod();
-    setCreatorSelect(root, "occupation", choices.occupation, result.choices.occupation);
-    root.querySelector("[data-occupation-select]")?.dispatchEvent(new Event("change", { bubbles: true }));
-    setCareerSelect(root, result.choices.occupationCareer);
+  for (const button of buttons) button.addEventListener("click", () => {
+    const result = button.dataset.randomGod === "identity"
+      ? {
+        choices: {},
+        notes: {},
+        identity: generateDivineIdentity(currentCreatorIdentityContext(root)),
+        log: []
+      }
+      : generateRandomGod();
+    root._ptgRandomGodResult = result;
 
-    setCreatorSelect(root, "archetype", choices.archetype, result.choices.archetype);
-    root.querySelector("[data-archetype-select]")?.dispatchEvent(new Event("change", { bubbles: true }));
-    selectFirstVisible(root, "[data-archetype-option-select='attachment']");
-    selectFirstVisible(root, "[data-archetype-option-select='blessing']");
-    selectFirstVisible(root, "[data-archetype-option-select='curse']");
+    if (button.dataset.randomGod !== "identity") {
+      setCreatorSelect(root, "occupation", choices.occupation, result.choices.occupation);
+      root.querySelector("[data-occupation-select]")?.dispatchEvent(new Event("change", { bubbles: true }));
+      setCareerSelect(root, result.choices.occupationCareer);
 
-    setCreatorSelect(root, "domain", choices.domain, result.choices.domain);
-    setCreatorSelect(root, "theology", choices.theology, result.choices.theology);
+      setCreatorSelect(root, "archetype", choices.archetype, result.choices.archetype);
+      root.querySelector("[data-archetype-select]")?.dispatchEvent(new Event("change", { bubbles: true }));
+      selectFirstVisible(root, "[data-archetype-option-select='attachment']");
+      selectFirstVisible(root, "[data-archetype-option-select='blessing']");
+      selectFirstVisible(root, "[data-archetype-option-select='curse']");
 
-    if (summary) {
-      const manual = Object.values(result.choices).includes("GM Choice") || Object.values(result.notes).includes("GM Choice");
-      summary.textContent = manual ? "Randomized with GM Choice result; review before applying." : "Randomized; review before applying.";
+      setCreatorSelect(root, "domain", choices.domain, result.choices.domain);
+      setCreatorSelect(root, "theology", choices.theology, result.choices.theology);
     }
+
+    for (const applyButton of applyButtons) applyButton.disabled = false;
+    const manual = Object.values(result.choices).includes("GM Choice") || Object.values(result.notes).includes("GM Choice");
+    const text = `${manual ? "Randomized with GM Choice result" : "Randomized"}; identity suggestion ready: ${result.identity.divineName}, ${result.identity.concept}.`;
+    for (const summary of summaries) summary.textContent = text;
   });
+
+  for (const applyButton of applyButtons) applyButton.addEventListener("click", () => {
+    const result = root._ptgRandomGodResult;
+    if (!result?.identity) return;
+    applyRandomGodIdentity(root, result.identity);
+    for (const summary of summaries) summary.textContent = `Applied identity suggestion: ${result.identity.divineName}, ${result.identity.concept}.`;
+  });
+}
+
+function currentCreatorIdentityContext(root) {
+  return {
+    occupation: selectedCreatorText(root, "occupation"),
+    archetype: selectedCreatorText(root, "archetype"),
+    dominion: selectedCreatorText(root, "domain") || root.querySelector("[name='identity.concept']")?.value?.replace(/^God\/dess of\s+/i, ""),
+    theology: selectedCreatorText(root, "theology")
+  };
+}
+
+function selectedCreatorText(root, name) {
+  const select = root.querySelector(`[name='${name}']`);
+  const option = select?.selectedOptions?.[0];
+  return option?.value ? option.textContent?.trim() ?? "" : "";
 }
 
 function setCreatorSelect(root, name, options, resultName) {
@@ -2162,6 +2223,28 @@ function selectFirstVisible(root, selector) {
   const select = root.querySelector(selector);
   const option = Array.from(select?.options ?? []).find(candidate => candidate.value && !candidate.hidden);
   if (select && option) select.value = option.value;
+}
+
+function applyRandomGodIdentity(root, identity) {
+  const fields = {
+    "identity.concept": identity.concept,
+    "identity.divineName": identity.divineName,
+    "identity.divineTitle": identity.divineTitle,
+    "identity.divineEpithet": identity.divineEpithet,
+    "identity.divineSymbol": identity.divineSymbol,
+    "identity.divineOmen": identity.divineOmen,
+    "identity.divineTaboo": identity.divineTaboo,
+    "identity.divineOffering": identity.divineOffering,
+    "identity.divineMythSeed": identity.divineMythSeed,
+    "identity.divineTone": identity.divineTone
+  };
+
+  for (const [name, value] of Object.entries(fields)) {
+    const field = root.querySelector(`[name='${name}']`);
+    if (!field || value == null) continue;
+    field.value = value;
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+  }
 }
 
 function findCreatorChoice(options = [], resultName = "") {
@@ -2236,7 +2319,7 @@ async function selectSkillComboRollOptions({ actor, primary, secondary, difficul
     .join("");
 
   const content = `
-    <div class="ptg-roll-dialog">
+    <div class="ptg-roll-dialog ptg-skill-combo-options">
       <div class="form-group">
         <label>Primary Skill</label>
         <select name="primary">

@@ -204,8 +204,18 @@ async function assertProductionUxScaffold() {
   for (const token of ["ptg-print-ability-actions", "ptg-print-truth-actions", "ptg-sheet-detail-body"]) {
     if (!characterTemplate.includes(token)) errors.push(`Character sheet ability readability markup missing ${token}`);
   }
-  for (const token of ["sheetDetailDisplayHTML", "sanitizeSheetDetailHTML", "decodeSheetDetailEntities"]) {
+  for (const token of ["sheetDetailDisplayHTML", "sanitizeSheetDetailHTML", "decodeSheetDetailEntities", "data-random-god-apply", "identity.divineName", "identity.divineMythSeed"]) {
     if (!characterSheet.includes(token)) errors.push(`Character sheet detail display helper missing ${token}`);
+  }
+
+  const characterModel = await readText("module/documents/models/actor/character-model.mjs");
+  for (const token of ["divineName", "divineTitle", "divineEpithet", "divineSymbol", "divineOmen", "divineTaboo", "divineOffering", "divineMythSeed", "divineTone"]) {
+    if (!characterModel.includes(token)) errors.push(`Character identity model missing ${token}`);
+  }
+
+  const randomGodGenerator = await readText("module/util/random-god-generator.mjs");
+  for (const token of ["generateDivineIdentity", "divineSymbol", "divineOmen", "divineTaboo", "divineOffering", "divineMythSeed", "divineTone"]) {
+    if (!randomGodGenerator.includes(token)) errors.push(`Random god generator missing ${token}`);
   }
 
   const pantheonTemplate = await readText("templates/actor/pantheon-sheet.hbs");
@@ -254,7 +264,11 @@ async function assertProductionUxScaffold() {
     ".ptg-balance-tracker.is-player",
     ".ptg-balance-body.is-player",
     ".ptg-balance-party-card summary",
-    ".ptg-balance-party-card-actions"
+    ".ptg-balance-party-card-actions",
+    ".ptg-skill-combo-dialog .window-content > form",
+    ".ptg-skill-combo-dialog [data-application-part=\"footer\"]",
+    ".ptg-skill-combo-dialog .ptg-skill-combo-options",
+    "max-height: none"
   ];
   for (const token of readableSurfaceTokens) {
     if (!stylesheet.includes(token)) errors.push(`Readable sheet/dialog stylesheet guard missing ${token}`);
