@@ -181,7 +181,8 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     this.element.querySelector("[data-character-creator]")?.addEventListener("click", () => this.#openCharacterCreator());
     this.#activateTab(this.#activeTab, { restoreScroll: true, captureCurrent: false });
-    this.#restorePendingScrollAnchor();
+    const restoredAnchor = this.#restorePendingScrollAnchor();
+    if (!restoredAnchor) this.#scheduleActivePageScrollRestore(this.#activeTab);
   }
 
   async _onDrop(event) {
@@ -296,21 +297,42 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       if (panel.dataset.ptgPanel === tabName) activePanel = panel;
     }
 
-    if (activePanel && restoreScroll) activePanel.scrollTop = this.#tabScrollPositions.get(tabName) ?? 0;
+    if (activePanel && restoreScroll) this.#restorePanelScroll(activePanel, tabName);
   }
 
   #restorePendingScrollAnchor() {
     const itemId = this.#pendingScrollAnchorItemId;
     this.#pendingScrollAnchorItemId = null;
-    if (!itemId) return;
+    if (!itemId) return false;
 
     const row = Array.from(this.element.querySelectorAll("[data-item-id]"))
       .find(candidate => candidate.dataset.itemId === itemId);
     const panel = row?.closest?.("[data-ptg-panel]");
-    if (!row || !panel) return;
+    if (!row || !panel) return false;
 
     row.scrollIntoView?.({ block: "nearest", inline: "nearest" });
     this.#tabScrollPositions.set(panel.dataset.ptgPanel ?? this.#activeTab, panel.scrollTop);
+    return true;
+  }
+
+  #restorePanelScroll(panel, tabName) {
+    const savedScrollTop = this.#tabScrollPositions.get(tabName) ?? 0;
+    panel.scrollTop = savedScrollTop;
+  }
+
+  #scheduleActivePageScrollRestore(tabName) {
+    const savedScrollTop = this.#tabScrollPositions.get(tabName) ?? 0;
+    const restore = () => {
+      if (!this.element?.isConnected) return;
+      const activePanel = this.#activePagePanel();
+      if (!activePanel || activePanel.dataset.ptgPanel !== tabName) return;
+      activePanel.scrollTop = savedScrollTop;
+      this.#tabScrollPositions.set(tabName, savedScrollTop);
+    };
+
+    globalThis.requestAnimationFrame?.(restore);
+    globalThis.setTimeout?.(restore, 0);
+    globalThis.setTimeout?.(restore, 75);
   }
 
   async #rollSkill(button) {
