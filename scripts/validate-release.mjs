@@ -243,9 +243,13 @@ async function assertProductionUxScaffold() {
     ".ptg-balance-body.is-player",
     ".ptg-balance-party-card summary",
     ".ptg-balance-party-card-actions",
+    ".ptg-skill-combo-dialog {",
+    "max-height: calc(100vh - 32px)",
     ".ptg-skill-combo-dialog .window-content > form",
+    ".ptg-skill-combo-dialog .dialog-content",
     ".ptg-skill-combo-dialog [data-application-part=\"footer\"]",
     ".ptg-skill-combo-dialog .ptg-skill-combo-options",
+    "overflow-x: hidden",
     "max-height: none"
   ];
   for (const token of readableSurfaceTokens) {
