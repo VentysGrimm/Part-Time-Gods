@@ -32,7 +32,7 @@ This summary records the first playable Foundry VTT v14 pass for Part-Time Gods 
 
 ## Resolved Workflow Decisions
 
-- Battle flow is handled through the Pantheon sheet Combat Controls button: initiative, round/action/defense markers, Battle of Fists, Battle of Wits, direct damage/healing, armor, weapon qualities, Boost damage, and Condition application/recovery. The battle dialog accepts manual successes or rolls antagonist/vassal statblock Attack and Defense pools.
+- Battle flow is handled through the Pantheon sheet Combat Controls button: initiative, round/action/defense markers, Battle of Fists, Battle of Wits, direct Health/Psyche damage, healing, armor, weapon qualities, Boost damage, and Condition application/recovery. The battle dialog accepts manual successes or rolls antagonist/vassal statblock Attack and Defense pools, and direct damage can be aimed at either Health or Psyche while armor only reduces Health damage.
 - Conditions are system-owned `condition` Item documents. They are the source of truth for severity, category, duration, recovery, roll metadata, and chat workflow. Foundry Active Effects are not the primary representation because PTG Conditions are narrative/severity records whose effects depend on check context; the system applies their structured metadata through `conditionRollEffects()` instead.
 - Prayers are handled through Worshipper request cards with Strain, risk, resource changes, consequences, results, and request logs.
 - Vassals use task cards with Strain, risk, statblock pool rolls, current task/risk fields, request logs, and scene-drop actor generation.

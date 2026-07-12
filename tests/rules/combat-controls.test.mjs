@@ -238,6 +238,68 @@ test("PTG combat controls applies healing to a selected combatant actor", async 
   assert.match(createdMessages[0].content, /QA combat healing/);
 });
 
+test("PTG combat controls applies selected Psyche damage to a combatant actor", async () => {
+  installFoundryTestEnvironment();
+
+  foundry.applications.api.DialogV2.prompt = async () => ({
+    combatantId: "qa-combatant",
+    action: "damage",
+    damageResource: "psyche",
+    damage: 3,
+    applyArmor: true,
+    damageTag: "social pressure",
+    notes: "QA psyche damage"
+  });
+  game.user = { isGM: true };
+
+  const createdMessages = [];
+  ChatMessage.create = async data => {
+    createdMessages.push(data);
+    return data;
+  };
+
+  const updates = [];
+  const actor = {
+    name: "QA Character",
+    items: [{ type: "armor", system: { equipped: true, rating: 5 } }],
+    system: {
+      resources: {
+        health: { value: 6, max: 8 },
+        psyche: { value: 7, max: 8 }
+      },
+      derived: { armor: 5 }
+    },
+    async update(update) {
+      updates.push(update);
+      if ("system.resources.psyche.value" in update) {
+        this.system.resources.psyche.value = update["system.resources.psyche.value"];
+      }
+    }
+  };
+  const combatant = {
+    id: "qa-combatant",
+    name: "QA Character",
+    actor
+  };
+  const combat = {
+    name: "QA Combat",
+    round: 3,
+    combatants: new Map([[combatant.id, combatant]])
+  };
+
+  const { openPTGCombatControls } = await import("../../module/combat/ptg-combat.mjs?damage-resource");
+  const result = await openPTGCombatControls({ combat });
+
+  assert.equal(result, combatant);
+  assert.deepEqual(updates, [{ "system.resources.psyche.value": 4 }]);
+  assert.equal(actor.system.resources.health.value, 6);
+  assert.equal(actor.system.resources.psyche.value, 4);
+  assert.match(createdMessages[0].content, /Apply Damage/);
+  assert.match(createdMessages[0].content, /Psyche 7 -&gt; 4/);
+  assert.doesNotMatch(createdMessages[0].content, /after 5 armor/);
+  assert.match(createdMessages[0].content, /QA psyche damage/);
+});
+
 test("PTG combat controls are blocked for non-GM users", async () => {
   installFoundryTestEnvironment();
 

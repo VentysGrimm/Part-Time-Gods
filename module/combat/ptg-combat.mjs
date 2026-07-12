@@ -12,6 +12,7 @@ const ACTION_LABELS = {
   standardDefense: "Standard Defense",
   reset: "Reset Combatant Actions",
   initiative: "Roll PTG Initiative",
+  damage: "Apply Damage",
   physicalDamage: "Physical Damage",
   mentalDamage: "Mental Damage",
   condition: "Apply Condition",
@@ -95,7 +96,7 @@ export async function openPTGCombatControls({ combat = game.combat } = {}) {
     return combatant;
   }
 
-  if (["physicalDamage", "mentalDamage", "healing"].includes(selection.action)) {
+  if (["damage", "physicalDamage", "mentalDamage", "healing"].includes(selection.action)) {
     const results = await applyCombatOutcome(combatant.actor, selection);
     await postCombatCard({
       combat,
@@ -190,6 +191,7 @@ async function selectCombatAction(combat) {
           <option value="standardDefense">Mark Standard Defense Used</option>
           <option value="battleFists">Resolve Battle of Fists</option>
           <option value="battleWits">Resolve Battle of Wits</option>
+          <option value="damage">Apply Damage (Health or Psyche)</option>
           <option value="physicalDamage">Apply Physical Damage</option>
           <option value="mentalDamage">Apply Mental Damage</option>
           <option value="condition">Create or Update Condition</option>
@@ -234,7 +236,14 @@ async function selectCombatAction(combat) {
           <input type="text" name="damageTag" value="" placeholder="Close, Near, Far, bullets, fire, etc.">
         </div>
       </div>
-      <div class="ptg-item-fields two">
+      <div class="ptg-item-fields three">
+        <div class="form-group">
+          <label>Damage Resource</label>
+          <select name="damageResource">
+            <option value="health">Health</option>
+            <option value="psyche">Psyche</option>
+          </select>
+        </div>
         <div class="form-group">
           <label>Damage</label>
           <input type="number" name="damage" value="0" min="0">
@@ -305,6 +314,7 @@ async function selectCombatAction(combat) {
           boostDamage: form.elements.boostDamage?.checked ?? false,
           weaponUuid: form.elements.weaponUuid?.value ?? "",
           damageTag: form.elements.damageTag?.value ?? "",
+          damageResource: form.elements.damageResource?.value ?? "health",
           damage: Number(form.elements.damage?.value ?? 0),
           applyArmor: form.elements.applyArmor?.checked ?? false,
           conditionName: form.elements.conditionName?.value ?? "",
@@ -426,12 +436,12 @@ async function applyCombatOutcome(actor, selection) {
     if (result) results.push(...result);
   }
 
-  if (selection.action === "physicalDamage" || selection.action === "mentalDamage") {
-    const resource = selection.action === "mentalDamage" ? "psyche" : "health";
+  if (["damage", "physicalDamage", "mentalDamage"].includes(selection.action)) {
+    const resource = combatDamageResource(selection);
     const result = await applyDamage(actor, {
       resource,
       amount: selection.damage,
-      applyArmor: selection.action === "physicalDamage" && selection.applyArmor,
+      applyArmor: resource === "health" && selection.applyArmor,
       damageTag: selection.damageTag
     });
     if (result) results.push(result);
@@ -453,6 +463,12 @@ async function applyCombatOutcome(actor, selection) {
 
   if (!results.length) results.push("No damage or Condition changes were applied.");
   return results;
+}
+
+function combatDamageResource(selection) {
+  if (selection.action === "mentalDamage") return "psyche";
+  if (selection.action === "physicalDamage") return "health";
+  return selection.damageResource === "psyche" ? "psyche" : "health";
 }
 
 async function resolveBattleOutcome(attacker, defender, selection) {
