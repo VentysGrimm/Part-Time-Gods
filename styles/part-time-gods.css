@@ -954,8 +954,8 @@ details.ptg-editor-section:not([open]) {
 .ptg-sheet-detail-body :where(figure, picture, svg, canvas, video) {
   box-sizing: border-box;
   display: block;
-  inline-size: auto !important;
-  width: fit-content;
+  inline-size: min(100%, 24rem) !important;
+  width: min(100%, 24rem) !important;
   min-width: 0;
   min-inline-size: 0;
   max-inline-size: 100%;
@@ -964,7 +964,7 @@ details.ptg-editor-section:not([open]) {
   max-block-size: 18rem;
   max-height: 18rem;
   margin-inline: auto;
-  overflow: auto;
+  overflow: hidden;
   contain: paint;
   background-clip: padding-box;
   object-fit: contain;
@@ -989,13 +989,13 @@ details.ptg-editor-section:not([open]) {
 .ptg-sheet-detail-body :where(img) {
   box-sizing: border-box;
   display: block !important;
-  inline-size: auto !important;
-  max-inline-size: min(100%, 24rem);
-  max-width: min(100%, 24rem) !important;
+  inline-size: min(100%, 24rem) !important;
+  max-inline-size: 100%;
+  max-width: 100% !important;
   max-block-size: 18rem;
   max-height: 18rem !important;
   block-size: auto !important;
-  width: auto !important;
+  width: min(100%, 24rem) !important;
   height: auto !important;
   aspect-ratio: auto;
   margin-inline: auto;
@@ -1012,8 +1012,10 @@ details.ptg-editor-section:not([open]) {
 .ptg-editor-section :where(figure, picture) > img,
 .ptg-item-details :where(figure, picture) > img,
 .ptg-sheet-detail-body :where(figure, picture) > img {
+  inline-size: 100% !important;
   max-inline-size: 100%;
   max-width: 100% !important;
+  width: 100% !important;
 }
 
 .ptg-quality-list {
@@ -4016,7 +4018,9 @@ details.ptg-editor-section:not([open]) {
   align-items: center;
   justify-content: flex-end;
   min-width: 0;
+  min-height: 46px;
   max-width: 100%;
+  padding-inline: 2px;
   overflow: visible;
   color: #ffffff;
   font-size: 17px;
@@ -4195,8 +4199,11 @@ details.ptg-editor-section:not([open]) {
 .ptg-print-stat h2,
 .ptg-print-resource h2,
 .ptg-print-xp span {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
+  min-height: 1.45em;
   max-width: 100%;
   margin: 0;
   overflow: visible;
@@ -4340,6 +4347,7 @@ details.ptg-editor-section:not([open]) {
 
 .ptg-print-resource header h2 {
   justify-self: stretch;
+  justify-content: flex-start;
   text-align: left;
 }
 
@@ -4423,8 +4431,36 @@ details.ptg-editor-section:not([open]) {
 }
 
 .ptg-print-resource.legendary textarea {
-  min-height: 54px;
+  --ptg-lined-row-height: 30px;
+  --ptg-lined-rule-color: var(--ptg-paper-line);
+  --ptg-lined-rule-width: 1px;
+  background-color: #ffffff;
+  background-attachment: local;
+  background-clip: padding-box;
+  background-image: linear-gradient(
+    to bottom,
+    transparent calc(var(--ptg-lined-row-height) - var(--ptg-lined-rule-width)),
+    var(--ptg-lined-rule-color) calc(var(--ptg-lined-row-height) - var(--ptg-lined-rule-width)),
+    var(--ptg-lined-rule-color) var(--ptg-lined-row-height)
+  );
+  background-origin: padding-box;
+  background-position: left top;
+  background-repeat: repeat-y;
+  background-size: 100% var(--ptg-lined-row-height);
+  box-shadow: none;
+  line-height: var(--ptg-lined-row-height);
+  min-height: 60px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  overscroll-behavior: contain;
+  padding: 0 6px;
   border: 2px solid #111111 !important;
+  resize: vertical;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  white-space: pre-wrap;
+  word-break: normal;
 }
 
 .ptg-print-identity {
@@ -4819,8 +4855,8 @@ details.ptg-editor-section:not([open]) {
 .ptg-character-sheet .ptg-print-page .ptg-sheet-detail-body :where(figure, picture, svg, canvas, video) {
   box-sizing: border-box;
   display: block;
-  inline-size: auto !important;
-  width: fit-content;
+  inline-size: min(100%, 18rem) !important;
+  width: min(100%, 18rem) !important;
   min-width: 0;
   min-inline-size: 0;
   max-inline-size: 100%;
@@ -4829,7 +4865,7 @@ details.ptg-editor-section:not([open]) {
   max-block-size: 12rem;
   max-height: 12rem;
   margin-inline: auto;
-  overflow: auto;
+  overflow: hidden;
   contain: paint;
   background-clip: padding-box;
   object-fit: contain;
@@ -4940,13 +4976,13 @@ details.ptg-editor-section:not([open]) {
 .ptg-character-sheet .ptg-print-page .ptg-sheet-detail-body :where(img) {
   box-sizing: border-box;
   display: block !important;
-  inline-size: auto !important;
-  max-inline-size: min(100%, 18rem);
-  max-width: min(100%, 18rem) !important;
+  inline-size: min(100%, 18rem) !important;
+  max-inline-size: 100%;
+  max-width: 100% !important;
   max-block-size: 12rem;
   max-height: 12rem !important;
   block-size: auto !important;
-  width: auto !important;
+  width: min(100%, 18rem) !important;
   height: auto !important;
   aspect-ratio: auto;
   margin: 4px auto;
@@ -4963,8 +4999,10 @@ details.ptg-editor-section:not([open]) {
 .ptg-character-sheet .ptg-print-page .ptg-editor-section :where(figure, picture) > img,
 .ptg-character-sheet .ptg-print-page .ptg-item-details :where(figure, picture) > img,
 .ptg-character-sheet .ptg-print-page .ptg-sheet-detail-body :where(figure, picture) > img {
+  inline-size: 100% !important;
   max-inline-size: 100%;
   max-width: 100% !important;
+  width: 100% !important;
 }
 
 .ptg-print-attachment-table {
@@ -5655,6 +5693,10 @@ details.ptg-editor-section:not([open]) {
   .ptg-header .profile-img {
     width: 72px;
     height: 72px;
+    min-width: 72px;
+    min-height: 72px;
+    max-width: 72px;
+    max-height: 72px;
   }
 
   .ptg-name {
@@ -5690,6 +5732,15 @@ details.ptg-editor-section:not([open]) {
     grid-template-columns: 32px minmax(0, 1fr);
   }
 
+  .ptg-item-row img {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    max-width: 32px;
+    max-height: 32px;
+  }
+
   .ptg-item-meta,
   .ptg-item-actions {
     grid-column: 2;
@@ -5712,6 +5763,10 @@ details.ptg-editor-section:not([open]) {
   .ptg-paper-header .profile-img {
     width: 72px;
     height: 72px;
+    min-width: 72px;
+    min-height: 72px;
+    max-width: 72px;
+    max-height: 72px;
   }
 
   .ptg-line-field,
