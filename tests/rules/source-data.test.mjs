@@ -438,6 +438,41 @@ test("Territory point model separates GM secrets from player-facing scene data",
   assert.equal(playerPoints[0].eventLabel, "Challenge");
 });
 
+test("Territory random location helper rolls 2d10 coordinates for point creation", () => {
+  const rolls = [0, 0.999];
+  const rolled = territory.rollTerritoryLocationCoordinate({
+    random: () => rolls.shift()
+  });
+
+  assert.deepEqual(rolled, {
+    x: 1,
+    y: 10,
+    key: "1-10",
+    label: "1-10"
+  });
+
+  const point = territory.validateTerritoryPoint({
+    name: `Random Location ${rolled.label}`,
+    publicName: `Rumored Location ${rolled.label}`,
+    x: rolled.x,
+    y: rolled.y,
+    category: "neutral",
+    locationType: "unknown",
+    controlType: "unclaimed",
+    status: "unknown",
+    discoveryState: "rumored",
+    publicNotes: `Random location helper rolled ${rolled.label}.`
+  });
+  const grid = territory.normalizeTerritoryGrid({ points: [point] });
+  const cells = territory.buildTerritoryGridCells(grid, { canEditTerritory: true });
+  const targetCell = cells.rows.flatMap(row => row.cells).find(cell => cell.key === rolled.key);
+
+  assert.equal(targetCell.points.length, 1);
+  assert.equal(targetCell.points[0].name, "Random Location 1-10");
+  assert.equal(targetCell.points[0].discoveryLabel, "Rumored");
+  assert.match(targetCell.points[0].publicNotes, /Random location helper rolled 1-10/);
+});
+
 test("Territory character import turns player attachments into scene points", async () => {
   const actor = {
     name: "QA Character",

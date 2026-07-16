@@ -735,6 +735,7 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (action === "refresh-grid") return this.render({ force: true });
 
     if (action === "import-attachments") return this.#importAttachments();
+    if (action === "random-point") return this.#createRandomPoint();
     if (action === "clear-grid") return this.#clearGrid();
     if (action === "create-point") return this.#editPoint(null, {
       x: Number(button.dataset.x ?? 1),
@@ -838,6 +839,23 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     await setTerritoryGrid(scene, { ...grid, points });
     this.render({ force: true });
     return point;
+  }
+
+  async #createRandomPoint() {
+    const roll = rollTerritoryLocationCoordinate();
+    ui.notifications.info(`Random Territory location rolled: ${roll.label}.`);
+    return this.#editPoint(null, {
+      x: roll.x,
+      y: roll.y,
+      name: `Random Location ${roll.label}`,
+      publicName: `Rumored Location ${roll.label}`,
+      category: "neutral",
+      locationType: "unknown",
+      controlType: "unclaimed",
+      status: "unknown",
+      discoveryState: "rumored",
+      publicNotes: `Random location helper rolled ${roll.label}.`
+    });
   }
 
   async #viewPoint(pointId) {
@@ -1172,6 +1190,18 @@ function parseCoordinate(value) {
   return validCoordinateNumber(x) && validCoordinateNumber(y) ? { x, y } : null;
 }
 
+export function rollTerritoryLocationCoordinate({ random = Math.random } = {}) {
+  const rollD10 = () => clamp(Math.floor(numericValue(random(), 0) * 10) + 1, 1, GRID_SIZE);
+  const x = rollD10();
+  const y = rollD10();
+  return {
+    x,
+    y,
+    key: coordinateKey(x, y),
+    label: coordinateKey(x, y)
+  };
+}
+
 function validCoordinateNumber(value) {
   return Number.isInteger(value) && value >= 1 && value <= GRID_SIZE;
 }
@@ -1409,7 +1439,7 @@ export function territoryFilePickerClass() {
 }
 
 async function promptTerritoryPoint(point = null, defaults = {}) {
-  const existing = point ?? {};
+  const existing = point ? { ...point } : { ...defaults };
   const coordinate = normalizeCoordinate({ ...defaults, ...existing }) ?? { x: defaults.x ?? 1, y: defaults.y ?? 1 };
   const firstEvent = existing.ritualEvents?.[0] ?? {};
   const categoryOptions = selectOptions(POINT_CATEGORIES, existing.category ?? "custom");
