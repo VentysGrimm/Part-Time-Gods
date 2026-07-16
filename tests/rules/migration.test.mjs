@@ -137,3 +137,66 @@ test("canonical embedded item migration converts legacy sheet notes once", async
     "system.attachments.relics"
   ]);
 });
+
+test("canonical embedded item migration skips completed actors unless forced", async () => {
+  installFoundryTestEnvironment();
+
+  const createdItems = [];
+  const actorUpdates = [];
+  const setFlags = [];
+  const actor = {
+    type: "character",
+    name: "Already Migrated QA Character",
+    system: {
+      conditions: "Legacy condition text still present"
+    },
+    items: [],
+    getFlag: (scope, key) => scope === SYSTEM_ID && key === "schemaMigrations"
+      ? {
+          canonicalEmbeddedItems: {
+            id: "canonical-embedded-items-v1"
+          }
+        }
+      : {},
+    createEmbeddedDocuments: async (documentType, data) => {
+      createdItems.push({ documentType, data });
+      return data;
+    },
+    update: async update => {
+      actorUpdates.push(update);
+    },
+    setFlag: async (scope, key, value) => {
+      setFlags.push({ scope, key, value });
+      return value;
+    }
+  };
+
+  const { migrateActorToCanonicalEmbeddedItems } = await import("../../module/migration/canonical-embedded-items.mjs?canonical-skip-force");
+  const skipped = await migrateActorToCanonicalEmbeddedItems(actor);
+
+  assert.deepEqual(skipped, {
+    migrated: false,
+    createdItems: 0,
+    clearedFields: 0
+  });
+  assert.equal(createdItems.length, 0);
+  assert.equal(actorUpdates.length, 0);
+  assert.equal(setFlags.length, 0);
+
+  const forced = await migrateActorToCanonicalEmbeddedItems(actor, { force: true });
+
+  assert.deepEqual(forced, {
+    migrated: true,
+    createdItems: 1,
+    clearedFields: 1
+  });
+  assert.equal(createdItems[0].documentType, "Item");
+  assert.equal(createdItems[0].data[0].type, "condition");
+  assert.equal(createdItems[0].data[0].flags[SYSTEM_ID].legacyPath, "system.conditions");
+  assert.deepEqual(actorUpdates, [{ "system.conditions": "" }]);
+  assert.equal(setFlags[0].scope, SYSTEM_ID);
+  assert.equal(setFlags[0].key, "schemaMigrations");
+  assert.equal(setFlags[0].value.canonicalEmbeddedItems.id, "canonical-embedded-items-v1");
+  assert.equal(setFlags[0].value.canonicalEmbeddedItems.createdItems, 1);
+  assert.deepEqual(setFlags[0].value.canonicalEmbeddedItems.clearedFields, ["system.conditions"]);
+});

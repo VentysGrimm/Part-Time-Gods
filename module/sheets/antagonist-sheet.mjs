@@ -1,5 +1,6 @@
 import { openAntagonistBuilder } from "../data/premade-actors.mjs";
 import { openPTGCombatControls, rollPTGStatblockPool } from "../combat/ptg-combat.mjs";
+import { PTG_IMAGE_FALLBACK, imageSource, wireImageFallbacks } from "../util/image-fallback.mjs";
 
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -28,6 +29,8 @@ export class PTGAntagonistSheet extends HandlebarsApplicationMixin(ActorSheetV2)
 
     context.actor = this.actor;
     context.system = this.actor.system;
+    context.actorImg = imageSource(this.actor?.img, PTG_IMAGE_FALLBACK);
+    context.imageFallback = PTG_IMAGE_FALLBACK;
     context.canUseSetupTools = game.user?.isGM;
     context.canUseCombatControls = game.user?.isGM;
 
@@ -36,6 +39,7 @@ export class PTGAntagonistSheet extends HandlebarsApplicationMixin(ActorSheetV2)
 
   async _onRender(context, options) {
     await super._onRender(context, options);
+    wireImageFallbacks(this.element, PTG_IMAGE_FALLBACK);
 
     this.element.querySelector("[data-antagonist-builder]")?.addEventListener("click", () => openAntagonistBuilder());
     this.element.querySelector("[data-antagonist-combat-controls]")?.addEventListener("click", () => openPTGCombatControls());

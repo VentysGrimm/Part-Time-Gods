@@ -313,14 +313,14 @@ export class PartTimeGodsActor extends Actor {
     const archetypeSelection = item.type === "archetype" ? await selectArchetypeOptions(item, options) : null;
     if (archetypeSelection === false) return false;
 
-    const domainSelection = item.type === "domain" ? await selectDomainOptions(item, this) : null;
+    const domainSelection = item.type === "domain" ? await selectDomainOptions(item, this, options) : null;
     if (domainSelection === false) return false;
 
     const theologySelection = item.type === "theology" && item.system.undecided ? await selectUndecidedTheologyGrants(item) : null;
     if (theologySelection === false) return false;
 
     const grants = choiceGrants(item.system.grants ?? {}, { careerSelection, archetypeSelection, domainSelection, theologySelection });
-    const attachmentDefinitions = await selectAttachmentDefinitions(grants.attachments, item);
+    const attachmentDefinitions = await selectAttachmentDefinitions(grants.attachments, item, options.attachmentDefinitions);
     if (attachmentDefinitions === false) return false;
     grants.attachments = attachmentDefinitions;
     const updates = {};
@@ -1554,9 +1554,9 @@ async function selectOccupationCareer(item, selectionOptions = {}) {
   if (!careers.length) return null;
 
   const options = careerAttachmentOptions(careers);
-  const requestedOption = String(selectionOptions.occupationCareerOption ?? "");
+  const requestedOption = parseOccupationCareerOption(selectionOptions.occupationCareerOption, item.uuid);
   if (requestedOption) {
-    const [careerIndex, attachmentIndex] = requestedOption.split(":").map(value => Number(value));
+    const { careerIndex, attachmentIndex } = requestedOption;
     const option = options.find(entry => entry.careerIndex === careerIndex && entry.attachmentIndex === attachmentIndex);
     if (option) {
       return {
@@ -1606,6 +1606,22 @@ async function selectOccupationCareer(item, selectionOptions = {}) {
     career: careers[option.careerIndex],
     attachment: careers[option.careerIndex].attachments?.[option.attachmentIndex] ?? null
   };
+}
+
+function parseOccupationCareerOption(value, parentUuid = "") {
+  const text = String(value ?? "").trim();
+  if (!text) return null;
+
+  const scopedPrefix = `${parentUuid}::`;
+  const unscoped = scopedPrefix && text.startsWith(scopedPrefix)
+    ? text.slice(scopedPrefix.length)
+    : text.includes("::")
+      ? text.split("::").at(-1)
+      : text;
+  const [careerIndex, attachmentIndex] = unscoped.split(":").map(part => Number(part));
+
+  if (!Number.isInteger(careerIndex) || !Number.isInteger(attachmentIndex)) return null;
+  return { careerIndex, attachmentIndex };
 }
 
 async function selectArchetypeOptions(item, selectionOptions = {}) {
@@ -1683,7 +1699,7 @@ function archetypeSelectionFromIndexes(selection, { attachments, blessings, curs
   };
 }
 
-async function selectDomainOptions(item, actor) {
+async function selectDomainOptions(item, actor, selectionOptions = {}) {
   const attachments = normalizeAttachmentGrants(item.system.grants?.attachments ?? {});
   const landmark = attachments.find(attachment => attachment.kind === "landmark");
   const blessings = Array.from(item.system.blessingOptions ?? []);
@@ -1691,6 +1707,25 @@ async function selectDomainOptions(item, actor) {
   const defaultTitle = actor.system.identity?.concept || `God/dess of ${item.system.portfolio || item.name}`;
   const defaultPortfolio = item.system.specificPortfolio || item.system.portfolio || item.name;
   const defaultLandmark = item.system.landmarkBondName || landmark?.name || `${item.name} Landmark`;
+
+  if (selectionOptions.domainOptions) {
+    const domainOptions = selectionOptions.domainOptions === "auto" ? {} : selectionOptions.domainOptions;
+    const blessingIndex = Number(domainOptions.blessingIndex ?? (blessings.length ? 0 : -1));
+    const curseIndex = Number(domainOptions.curseIndex ?? (curses.length ? 0 : -1));
+    return {
+      title: String(domainOptions.title ?? defaultTitle).trim() || defaultTitle,
+      portfolio: String(domainOptions.portfolio ?? defaultPortfolio).trim() || defaultPortfolio,
+      specificity: domainOptions.specificity ?? (item.system.specificity === "broad" ? "broad" : "specific"),
+      limitations: String(domainOptions.limitations ?? htmlToText(item.system.limitations ?? "")).trim(),
+      gmNotes: String(domainOptions.gmNotes ?? htmlToText(item.system.gmNotes ?? "")).trim(),
+      landmarkName: String(domainOptions.landmarkName ?? defaultLandmark).trim() || defaultLandmark,
+      landmarkLocation: String(domainOptions.landmarkLocation ?? landmark?.location ?? "").trim(),
+      blessingIndex,
+      curseIndex,
+      blessing: blessings[blessingIndex] ?? null,
+      curse: curses[curseIndex] ?? null
+    };
+  }
 
   const content = `
     <div class="ptg-career-dialog">
@@ -1871,9 +1906,12 @@ function attachmentLabel(attachment) {
   return `Level ${attachment.level ?? 1} ${attachment.name} (${kindCode(attachment.kind)})`;
 }
 
-async function selectAttachmentDefinitions(attachments, sourceItem) {
-  const normalized = normalizeAttachmentGrants(attachments);
-  const definable = normalized.filter(attachmentRequiresDefinition);
+async function selectAttachmentDefinitions(attachments, sourceItem, providedDefinitions = null) {
+  const normalized = normalizeAttachmentGrants(attachments)
+    .map(attachment => providedDefinitions === "auto" && attachmentRequiresDefinition(attachment) && !attachment.definition
+      ? { ...attachment, definition: automaticAttachmentDefinition(attachment, sourceItem) }
+      : attachment);
+  const definable = normalized.filter(attachmentNeedsDefinition);
   if (!definable.length) return normalized;
 
   const content = `
@@ -1919,9 +1957,17 @@ async function selectAttachmentDefinitions(attachments, sourceItem) {
   return definitions;
 }
 
+function automaticAttachmentDefinition(attachment, sourceItem) {
+  return String(attachment.choiceLabel ?? attachment.name ?? sourceItem?.name ?? "Character Creator Attachment").trim();
+}
+
 function attachmentRequiresDefinition(attachment) {
   if (!attachment) return false;
   return attachment.requiresDefinition !== false;
+}
+
+function attachmentNeedsDefinition(attachment) {
+  return attachmentRequiresDefinition(attachment) && !String(attachment.definition ?? "").trim();
 }
 
 function attachmentDefinitionPlaceholder(attachment) {

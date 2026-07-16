@@ -4,6 +4,7 @@ import { localizeFallback } from "../util/localization.mjs";
 import { openPantheonPoolDialog, pantheonPoolMax, pantheonPoolOptions, spendPantheonDiceForActor } from "../workflows/pantheon-pool-workflow.mjs";
 import { generateDivineIdentity, generateRandomGod } from "../util/random-god-generator.mjs";
 import { openPTGCombatControls } from "../combat/ptg-combat.mjs";
+import { PTG_IMAGE_FALLBACK, wireImageFallbacks } from "../util/image-fallback.mjs";
 import { isSheetEditLocked, mergeSheetEditLockContext, wireSheetEditLock } from "./sheet-edit-lock.mjs";
 
 const SYSTEM_ID = "part-time-gods";
@@ -35,6 +36,15 @@ const CHARACTER_COMBAT_ROLLS = {
     secondary: "deception",
     source: "Mislead and Big Reveal use Influence + Deception in Chapter 5."
   }
+};
+const CHARACTER_ITEM_IMAGE_FALLBACK = PTG_IMAGE_FALLBACK;
+const CREATOR_ATTACHMENT_TYPES = ["bond", "relic", "worshipper", "vassal"];
+const CREATOR_ATTACHMENT_ROW_COUNT = 5;
+const CREATOR_ATTACHMENT_TYPE_LABELS = {
+  bond: "Bond",
+  relic: "Relic",
+  worshipper: "Worshipper",
+  vassal: "Vassal"
 };
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -119,6 +129,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   async _onRender(context, options) {
     await super._onRender(context, options);
     wireSheetEditLock(this, this.element, this.actor);
+    wireImageFallbacks(this.element, CHARACTER_ITEM_IMAGE_FALLBACK);
     this.#wireScrollPersistence();
 
     for (const tab of this.element.querySelectorAll("[data-ptg-tab]")) {
@@ -1378,11 +1389,17 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     return creation ? manualOwnedItemData(type, creation) : null;
   }
 
-  async #openCharacterCreator() {
+  async #openCharacterCreator({ initialSelections = null, reviewErrors = [] } = {}) {
     const choices = await this.#loadCreationChoices();
     const types = ["occupation", "archetype", "domain", "theology"];
     const identity = this.actor.system.identity ?? {};
     const resources = this.actor.system.resources ?? {};
+    const reviewProblemSteps = characterCreatorProblemSteps(reviewErrors);
+    const priorChoices = initialSelections?.choices ?? {};
+    const priorBudget = initialSelections?.budget ?? {};
+    const priorUpdates = initialSelections?.updates ?? {};
+    const priorArchetypeOptions = initialSelections?.archetypeOptions ?? {};
+    const priorStartingAttachments = Array.isArray(priorBudget.startingAttachments) ? priorBudget.startingAttachments : [];
     const skillEntries = Object.entries(CONFIG.PTG.skills ?? {});
     const manifestationEntries = Object.entries(CONFIG.PTG.manifestations ?? {});
     const existingTruths = this.actor.items.filter(item => item.type === "truth");
@@ -1402,9 +1419,13 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     const content = `
       <div class="ptg-creator-dialog">
+        ${reviewErrors.length ? characterCreatorReviewHTML(reviewErrors) : ""}
         <nav class="ptg-creator-steps" aria-label="Character creator steps">
           ${["Occupation", "Archetype", "Dominion", "Theology", "Attachments", "Final Touches"].map((label, index) => `
-            <button type="button" data-creator-step-button="${index}" class="${index === 0 ? "active" : ""}">
+            <button type="button" data-creator-step-button="${index}" class="${[
+              index === 0 ? "active" : "",
+              reviewProblemSteps.has(index) ? "ptg-creator-step-review" : ""
+            ].filter(Boolean).join(" ")}" ${reviewProblemSteps.has(index) ? 'aria-invalid="true"' : ""}>
               <span>${index + 1}</span>
               <strong>${escapeHTML(label)}</strong>
             </button>
@@ -1418,44 +1439,57 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
         <div class="ptg-creator-body">
         ${types.map((type, index) => {
           const current = identity[identityKeys[type]] || "";
+          const selectedValue = priorChoices[type] ?? "";
           const options = choices[type] ?? [];
           const isOccupation = type === "occupation";
           const isArchetype = type === "archetype";
 
           return `
-            <fieldset data-creator-step="${index}" ${index === 0 ? "" : "hidden"}>
+            <fieldset data-creator-step="${index}" class="${reviewProblemSteps.has(index) ? "ptg-creator-fieldset-review" : ""}" ${index === 0 ? "" : "hidden"}>
               <legend>Step ${index + 1}: ${escapeHTML(creatorTypeLabel(type))}</legend>
               <select name="${type}" ${isOccupation ? "data-occupation-select" : ""} ${isArchetype ? "data-archetype-select" : ""}>
-                <option value="">${current ? `Keep ${escapeHTML(current)}` : `Choose ${escapeHTML(creatorTypeLabel(type))}`}</option>
-                ${options.map(option => `<option value="${escapeHTML(option.uuid)}">${escapeHTML(option.name)}</option>`).join("")}
+                <option value="" ${selectedAttribute("", selectedValue)}>${current ? `Keep ${escapeHTML(current)}` : `Choose ${escapeHTML(creatorTypeLabel(type))}`}</option>
+                ${options.map(option => `<option value="${escapeHTML(option.uuid)}" ${selectedAttribute(option.uuid, selectedValue)}>${escapeHTML(option.name)}</option>`).join("")}
               </select>
               ${isOccupation ? `
                 <label>Career / Subtype
                   <select name="occupationCareer" data-occupation-career disabled>
                     <option value="">Choose an Occupation first</option>
-                    ${options.flatMap(option => creatorCareerOptions(option).map(careerOption => `
-                      <option value="${escapeHTML(careerOption.value)}" data-parent-uuid="${escapeHTML(option.uuid)}" hidden>${escapeHTML(careerOption.label)}</option>
-                    `)).join("")}
+                    ${options.flatMap(option => creatorCareerOptions(option).map(careerOption => {
+                      const selectedParent = option.uuid === priorChoices.occupation;
+                      const selected = selectedParent ? selectedCreatorCareerOptionAttribute(careerOption, initialSelections?.occupationCareer ?? "") : "";
+                      const visibility = selectedParent ? "" : "hidden disabled";
+                      return `
+                        <option value="${escapeHTML(careerOption.value)}" data-parent-uuid="${escapeHTML(option.uuid)}" ${selected} ${visibility}>${escapeHTML(careerOption.label)}</option>
+                      `;
+                    })).join("")}
                   </select>
                 </label>
                 <div class="ptg-career-options" data-occupation-career-details hidden>
                   ${options.flatMap(option => creatorCareerOptions(option).map(careerOption => creatorCareerSummaryHTML(option, careerOption))).join("")}
                 </div>
               ` : ""}
-              ${isArchetype ? creatorArchetypeOptionsHTML(options) : ""}
+              ${isArchetype ? creatorArchetypeOptionsHTML(options, priorArchetypeOptions, priorChoices.archetype ?? "") : ""}
               <p class="hint">${current ? `Current: ${escapeHTML(current)}` : "No selection applied yet."}</p>
             </fieldset>
           `;
         }).join("")}
-        <fieldset data-creator-step="4" hidden>
+        <fieldset data-creator-step="4" class="${reviewProblemSteps.has(4) ? "ptg-creator-fieldset-review" : ""}" hidden>
           <legend>Step 5: Attachments</legend>
           <div class="ptg-creator-owned-counts">
             ${Object.entries(ownedAttachmentCounts).map(([key, count]) => `
               <span><strong>${escapeHTML(labelCase(key))}</strong> ${count}</span>
             `).join("")}
           </div>
+          <section class="ptg-creator-budget-block">
+            <h3>Starting Attachment Items</h3>
+            <p class="ptg-sheet-note">Filled rows create owned Item documents when the creator is applied. Levels in filled rows should match the Attachment Points Planned in Final Touches.</p>
+            <div class="ptg-creator-attachment-grid">
+              ${creatorStartingAttachmentRowsHTML(priorStartingAttachments)}
+            </div>
+          </section>
         </fieldset>
-        <fieldset data-creator-step="5" hidden>
+        <fieldset data-creator-step="5" class="${reviewProblemSteps.has(5) ? "ptg-creator-fieldset-review" : ""}" hidden>
           <legend>Step 6: Final Touches</legend>
           <section class="ptg-creator-budget-block">
             <h3>Starting Skill Points</h3>
@@ -1464,7 +1498,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
               ${skillEntries.map(([key, label]) => `
                 <label>
                   <span>${escapeHTML(label)}</span>
-                  <input type="number" name="creator.skills.${escapeHTML(key)}" value="0" min="0">
+                  <input type="number" name="creator.skills.${escapeHTML(key)}" value="${Number(priorBudget.skills?.[key] ?? 0)}" min="0">
                 </label>
               `).join("")}
             </div>
@@ -1476,20 +1510,20 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
               ${manifestationEntries.map(([key, label]) => `
                 <label>
                   <span>${escapeHTML(label)}</span>
-                  <input type="number" name="creator.manifestations.${escapeHTML(key)}" value="0" min="0">
+                  <input type="number" name="creator.manifestations.${escapeHTML(key)}" value="${Number(priorBudget.manifestations?.[key] ?? 0)}" min="0">
                 </label>
               `).join("")}
             </div>
           </section>
           <section class="ptg-creator-budget-block">
             <h3>Starting Attachments</h3>
-            <label>Attachment Points Planned <input type="number" name="creator.attachmentPoints" value="5" min="0"></label>
-            <label>Free Starting Truth <input type="text" name="creator.startingTruth" value="${existingTruths.length ? escapeHTML(existingTruths[0].name) : ""}" placeholder="The free Truth chosen in Step Five"></label>
+            <label>Attachment Points Planned <input type="number" name="creator.attachmentPoints" value="${Number(priorBudget.attachmentPoints ?? 5)}" min="0"></label>
+            <label>Free Starting Truth <input type="text" name="creator.startingTruth" value="${escapeHTML(priorBudget.startingTruth ?? (existingTruths.length ? existingTruths[0].name : ""))}" placeholder="The free Truth chosen in Step Five"></label>
           </section>
           <section class="ptg-creator-budget-block">
             <h3>Starting Divine Resources</h3>
-            <label>Spark <input type="number" name="creator.spark" value="${Number(resources.spark ?? 1)}" min="1"></label>
-            <label>Starting Fragments <input type="number" name="creator.fragments" value="${Number(resources.fragments?.value ?? 3)}" min="0"></label>
+            <label>Spark <input type="number" name="creator.spark" value="${Number(priorBudget.spark ?? resources.spark ?? 1)}" min="1"></label>
+            <label>Starting Fragments <input type="number" name="creator.fragments" value="${Number(priorBudget.fragments ?? resources.fragments?.value ?? 3)}" min="0"></label>
           </section>
           <section class="ptg-creator-budget-block ptg-creator-identity-block">
             <h3>Divine Identity</h3>
@@ -1499,20 +1533,20 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
               <button type="button" data-random-god-apply disabled>Apply Identity Suggestion</button>
             </div>
             <div class="ptg-random-god-preview" data-random-god-preview hidden></div>
-            <label>God/dess Of <input type="text" name="identity.concept" value="${escapeHTML(identity.concept ?? "")}"></label>
-            <label>Divine Name <input type="text" name="identity.divineName" value="${escapeHTML(identity.divineName ?? "")}"></label>
-            <label>Title <input type="text" name="identity.divineTitle" value="${escapeHTML(identity.divineTitle ?? "")}"></label>
-            <label>Epithet <input type="text" name="identity.divineEpithet" value="${escapeHTML(identity.divineEpithet ?? "")}"></label>
-            <label>Symbol <input type="text" name="identity.divineSymbol" value="${escapeHTML(identity.divineSymbol ?? "")}"></label>
-            <label>Omen <input type="text" name="identity.divineOmen" value="${escapeHTML(identity.divineOmen ?? "")}"></label>
-            <label>Taboo <input type="text" name="identity.divineTaboo" value="${escapeHTML(identity.divineTaboo ?? "")}"></label>
-            <label>Offering <input type="text" name="identity.divineOffering" value="${escapeHTML(identity.divineOffering ?? "")}"></label>
-            <label>Myth Seed <textarea name="identity.divineMythSeed">${escapeHTML(identity.divineMythSeed ?? "")}</textarea></label>
-            <label>Tone <input type="text" name="identity.divineTone" value="${escapeHTML(identity.divineTone ?? "")}"></label>
+            <label>God/dess Of <input type="text" name="identity.concept" value="${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.concept", identity.concept ?? ""))}"></label>
+            <label>Divine Name <input type="text" name="identity.divineName" value="${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.divineName", identity.divineName ?? ""))}"></label>
+            <label>Title <input type="text" name="identity.divineTitle" value="${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.divineTitle", identity.divineTitle ?? ""))}"></label>
+            <label>Epithet <input type="text" name="identity.divineEpithet" value="${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.divineEpithet", identity.divineEpithet ?? ""))}"></label>
+            <label>Symbol <input type="text" name="identity.divineSymbol" value="${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.divineSymbol", identity.divineSymbol ?? ""))}"></label>
+            <label>Omen <input type="text" name="identity.divineOmen" value="${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.divineOmen", identity.divineOmen ?? ""))}"></label>
+            <label>Taboo <input type="text" name="identity.divineTaboo" value="${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.divineTaboo", identity.divineTaboo ?? ""))}"></label>
+            <label>Offering <input type="text" name="identity.divineOffering" value="${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.divineOffering", identity.divineOffering ?? ""))}"></label>
+            <label>Myth Seed <textarea name="identity.divineMythSeed">${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.divineMythSeed", identity.divineMythSeed ?? ""))}</textarea></label>
+            <label>Tone <input type="text" name="identity.divineTone" value="${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.divineTone", identity.divineTone ?? ""))}"></label>
           </section>
-          <label>Age & Ethnicity <input type="text" name="identity.ageEthnicity" value="${escapeHTML(identity.ageEthnicity ?? "")}"></label>
-          <label>Specialties <textarea name="specialties">${escapeHTML(this.actor.system.specialties ?? "")}</textarea></label>
-          <label>Legendary Acts <textarea name="resources.legendaryActs">${escapeHTML(resources.legendaryActs ?? "")}</textarea></label>
+          <label>Age & Ethnicity <input type="text" name="identity.ageEthnicity" value="${escapeHTML(creatorUpdateValue(priorUpdates, "system.identity.ageEthnicity", identity.ageEthnicity ?? ""))}"></label>
+          <label>Specialties <textarea name="specialties">${escapeHTML(creatorUpdateValue(priorUpdates, "system.specialties", this.actor.system.specialties ?? ""))}</textarea></label>
+          <label>Legendary Acts <textarea name="resources.legendaryActs">${escapeHTML(creatorUpdateValue(priorUpdates, "system.resources.legendaryActs", resources.legendaryActs ?? ""))}</textarea></label>
         </fieldset>
         </div>
         <footer class="ptg-creator-navigation">
@@ -1536,50 +1570,63 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
       render: (event, dialog) => wireCharacterCreatorDialog(dialog.element ?? dialog, { choices }),
       ok: {
         label: "Apply Choices",
-        callback: (event, button) => ({
-          choices: Object.fromEntries(types.map(type => [type, button.form.elements[type]?.value ?? ""])),
-          occupationCareer: button.form.elements.occupationCareer?.value ?? "",
-          archetypeOptions: {
-            attachmentIndex: button.form.elements.archetypeAttachment?.value ?? "",
-            blessingIndex: button.form.elements.archetypeBlessing?.value ?? "",
-            curseIndex: button.form.elements.archetypeCurse?.value ?? ""
-          },
-          updates: {
-            "system.identity.concept": button.form.elements["identity.concept"]?.value ?? "",
-            "system.identity.divineName": button.form.elements["identity.divineName"]?.value ?? "",
-            "system.identity.divineTitle": button.form.elements["identity.divineTitle"]?.value ?? "",
-            "system.identity.divineEpithet": button.form.elements["identity.divineEpithet"]?.value ?? "",
-            "system.identity.divineSymbol": button.form.elements["identity.divineSymbol"]?.value ?? "",
-            "system.identity.divineOmen": button.form.elements["identity.divineOmen"]?.value ?? "",
-            "system.identity.divineTaboo": button.form.elements["identity.divineTaboo"]?.value ?? "",
-            "system.identity.divineOffering": button.form.elements["identity.divineOffering"]?.value ?? "",
-            "system.identity.divineMythSeed": button.form.elements["identity.divineMythSeed"]?.value ?? "",
-            "system.identity.divineTone": button.form.elements["identity.divineTone"]?.value ?? "",
-            "system.identity.ageEthnicity": button.form.elements["identity.ageEthnicity"]?.value ?? "",
-            "system.specialties": button.form.elements.specialties?.value ?? "",
-            "system.resources.legendaryActs": button.form.elements["resources.legendaryActs"]?.value ?? "",
-            "system.resources.spark": Number(button.form.elements["creator.spark"]?.value ?? 1),
-            "system.resources.fragments.value": Number(button.form.elements["creator.fragments"]?.value ?? 3),
-            "system.resources.fragments.max": 3
-          },
-          budget: {
-            skills: readPointInputs(button.form, "creator.skills", skillEntries.map(([key]) => key)),
-            manifestations: readPointInputs(button.form, "creator.manifestations", manifestationEntries.map(([key]) => key)),
-            attachmentPoints: Number(button.form.elements["creator.attachmentPoints"]?.value ?? 0),
-            startingTruth: button.form.elements["creator.startingTruth"]?.value?.trim() ?? "",
-            spark: Number(button.form.elements["creator.spark"]?.value ?? 1),
-            fragments: Number(button.form.elements["creator.fragments"]?.value ?? 3)
-          }
-        })
+        callback: (event, button) => {
+          const selectedArchetypeUuid = button.form.elements.archetype?.value ?? "";
+          return {
+            choices: Object.fromEntries(types.map(type => [type, button.form.elements[type]?.value ?? ""])),
+            occupationCareer: button.form.elements.occupationCareer?.value ?? "",
+            archetypeOptions: {
+              attachmentIndex: creatorArchetypeOptionIndexFromValue(button.form.elements.archetypeAttachment?.value ?? "", selectedArchetypeUuid),
+              blessingIndex: creatorArchetypeOptionIndexFromValue(button.form.elements.archetypeBlessing?.value ?? "", selectedArchetypeUuid),
+              curseIndex: creatorArchetypeOptionIndexFromValue(button.form.elements.archetypeCurse?.value ?? "", selectedArchetypeUuid)
+            },
+            updates: {
+              "system.identity.concept": button.form.elements["identity.concept"]?.value ?? "",
+              "system.identity.divineName": button.form.elements["identity.divineName"]?.value ?? "",
+              "system.identity.divineTitle": button.form.elements["identity.divineTitle"]?.value ?? "",
+              "system.identity.divineEpithet": button.form.elements["identity.divineEpithet"]?.value ?? "",
+              "system.identity.divineSymbol": button.form.elements["identity.divineSymbol"]?.value ?? "",
+              "system.identity.divineOmen": button.form.elements["identity.divineOmen"]?.value ?? "",
+              "system.identity.divineTaboo": button.form.elements["identity.divineTaboo"]?.value ?? "",
+              "system.identity.divineOffering": button.form.elements["identity.divineOffering"]?.value ?? "",
+              "system.identity.divineMythSeed": button.form.elements["identity.divineMythSeed"]?.value ?? "",
+              "system.identity.divineTone": button.form.elements["identity.divineTone"]?.value ?? "",
+              "system.identity.ageEthnicity": button.form.elements["identity.ageEthnicity"]?.value ?? "",
+              "system.specialties": button.form.elements.specialties?.value ?? "",
+              "system.resources.legendaryActs": button.form.elements["resources.legendaryActs"]?.value ?? "",
+              "system.resources.spark": Number(button.form.elements["creator.spark"]?.value ?? 1),
+              "system.resources.fragments.value": Number(button.form.elements["creator.fragments"]?.value ?? 3),
+              "system.resources.fragments.max": 3
+            },
+            budget: {
+              skills: readPointInputs(button.form, "creator.skills", skillEntries.map(([key]) => key)),
+              manifestations: readPointInputs(button.form, "creator.manifestations", manifestationEntries.map(([key]) => key)),
+              attachmentPoints: Number(button.form.elements["creator.attachmentPoints"]?.value ?? 0),
+              startingAttachments: readCreatorStartingAttachments(button.form),
+              startingTruth: button.form.elements["creator.startingTruth"]?.value?.trim() ?? "",
+              spark: Number(button.form.elements["creator.spark"]?.value ?? 1),
+              fragments: Number(button.form.elements["creator.fragments"]?.value ?? 3)
+            }
+          };
+        }
       }
     });
 
     if (!selections) return;
 
     const selectedTypes = types.filter(type => selections.choices[type]);
+    const sourceErrors = validateCreatorSourceSelections(selections, choices, selectedTypes);
+    if (sourceErrors.length) {
+      const review = await showCharacterCreationValidation(sourceErrors);
+      if (review) await this.#openCharacterCreator({ initialSelections: selections, reviewErrors: sourceErrors });
+      return;
+    }
+
     const selectedOccupation = choices.occupation.find(item => item.uuid === selections.choices.occupation);
     if (selectedOccupation && creatorCareerOptions(selectedOccupation).length && !selections.occupationCareer) {
-      ui.notifications.warn("Choose an Occupation career/subtype before applying character creation choices.");
+      const errors = ["Choose an Occupation career/subtype before applying character creation choices."];
+      const review = await showCharacterCreationValidation(errors);
+      if (review) await this.#openCharacterCreator({ initialSelections: selections, reviewErrors: errors });
       return;
     }
 
@@ -1587,58 +1634,27 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     if (selectedArchetype) {
       const archetypeErrors = validateCreatorArchetypeSelection(selectedArchetype, selections.archetypeOptions);
       if (archetypeErrors.length) {
-        await showCharacterCreationValidation(archetypeErrors);
+        const review = await showCharacterCreationValidation(archetypeErrors);
+        if (review) await this.#openCharacterCreator({ initialSelections: selections, reviewErrors: archetypeErrors });
         return;
       }
     }
 
     const validationErrors = validateCharacterCreationBudget(selections, this.actor);
     if (validationErrors.length) {
-      await showCharacterCreationValidation(validationErrors);
+      const review = await showCharacterCreationValidation(validationErrors);
+      if (review) await this.#openCharacterCreator({ initialSelections: selections, reviewErrors: validationErrors });
       return;
     }
 
     const confirmed = await confirmCharacterCreatorApplication(this.actor, selections, choices, selectedTypes);
     if (!confirmed) return;
 
-    for (const [skill, points] of Object.entries(selections.budget.skills)) {
-      if (points > 0) selections.updates[`system.skills.${skill}`] = Number(this.actor.system.skills?.[skill] ?? 0) + points;
-    }
-
-    for (const [manifestation, points] of Object.entries(selections.budget.manifestations)) {
-      if (points > 0) {
-        selections.updates[`system.manifestations.${manifestation}`] =
-          Number(this.actor.system.manifestations?.[manifestation] ?? 0) + points;
-      }
-    }
-
-    await this.actor.update(selections.updates);
-
-    const matchingTruths = this.actor.items.filter(item => item.type === "truth" && item.name === selections.budget.startingTruth);
-    if (selections.budget.startingTruth && !matchingTruths.length) {
-      await this.actor.createEmbeddedDocuments("Item", [startingTruthItem(selections.budget.startingTruth)]);
-    }
-
-    for (const type of selectedTypes) {
-      if (identity[identityKeys[type]]) {
-        ui.notifications.warn(`${creatorTypeLabel(type)} is already set for ${this.actor.name}.`);
-        continue;
-      }
-
-      const uuid = selections.choices[type];
-      const sourceItem = await fromUuid(uuid);
-      if (!sourceItem) continue;
-
-      const source = sourceItem.toObject();
-      delete source._id;
-
-      const [ownedItem] = await this.actor.createEmbeddedDocuments("Item", [source]);
-      const applied = await this.actor.applyChoice(ownedItem, {
-        confirm: false,
-        ...(type === "occupation" ? { occupationCareerOption: selections.occupationCareer } : {}),
-        ...(type === "archetype" ? { archetypeOptions: selections.archetypeOptions } : {})
-      });
-      if (!applied) await ownedItem.delete();
+    const application = await applyCharacterCreatorSelections(this.actor, selections, choices, selectedTypes);
+    if (application.failedChoices?.length) {
+      const review = await showCharacterCreationValidation(application.failedChoices);
+      if (review) await this.#openCharacterCreator({ initialSelections: selections, reviewErrors: application.failedChoices });
+      return;
     }
 
     if (!selectedTypes.length) ui.notifications.info("Updated character creator details.");
@@ -1768,6 +1784,31 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
 
     return byType;
   }
+}
+
+function configLabel(entry, fallback) {
+  const raw = typeof entry === "string" ? entry : entry?.label;
+  const label = raw ? localizedConfigLabel(raw) : "";
+  return label || titleCase(fallback);
+}
+
+function localizedConfigLabel(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+
+  const localized = game.i18n?.localize?.(raw) ?? raw;
+  if (localized && localized !== raw) return localized;
+
+  if (raw.includes(".")) return titleCase(raw.split(".").pop());
+  return raw;
+}
+
+function titleCase(value) {
+  return String(value ?? "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, match => match.toUpperCase())
+    .trim();
 }
 
 function creatorTypeLabel(type) {
@@ -1974,6 +2015,77 @@ function readPointInputs(form, prefix, keys) {
   ]));
 }
 
+export function characterCreatorProblemSteps(errors = []) {
+  const steps = new Set();
+
+  for (const error of errors) {
+    const text = String(error ?? "").toLowerCase();
+    if (/occupation|career|subtype/.test(text)) steps.add(0);
+    if (/archetype/.test(text)) steps.add(1);
+    if (/domain|dominion/.test(text)) steps.add(2);
+    if (/theology/.test(text)) steps.add(3);
+    if (/attachment/.test(text)) {
+      steps.add(4);
+      steps.add(5);
+    }
+    if (/skill|manifestation|truth|spark|fragment|identity|specialt|legendary|budget|point/.test(text)) steps.add(5);
+  }
+
+  if (!steps.size && errors.length) steps.add(5);
+  return steps;
+}
+
+export function characterCreatorReviewHTML(errors = []) {
+  if (!errors.length) return "";
+
+  return `
+    <section class="ptg-creator-review" role="alert" aria-live="polite">
+      <h3>Review Needed</h3>
+      <p>Correct the highlighted creator steps, then apply choices again.</p>
+      <ul>${errors.map(error => `<li>${escapeHTML(error)}</li>`).join("")}</ul>
+    </section>
+  `;
+}
+
+export function creatorUpdateValue(updates = {}, path, fallback = "") {
+  return updates[path] ?? fallback ?? "";
+}
+
+function selectedAttribute(value, selected) {
+  return String(value ?? "") === String(selected ?? "") ? "selected" : "";
+}
+
+export function validateCreatorSourceSelections(selections, choices = {}, selectedTypes = []) {
+  return selectedTypes
+    .filter(type => {
+      const uuid = selections.choices?.[type];
+      return uuid && !(choices[type] ?? []).some(item => item.uuid === uuid);
+    })
+    .map(type => `${creatorTypeLabel(type)} source item could not be found. Re-select that creator choice.`);
+}
+
+export function readCreatorStartingAttachments(form, { rowCount = CREATOR_ATTACHMENT_ROW_COUNT } = {}) {
+  const rows = [];
+  for (let index = 0; index < rowCount; index += 1) {
+    const prefix = `creator.attachments.${index}`;
+    const type = String(form?.elements?.[`${prefix}.type`]?.value ?? "").trim();
+    const level = clampInt(form?.elements?.[`${prefix}.level`]?.value, 0, 0, 5);
+    const description = String(form?.elements?.[`${prefix}.description`]?.value ?? "").trim();
+    const rawName = String(form?.elements?.[`${prefix}.name`]?.value ?? "").trim();
+    const hasInput = Boolean(type || rawName || description || level > 0);
+    if (!hasInput) continue;
+
+    const label = CREATOR_ATTACHMENT_TYPE_LABELS[type] ?? "Attachment";
+    rows.push({
+      type,
+      name: rawName || `Starting ${label} ${rows.length + 1}`,
+      level,
+      description
+    });
+  }
+  return rows;
+}
+
 function fitDialogPosition(width, height, { minWidth = 360, minHeight = 320, marginX = 64, marginY = 120 } = {}) {
   const viewportWidth = Number(globalThis.window?.innerWidth ?? width);
   const viewportHeight = Number(globalThis.window?.innerHeight ?? height);
@@ -1988,19 +2100,142 @@ function fitDialogPosition(width, height, { minWidth = 360, minHeight = 320, mar
   };
 }
 
-function validateCharacterCreationBudget(selections, actor) {
+export function validateCharacterCreationBudget(selections, actor) {
   const errors = [];
   const skillTotal = pointTotal(selections.budget.skills);
   const manifestationTotal = pointTotal(selections.budget.manifestations);
   const existingTruths = actor.items.filter(item => item.type === "truth").length;
+  const startingAttachments = Array.isArray(selections.budget.startingAttachments) ? selections.budget.startingAttachments : [];
 
   if (skillTotal !== 10) errors.push(`Starting Skill points must total 10; current total is ${skillTotal}.`);
   if (manifestationTotal !== 4) errors.push(`Starting Manifestation points must total 4; current total is ${manifestationTotal}.`);
   if (!selections.budget.startingTruth && existingTruths < 1) errors.push("Choose or enter one free starting Truth.");
   if (Number(selections.budget.attachmentPoints ?? 0) !== 5) errors.push(`Starting Attachment points must total 5; current total is ${Number(selections.budget.attachmentPoints ?? 0)}.`);
+  errors.push(...validateCreatorStartingAttachments(startingAttachments, selections.budget.attachmentPoints));
   if (Number(selections.budget.spark ?? 0) !== 1) errors.push(`Starting Spark must be 1; current value is ${Number(selections.budget.spark ?? 0)}.`);
   if (Number(selections.budget.fragments ?? 0) !== 3) errors.push(`Starting Fragments must be 3 at Spark 1; current value is ${Number(selections.budget.fragments ?? 0)}.`);
 
+  return errors;
+}
+
+export async function applyCharacterCreatorSelections(actor, selections, choices = {}, selectedTypes = []) {
+  const identity = actor.system.identity ?? {};
+  const identityKeys = {
+    occupation: "occupation",
+    archetype: "archetype",
+    domain: "dominion",
+    theology: "theology"
+  };
+
+  const updates = { ...(selections.updates ?? {}) };
+  const failedChoices = [];
+  const sourceItems = new Map();
+
+  for (const type of selectedTypes) {
+    if (identity[identityKeys[type]]) continue;
+
+    const uuid = selections.choices?.[type];
+    const sourceItem = uuid ? await fromUuid(uuid) : null;
+    if (!sourceItem) {
+      failedChoices.push(`${creatorTypeLabel(type)} source item could not be found. Re-select that creator choice.`);
+      continue;
+    }
+
+    sourceItems.set(type, sourceItem);
+  }
+
+  if (failedChoices.length) return { updates, failedChoices };
+
+  for (const type of selectedTypes) {
+    if (identity[identityKeys[type]]) {
+      ui.notifications.warn(`${creatorTypeLabel(type)} is already set for ${actor.name}.`);
+      continue;
+    }
+
+    const sourceItem = sourceItems.get(type);
+    if (!sourceItem) continue;
+
+    const source = sourceItem.toObject();
+    delete source._id;
+
+    const [ownedItem] = await actor.createEmbeddedDocuments("Item", [source]);
+    const applied = await actor.applyChoice(ownedItem, {
+      confirm: false,
+      attachmentDefinitions: "auto",
+      ...(type === "occupation" ? { occupationCareerOption: selections.occupationCareer } : {}),
+      ...(type === "archetype" ? { archetypeOptions: selections.archetypeOptions } : {}),
+      ...(type === "domain" ? { domainOptions: creatorDomainOptions(selections, sourceItem) } : {})
+    });
+    if (!applied) {
+      await ownedItem.delete();
+      failedChoices.push(`${creatorTypeLabel(type)} could not be applied to ${actor.name}. Review that creator choice and try again.`);
+    }
+  }
+
+  if (failedChoices.length) return { updates, failedChoices };
+
+  for (const [skill, points] of Object.entries(selections.budget?.skills ?? {})) {
+    if (points > 0) updates[`system.skills.${skill}`] = Number(actor.system.skills?.[skill] ?? 0) + points;
+  }
+
+  for (const [manifestation, points] of Object.entries(selections.budget?.manifestations ?? {})) {
+    if (points > 0) {
+      updates[`system.manifestations.${manifestation}`] =
+        Number(actor.system.manifestations?.[manifestation] ?? 0) + points;
+    }
+  }
+
+  await actor.update(updates);
+
+  const matchingTruths = actor.items.filter(item => item.type === "truth" && item.name === selections.budget?.startingTruth);
+  if (selections.budget?.startingTruth && !matchingTruths.length) {
+    await actor.createEmbeddedDocuments("Item", [startingTruthItem(selections.budget.startingTruth)]);
+  }
+
+  const startingAttachmentRows = Array.isArray(selections.budget?.startingAttachments) ? selections.budget.startingAttachments : [];
+  if (startingAttachmentRows.length) {
+    const existingAttachmentKeys = new Set(actor.items
+      .filter(item => CREATOR_ATTACHMENT_TYPES.includes(item.type))
+      .map(item => `${item.type}:${String(item.name ?? "").toLowerCase()}`));
+    const newAttachments = startingAttachmentRows
+      .filter(row => !existingAttachmentKeys.has(`${row.type}:${String(row.name ?? "").toLowerCase()}`))
+      .map(row => creatorStartingAttachmentItem(row));
+    if (newAttachments.length) await actor.createEmbeddedDocuments("Item", newAttachments);
+  }
+
+  return { updates, failedChoices };
+}
+
+function creatorDomainOptions(selections, sourceItem) {
+  const source = sourceItem.toObject?.() ?? sourceItem;
+  const system = source.system ?? {};
+  const updates = selections.updates ?? {};
+  const sourceName = source.name ?? sourceItem.name;
+  const title = updates["system.identity.concept"] || `God/dess of ${system.portfolio || sourceName}`;
+  return {
+    title,
+    portfolio: system.specificPortfolio || system.portfolio || sourceName,
+    specificity: system.specificity === "broad" ? "broad" : "specific",
+    limitations: htmlToPlainText(system.limitations ?? ""),
+    gmNotes: htmlToPlainText(system.gmNotes ?? ""),
+    landmarkName: system.landmarkBondName || `${sourceName} Landmark`,
+    landmarkLocation: "",
+    blessingIndex: 0,
+    curseIndex: 0
+  };
+}
+
+function validateCreatorStartingAttachments(rows, plannedPoints) {
+  const errors = [];
+  const total = rows.reduce((sum, row) => sum + Number(row.level ?? 0), 0);
+  rows.forEach((row, index) => {
+    const label = `Starting Attachment ${index + 1}`;
+    if (!CREATOR_ATTACHMENT_TYPES.includes(row.type)) errors.push(`${label} must choose Bond, Relic, Worshipper, or Vassal.`);
+    if (Number(row.level ?? 0) < 1) errors.push(`${label} must have a Level of at least 1.`);
+  });
+  if (rows.length && total !== Number(plannedPoints ?? 0)) {
+    errors.push(`Starting Attachment item levels must total ${Number(plannedPoints ?? 0)}; current total is ${total}.`);
+  }
   return errors;
 }
 
@@ -2030,6 +2265,10 @@ function characterCreatorPreviewHTML(actor, selections, choices, selectedTypes) 
   const skillTotal = pointTotal(selections.budget.skills);
   const manifestationTotal = pointTotal(selections.budget.manifestations);
   const existingTruths = actor.items.filter(item => item.type === "truth").length;
+  const startingAttachments = Array.isArray(selections.budget.startingAttachments) ? selections.budget.startingAttachments : [];
+  const startingAttachmentRows = startingAttachments
+    .map(row => `${CREATOR_ATTACHMENT_TYPE_LABELS[row.type] ?? labelCase(row.type)} ${Number(row.level ?? 0)}: ${row.name}`)
+    .join("; ");
 
   return `
     <div class="ptg-creator-apply-preview">
@@ -2044,6 +2283,7 @@ function characterCreatorPreviewHTML(actor, selections, choices, selectedTypes) 
           <li>Skill Points: ${skillTotal} / 10</li>
           <li>Manifestation Points: ${manifestationTotal} / 4</li>
           <li>Attachment Points Planned: ${Number(selections.budget.attachmentPoints ?? 0)} / 5</li>
+          ${startingAttachmentRows ? `<li>Starting Attachment Items: ${escapeHTML(startingAttachmentRows)}</li>` : ""}
           <li>Spark: ${Number(selections.budget.spark ?? 0)}</li>
           <li>Starting Fragments: ${Number(selections.budget.fragments ?? 0)}</li>
           <li>Starting Truth: ${escapeHTML(selections.budget.startingTruth || (existingTruths ? "Existing Truth retained" : "None"))}</li>
@@ -2054,7 +2294,7 @@ function characterCreatorPreviewHTML(actor, selections, choices, selectedTypes) 
 }
 
 function creatorCareerLabel(item, value) {
-  return creatorCareerOptions(item).find(option => option.value === value)?.label ?? value;
+  return creatorCareerOptions(item).find(option => creatorCareerOptionMatches(option, value))?.label ?? value;
 }
 
 function creatorArchetypePreviewRows(item, selection) {
@@ -2108,13 +2348,13 @@ function resourceWorkflowDefaultReason(action) {
 }
 
 async function showCharacterCreationValidation(errors) {
-  await DialogV2.prompt({
+  return DialogV2.prompt({
     window: { title: "Character Creator Validation", resizable: true },
     classes: ptgDialogClasses("ptg-character-creator-validation-window"),
     position: fitDialogPosition(560, 360, { minWidth: 320, minHeight: 240 }),
     content: `
       <div class="ptg-dialog-body ptg-advancement-dialog">
-        <p class="ptg-sheet-note">Fix these starting character budgets before applying the creator.</p>
+        <p class="ptg-sheet-note">Review these character creator choices before applying. Use Review to reopen the creator with your current selections preserved.</p>
         <ul>
           ${errors.map(error => `<li>${escapeHTML(error)}</li>`).join("")}
         </ul>
@@ -2134,7 +2374,8 @@ function creatorCareerOptions(item) {
   return careers.flatMap((career, careerIndex) => {
     const attachments = Array.isArray(career.attachments) && career.attachments.length ? career.attachments : [null];
     return attachments.map((attachment, attachmentIndex) => ({
-      value: `${careerIndex}:${attachmentIndex}`,
+      value: creatorCareerOptionValue(item.uuid, careerIndex, attachmentIndex),
+      legacyValue: `${careerIndex}:${attachmentIndex}`,
       label: `${item.name} - ${career.name}${attachment ? ` - ${creatorAttachmentLabel(attachment)}` : ""}`,
       parent: item.name,
       career,
@@ -2143,6 +2384,19 @@ function creatorCareerOptions(item) {
       attachment
     }));
   });
+}
+
+function creatorCareerOptionValue(parentUuid, careerIndex, attachmentIndex) {
+  return `${parentUuid}::${careerIndex}:${attachmentIndex}`;
+}
+
+function creatorCareerOptionMatches(option, value) {
+  const text = String(value ?? "");
+  return text === option.value || text === option.legacyValue;
+}
+
+function selectedCreatorCareerOptionAttribute(option, selected) {
+  return creatorCareerOptionMatches(option, selected) ? "selected" : "";
 }
 
 function creatorAttachmentLabel(attachment) {
@@ -2167,26 +2421,26 @@ function creatorCareerSummaryHTML(item, option) {
   `;
 }
 
-function creatorArchetypeOptionsHTML(options) {
+function creatorArchetypeOptionsHTML(options, selected = {}, selectedArchetypeUuid = "") {
   return `
     <section class="ptg-archetype-choice-panel" data-archetype-options hidden>
       <div class="ptg-item-fields three">
         <label>Attachment
           <select name="archetypeAttachment" data-archetype-option-select="attachment" disabled>
             <option value="">Choose an Archetype first</option>
-            ${options.flatMap(option => creatorArchetypeOptionOptions(option, "attachment")).join("")}
+            ${options.flatMap(option => creatorArchetypeOptionOptions(option, "attachment", selected.attachmentIndex, selectedArchetypeUuid)).join("")}
           </select>
         </label>
         <label>Blessing
           <select name="archetypeBlessing" data-archetype-option-select="blessing" disabled>
             <option value="">Choose an Archetype first</option>
-            ${options.flatMap(option => creatorArchetypeOptionOptions(option, "blessing")).join("")}
+            ${options.flatMap(option => creatorArchetypeOptionOptions(option, "blessing", selected.blessingIndex, selectedArchetypeUuid)).join("")}
           </select>
         </label>
         <label>Curse
           <select name="archetypeCurse" data-archetype-option-select="curse" disabled>
             <option value="">Choose an Archetype first</option>
-            ${options.flatMap(option => creatorArchetypeOptionOptions(option, "curse")).join("")}
+            ${options.flatMap(option => creatorArchetypeOptionOptions(option, "curse", selected.curseIndex, selectedArchetypeUuid)).join("")}
           </select>
         </label>
       </div>
@@ -2197,16 +2451,37 @@ function creatorArchetypeOptionsHTML(options) {
   `;
 }
 
-function creatorArchetypeOptionOptions(item, kind) {
+function creatorArchetypeOptionOptions(item, kind, selectedValue = "", selectedArchetypeUuid = "") {
   const options = {
     attachment: Array.from(item.system?.attachmentOptions ?? []),
     blessing: Array.from(item.system?.blessingOptions ?? []),
     curse: Array.from(item.system?.curseOptions ?? [])
   }[kind] ?? [];
 
-  return options.map((option, index) => `
-    <option value="${index}" data-parent-uuid="${escapeHTML(item.uuid)}" hidden>${escapeHTML(creatorArchetypeOptionLabel(option, kind))}</option>
-  `);
+  const selectedParent = item.uuid === selectedArchetypeUuid;
+  return options.map((option, index) => {
+    const value = creatorArchetypeOptionValue(item.uuid, index);
+    const selected = selectedParent ? selectedCreatorArchetypeOptionAttribute(value, index, selectedValue) : "";
+    const visibility = selectedParent ? "" : "hidden disabled";
+    return `
+      <option value="${escapeHTML(value)}" data-parent-uuid="${escapeHTML(item.uuid)}" ${selected} ${visibility}>${escapeHTML(creatorArchetypeOptionLabel(option, kind))}</option>
+    `;
+  });
+}
+
+function creatorArchetypeOptionValue(parentUuid, index) {
+  return `${parentUuid}::${index}`;
+}
+
+function creatorArchetypeOptionIndexFromValue(value, parentUuid) {
+  const text = String(value ?? "");
+  const prefix = `${parentUuid}::`;
+  return text.startsWith(prefix) ? text.slice(prefix.length) : text;
+}
+
+function selectedCreatorArchetypeOptionAttribute(value, index, selected) {
+  const selectedText = String(selected ?? "");
+  return selectedText === String(value ?? "") || selectedText === String(index ?? "") ? "selected" : "";
 }
 
 function creatorArchetypeSummaryHTML(item) {
@@ -2233,6 +2508,39 @@ function creatorOptionListHTML(label, options) {
       ${options.map(option => `<li>${escapeHTML(option)}</li>`).join("")}
     </ul>
   `;
+}
+
+function creatorStartingAttachmentRowsHTML(initialRows = []) {
+  return Array.from({ length: CREATOR_ATTACHMENT_ROW_COUNT }, (_, index) => {
+    const prefix = `creator.attachments.${index}`;
+    const row = initialRows[index] ?? {};
+    const typeOptions = [
+      `<option value="" ${selectedAttribute("", row.type)}>No Item</option>`,
+      ...CREATOR_ATTACHMENT_TYPES.map(type => `<option value="${escapeHTML(type)}" ${selectedAttribute(type, row.type)}>${escapeHTML(CREATOR_ATTACHMENT_TYPE_LABELS[type])}</option>`)
+    ].join("");
+
+    return `
+      <fieldset class="ptg-creator-attachment-row">
+        <legend>Attachment ${index + 1}</legend>
+        <label>
+          <span>Type</span>
+          <select name="${prefix}.type">${typeOptions}</select>
+        </label>
+        <label>
+          <span>Name</span>
+          <input type="text" name="${prefix}.name" value="${escapeHTML(row.name ?? "")}" placeholder="Bond, Relic, Worshipper, or Vassal name">
+        </label>
+        <label>
+          <span>Level</span>
+          <input type="number" name="${prefix}.level" value="${Number(row.level ?? 0)}" min="0" max="5">
+        </label>
+        <label class="ptg-creator-attachment-notes">
+          <span>Notes</span>
+          <textarea name="${prefix}.description" rows="3" placeholder="Who, what, or where this attachment is.">${escapeHTML(row.description ?? "")}</textarea>
+        </label>
+      </fieldset>
+    `;
+  }).join("");
 }
 
 function creatorArchetypeOptionLabel(option, kind) {
@@ -2270,6 +2578,7 @@ function wireOccupationCareerSelector(element) {
     for (const option of career.querySelectorAll("option[data-parent-uuid]")) {
       const show = option.dataset.parentUuid === parentUuid;
       option.hidden = !show;
+      option.disabled = !show;
       if (show) visible += 1;
     }
 
@@ -2303,6 +2612,7 @@ function wireArchetypeOptionSelector(element) {
       for (const option of select.querySelectorAll("option[data-parent-uuid]")) {
         const show = option.dataset.parentUuid === parentUuid;
         option.hidden = !show;
+        option.disabled = !show;
         if (show) visible += 1;
       }
 
@@ -2456,15 +2766,15 @@ function setCareerSelect(root, resultName) {
   const option = Array.from(select.options).find(candidate => !candidate.hidden && normalizeCreatorText(candidate.textContent).includes(normalizeCreatorText(resultName)));
   if (!option) return false;
 
-  select.value = option.value;
+  option.selected = true;
   select.dispatchEvent(new Event("change", { bubbles: true }));
   return true;
 }
 
 function selectFirstVisible(root, selector) {
   const select = root.querySelector(selector);
-  const option = Array.from(select?.options ?? []).find(candidate => candidate.value && !candidate.hidden);
-  if (select && option) select.value = option.value;
+  const option = Array.from(select?.options ?? []).find(candidate => candidate.value && !candidate.hidden && !candidate.disabled);
+  if (select && option) option.selected = true;
 }
 
 function applyRandomGodIdentity(root, identity) {
@@ -3938,6 +4248,68 @@ function appendParagraph(value, text) {
   const current = String(value ?? "").trim();
   const next = `<p>${escapeHTML(text)}</p>`;
   return current ? `${current}${next}` : next;
+}
+
+export function creatorStartingAttachmentItem(row) {
+  const type = CREATOR_ATTACHMENT_TYPES.includes(row.type) ? row.type : "bond";
+  const label = CREATOR_ATTACHMENT_TYPE_LABELS[type];
+  const level = Math.max(1, Number(row.level ?? 1));
+  const name = row.name || `Starting ${label}`;
+  const note = String(row.description ?? "").trim();
+  const description = note
+    ? `<p>${escapeHTML(note)}</p>`
+    : `<p>Starting ${escapeHTML(label)} created during character creation.</p>`;
+  const summary = `Starting ${label} created during character creation.`;
+  const system = {
+    level,
+    description,
+    notes: description,
+    rules: {
+      summary,
+      fullText: description,
+      source: {
+        book: "Part-Time Gods Second Edition",
+        page: 134,
+        section: "Step Five: Attachments",
+        type
+      }
+    },
+    usage: defaultOwnedItemUsage(type === "relic" ? "active" : "narrative"),
+    automation: defaultOwnedItemAutomation()
+  };
+
+  if (type === "bond") {
+    system.kind = "individual";
+    system.definition = note;
+    system.location = "";
+    system.strain = { value: 0, max: level };
+  } else if (type === "relic") {
+    system.cost = level;
+    system.bonus = "";
+    system.effect = description;
+  } else if (type === "worshipper") {
+    system.cost = level;
+    system.group = note || name;
+    system.size = "";
+    system.strain = { value: 0, max: level };
+  } else if (type === "vassal") {
+    system.cost = level;
+    system.concept = note || name;
+    system.loyalty = 1;
+    system.strain = { value: 0, max: level };
+  }
+
+  return {
+    name,
+    type,
+    img: defaultItemImage(type),
+    system,
+    flags: canonicalSheetItemFlags("character-creator", "starting-attachment", {
+      canonicalId: `character-creator:starting-attachment:${slugify(type)}:${slugify(name)}`,
+      choiceLabel: name,
+      attachmentLevel: level
+    })
+  };
 }
 
 function startingTruthItem(name) {

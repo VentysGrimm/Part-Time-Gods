@@ -6,6 +6,7 @@ import { openPTGCombatControls } from "../combat/ptg-combat.mjs";
 import { openMortalDivineBalanceTracker } from "../apps/mortal-divine-tracker.mjs";
 import { openPantheonPoolDialog } from "../workflows/pantheon-pool-workflow.mjs";
 import { openPTGStoryWorkflow } from "../workflows/story-workflow.mjs";
+import { PTG_IMAGE_FALLBACK, imageSource, wireImageFallbacks } from "../util/image-fallback.mjs";
 
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -45,6 +46,8 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     context.actor = this.actor;
     context.system = this.actor.system;
+    context.actorImg = imageSource(this.actor?.img, PTG_IMAGE_FALLBACK);
+    context.imageFallback = PTG_IMAGE_FALLBACK;
     context.members = await this.#prepareMembers();
     context.canManageMembers = canManagePantheonMembers(this.actor);
     context.memberOptions = context.canManageMembers ? pantheonMemberAddOptions({
@@ -59,6 +62,7 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   async _onRender(context, options) {
     await super._onRender(context, options);
+    wireImageFallbacks(this.element, PTG_IMAGE_FALLBACK);
 
     for (const button of this.element.querySelectorAll("[data-member-action]")) {
       button.addEventListener("click", event => this.#onMemberAction(event.currentTarget));
@@ -99,6 +103,8 @@ export class PTGPantheonSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return {
           ...member,
           missing: true,
+          img: imageSource(member.img, PTG_IMAGE_FALLBACK),
+          imageFallback: PTG_IMAGE_FALLBACK,
           name: member.name || member.uuid,
           summary: "Linked actor could not be found."
         };
@@ -239,7 +245,8 @@ export function preparePantheonMemberContext(actor, { user = game.user, canManag
   const base = {
     uuid: actor.uuid,
     name: actor.name,
-    img: actor.img,
+    img: imageSource(actor.img, PTG_IMAGE_FALLBACK),
+    imageFallback: PTG_IMAGE_FALLBACK,
     canOpen,
     limited: !canViewDetails,
     summary: "You do not have permission to view this character's private resources."

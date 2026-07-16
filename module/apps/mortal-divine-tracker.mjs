@@ -1,8 +1,10 @@
 import { getDragEventData } from "../util/drop-data.mjs";
+import { PTG_IMAGE_FALLBACK, imageSource, wireImageFallbacks } from "../util/image-fallback.mjs";
 import { SYSTEM_ID, localize, localizeFallback } from "../util/localization.mjs";
 
 const FLAG_KEY = "mortalDivineBalance";
 const TRACKED_CHARACTERS_SETTING = "mortalDivineTrackedCharacters";
+const BALANCE_SOCKET_SHOW_PLAYER_BAR = "mortalDivineBalance.showPlayerBar";
 const MIN_BALANCE = -10;
 const MAX_BALANCE = 10;
 
@@ -28,6 +30,9 @@ const DIVINE_BUTTONS = [
 ];
 
 let trackerApp = null;
+let playerBarApp = null;
+let socketRegistered = false;
+const shownPlayerBarRecipients = new Map();
 
 export function registerMortalDivineTrackerSettings() {
   game.settings.register(SYSTEM_ID, "mortalDivineTrackerChatMode", {
@@ -60,6 +65,13 @@ export function registerMortalDivineTrackerSettings() {
   });
 }
 
+export function registerMortalDivineTrackerSocket() {
+  if (socketRegistered || !game.socket?.on) return false;
+  game.socket.on(`system.${SYSTEM_ID}`, message => void handleBalanceSocketMessage(message));
+  socketRegistered = true;
+  return true;
+}
+
 export async function maybeOpenMortalDivineBalanceTrackerOnReady() {
   if (!game.settings.get(SYSTEM_ID, "autoOpenMortalDivineTracker")) return false;
   if (!game.user?.isGM && !balanceTrackerCharacters().length) return false;
@@ -73,6 +85,13 @@ export function openMortalDivineBalanceTracker(actor = null) {
   if (actor) trackerApp.setActor(actor);
   trackerApp.render({ force: true });
   return trackerApp;
+}
+
+export function openMortalDivineBalancePlayerBar(actor = null) {
+  if (!playerBarApp) playerBarApp = new MortalDivineBalancePlayerBar();
+  if (actor) playerBarApp.setActor(actor);
+  playerBarApp.render({ force: true });
+  return playerBarApp;
 }
 
 class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -104,23 +123,15 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     const actorOptions = characterActorOptions(actor, { includeAll: isGM });
     const trackedActors = balanceTrackerCharacters(actor);
     const state = actor ? balanceState(actor) : defaultBalanceState();
-    const value = clampBalance(state.value);
 
     return {
       ...context,
       isGM,
       isPlayerView: !isGM,
+      isPlayerBar: false,
       actorOptions: actorOptions.map(option => actorOptionContext(option, actor)),
       partyCharacters: trackedActors.map(option => partyCharacterContext(option, actor)),
-      actor: actor ? {
-        uuid: actor.uuid,
-        name: actor.name,
-        img: actor.img,
-        value,
-        label: balanceLabel(value),
-        percent: ((value - MIN_BALANCE) / (MAX_BALANCE - MIN_BALANCE)) * 100,
-        state
-      } : null,
+      actor: actor ? balanceActorContext(actor, state) : null,
       mortalButtons: localizedButtons(MORTAL_BUTTONS),
       divineButtons: localizedButtons(DIVINE_BUTTONS),
       log: Array.from(state.log ?? []).slice(-20).reverse().map(entry => ({
@@ -136,26 +147,14 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     await super._onRender(context, options);
 
     const root = this.element;
-    root.addEventListener("dragover", event => event.preventDefault());
-    root.addEventListener("drop", event => this.#onDrop(event));
+    wireImageFallbacks(root, PTG_IMAGE_FALLBACK);
+    root.addEventListener("dragover", event => this.#onDragOver(event), true);
+    root.addEventListener("drop", event => this.#onDrop(event), true);
 
     root.querySelector("[data-balance-actor-select]")?.addEventListener("change", event => this.#onActorSelect(event.currentTarget));
     root.querySelector("[data-balance-add]")?.addEventListener("click", event => this.#addSelectedActor(event.currentTarget));
 
-    for (const button of root.querySelectorAll("[data-balance-track]")) {
-      button.addEventListener("click", event => this.#onTrack(event.currentTarget));
-    }
-
-    for (const button of root.querySelectorAll("[data-balance-remove]")) {
-      button.addEventListener("click", event => this.#removeTrackedActor(event.currentTarget));
-    }
-
-    for (const button of root.querySelectorAll("[data-balance-action]")) {
-      button.addEventListener("click", event => this.#onPreset(event.currentTarget));
-    }
-
-    root.querySelector("[data-balance-custom]")?.addEventListener("click", event => this.#onCustom(event.currentTarget));
-    root.querySelector("[data-balance-clear]")?.addEventListener("click", () => this.#clearLog());
+    root.addEventListener("click", event => this.#onClick(event));
   }
 
   setActor(actor) {
@@ -180,6 +179,29 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
   #onTrack(button) {
     this.#actorUuid = button.dataset.balanceTrack ?? "";
     this.render({ force: true });
+  }
+
+  #onClick(event) {
+    const button = event.target?.closest?.("button");
+    if (!button || !this.element?.contains(button)) return;
+
+    const action = Object.hasOwn(button.dataset, "balanceAction");
+    const track = button.dataset.balanceTrack;
+    const remove = button.dataset.balanceRemove;
+    const showPlayer = button.dataset.balanceShowPlayer;
+    const add = Object.hasOwn(button.dataset, "balanceAdd");
+    const custom = Object.hasOwn(button.dataset, "balanceCustom");
+    const clear = Object.hasOwn(button.dataset, "balanceClear");
+    if (!action && !track && !remove && !showPlayer && !add && !custom && !clear) return;
+
+    event.preventDefault();
+    if (track) return this.#onTrack(button);
+    if (remove) return void this.#removeTrackedActor(button);
+    if (showPlayer) return void this.#showPlayerBar(button);
+    if (action) return void this.#onPreset(button);
+    if (add) return void this.#addSelectedActor(button);
+    if (custom) return void this.#onCustom(button);
+    if (clear) return void this.#clearLog();
   }
 
   async #addSelectedActor(button) {
@@ -208,12 +230,25 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     return uuid;
   }
 
+  async #showPlayerBar(button) {
+    if (!game.user?.isGM) return ui.notifications.warn(localize("PTG.Balance.OnlyGMEdit"));
+
+    const actor = await actorFromUuid(button.dataset.balanceShowPlayer ?? "");
+    if (!actor || actor.type !== "character") {
+      ui.notifications.warn(localize("PTG.Balance.TrackCharacter"));
+      return [];
+    }
+
+    return showMortalDivineBalanceBarToOwners(actor);
+  }
+
   async #onDrop(event) {
     event.preventDefault();
+    event.stopPropagation();
     if (!game.user?.isGM) return ui.notifications.warn(localize("PTG.Balance.OnlyGMEdit"));
 
     const data = getDragEventData(event);
-    const actor = await actorFromDropData(data);
+    const actor = await balanceActorFromDropData(data);
     if (!actor || actor.type !== "character") {
       ui.notifications.warn(localize("PTG.Balance.DropCharacter"));
       return;
@@ -222,6 +257,11 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
     await addTrackedCharacter(actor);
     this.setActor(actor);
     this.render({ force: true });
+  }
+
+  #onDragOver(event) {
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
   }
 
   async #onPreset(button) {
@@ -309,7 +349,110 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
   }
 }
 
-async function actorFromDropData(data) {
+class MortalDivineBalancePlayerBar extends HandlebarsApplicationMixin(ApplicationV2) {
+  static DEFAULT_OPTIONS = {
+    classes: ["part-time-gods", "ptg-balance-player-bar-window"],
+    position: {
+      width: 460,
+      height: 260
+    },
+    window: {
+      title: "PTG.Balance.PlayerBarTitle",
+      resizable: true
+    },
+    tag: "section"
+  };
+
+  static PARTS = {
+    form: {
+      template: "systems/part-time-gods/templates/apps/mortal-divine-tracker.hbs"
+    }
+  };
+
+  #actorUuid = "";
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
+    const actor = await actorFromUuid(this.#actorUuid);
+    const visibleActor = actor?.type === "character" && canViewBalanceActor(actor) ? actor : null;
+
+    return {
+      ...context,
+      isGM: false,
+      isPlayerView: true,
+      isPlayerBar: true,
+      actor: visibleActor ? balanceActorContext(visibleActor) : null,
+      min: MIN_BALANCE,
+      max: MAX_BALANCE
+    };
+  }
+
+  async _onRender(context, options) {
+    await super._onRender(context, options);
+    wireImageFallbacks(this.element, PTG_IMAGE_FALLBACK);
+  }
+
+  setActor(actor) {
+    if (actor?.type !== "character" || !canViewBalanceActor(actor)) {
+      ui.notifications.warn(localize("PTG.Balance.NoOwnedCharacters"));
+      return;
+    }
+
+    this.#actorUuid = actor.uuid;
+  }
+}
+
+async function handleBalanceSocketMessage(message) {
+  if (message?.type !== BALANCE_SOCKET_SHOW_PLAYER_BAR) return;
+  if (!Array.isArray(message.userIds) || !message.userIds.includes(game.user?.id)) return;
+
+  const actor = await actorFromUuid(message.actorUuid);
+  if (!actor || actor.type !== "character" || !canViewBalanceActor(actor)) return;
+
+  openMortalDivineBalancePlayerBar(actor);
+}
+
+export async function showMortalDivineBalanceBarToOwners(actor) {
+  if (!game.user?.isGM) {
+    ui.notifications.warn(localize("PTG.Balance.OnlyGMEdit"));
+    return [];
+  }
+  if (!actor || actor.type !== "character") {
+    ui.notifications.warn(localize("PTG.Balance.TrackCharacter"));
+    return [];
+  }
+
+  const owners = balanceBarOwnerUsers(actor);
+  const userIds = owners.map(user => user.id).filter(Boolean);
+  if (!userIds.length) {
+    ui.notifications.warn(localize("PTG.Balance.NoOwningPlayer", { actorName: actor.name }));
+    return [];
+  }
+
+  shownPlayerBarRecipients.set(actor.uuid, new Set(userIds));
+  emitBalanceBarSocket(actor, userIds);
+  ui.notifications.info(localize("PTG.Balance.PlayerBarSent", {
+    actorName: actor.name,
+    users: owners.map(user => user.name ?? user.id).join(", ")
+  }));
+  return userIds;
+}
+
+function emitBalanceBarSocket(actor, userIds) {
+  if (!game.socket?.emit || !actor?.uuid) return false;
+  const targetUserIds = Array.from(new Set(userIds.map(id => String(id ?? "").trim()).filter(Boolean)));
+  if (!targetUserIds.length) return false;
+
+  game.socket.emit(`system.${SYSTEM_ID}`, {
+    type: BALANCE_SOCKET_SHOW_PLAYER_BAR,
+    actorUuid: actor.uuid,
+    userIds: targetUserIds,
+    senderId: game.user?.id ?? ""
+  });
+  return true;
+}
+
+export async function balanceActorFromDropData(data) {
   try {
     const document = data?.uuid
       ? await fromUuid(data.uuid)
@@ -389,6 +532,11 @@ export function visibleBalanceTrackerActors(actors = [], { trackedUuids = [], us
   return Array.from(ordered.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
+export function balanceBarOwnerUsers(actor, users = game.users ?? []) {
+  return Array.from(users ?? [])
+    .filter(user => user && !user.isGM && canViewBalanceActor(actor, user));
+}
+
 export function normalizeTrackedCharacterUuids(value) {
   const source = Array.isArray(value) ? value : [];
   return Array.from(new Set(source.map(uuid => String(uuid ?? "").trim()).filter(Boolean)));
@@ -414,14 +562,30 @@ async function removeTrackedCharacterUuid(uuid) {
   return uuids;
 }
 
-function canViewBalanceActor(actor, user = game.user) {
+export function canViewBalanceActor(actor, user = game.user) {
   if (!actor || actor.type !== "character") return false;
-  if (user?.isGM || actor.isOwner) return true;
+  if (user?.isGM) return true;
+  if (!user) return false;
+  if (user?.id && user.id === game.user?.id && actor.isOwner) return true;
   if (typeof actor.testUserPermission === "function") return actor.testUserPermission(user, "OWNER");
 
   const ownerLevel = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3;
   const permission = actor.ownership?.[user?.id] ?? actor.permission?.[user?.id] ?? actor.ownership?.default ?? 0;
   return Number(permission) >= ownerLevel;
+}
+
+function balanceActorContext(actor, state = balanceState(actor)) {
+  const value = clampBalance(state.value);
+  return {
+    uuid: actor.uuid,
+    name: actor.name,
+    img: imageSource(actor.img, PTG_IMAGE_FALLBACK),
+    imageFallback: PTG_IMAGE_FALLBACK,
+    value,
+    label: balanceLabel(value),
+    percent: ((value - MIN_BALANCE) / (MAX_BALANCE - MIN_BALANCE)) * 100,
+    state
+  };
 }
 
 function addCharacterActor(actors, actor) {
@@ -446,7 +610,8 @@ function partyCharacterContext(actor, selectedActor) {
   return {
     uuid: actor.uuid,
     name: actor.name,
-    img: actor.img,
+    img: imageSource(actor.img, PTG_IMAGE_FALLBACK),
+    imageFallback: PTG_IMAGE_FALLBACK,
     value,
     label: balanceLabel(value),
     percent: ((value - MIN_BALANCE) / (MAX_BALANCE - MIN_BALANCE)) * 100,
@@ -486,7 +651,21 @@ async function adjustBalance(actor, { direction, amount, reason, note }) {
   });
 
   await postBalanceChat(actor, entry);
+  await refreshShownBalanceBar(actor);
   return true;
+}
+
+async function refreshShownBalanceBar(actor) {
+  const shownUserIds = shownPlayerBarRecipients.get(actor.uuid);
+  if (!shownUserIds?.size) return [];
+
+  const userIds = balanceBarOwnerUsers(actor)
+    .map(user => user.id)
+    .filter(id => shownUserIds.has(id));
+  if (!userIds.length) return [];
+
+  emitBalanceBarSocket(actor, userIds);
+  return userIds;
 }
 
 function balanceState(actor) {

@@ -288,13 +288,14 @@ async function selectCombatAction(combat) {
   `;
 
   return DialogV2.prompt({
+    classes: ["part-time-gods", "ptg-sheet-dialog", "ptg-combat-dialog-window"],
     window: {
       title: "PTG Combat Controls",
       resizable: true
     },
     position: {
-      width: 620,
-      height: 560
+      width: 700,
+      height: 680
     },
     content,
     rejectClose: false,
@@ -653,7 +654,7 @@ export async function rollPTGStatblockPool(actor, stat) {
   const pool = statblockPool(actor, stat);
   if (pool <= 0) return null;
 
-  const roll = await new Roll(`${pool}d10`).evaluate({ async: true });
+  const roll = await new Roll(`${pool}d10`).evaluate();
   let successes = 0;
   for (const result of roll.dice[0]?.results ?? []) {
     const value = result.result;

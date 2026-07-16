@@ -1,6 +1,6 @@
 <form class="ptg-sheet ptg-compact-sheet" autocomplete="off">
   <header class="ptg-header">
-    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}">
+    <img class="profile-img" src="{{actorImg}}" data-fallback-src="{{imageFallback}}" data-edit="img" title="{{actor.name}}" alt="{{actor.name}}">
     <div class="ptg-title">
       <input class="ptg-name" name="name" type="text" value="{{actor.name}}" placeholder="Pantheon Name">
       <input name="system.territory" type="text" value="{{system.territory}}" placeholder="Territory">
@@ -32,7 +32,7 @@
   </section>
 
   {{#if canUseWorldTools}}
-    <section class="ptg-editor-section ptg-pantheon-tools">
+    <section class="ptg-panel-section ptg-pantheon-tools">
       <h2>Table Tools</h2>
       <div class="ptg-action-row">
         <button type="button" data-pantheon-tool="combat" title="{{ptgLocalize "PTG.Setup.Actions.CombatControls.Hint"}}">Combat Controls</button>
@@ -50,7 +50,7 @@
     </section>
   {{/if}}
 
-  <section class="ptg-editor-section ptg-pantheon-members">
+  <section class="ptg-panel-section ptg-pantheon-members">
     <h2>Members</h2>
     <p class="ptg-sheet-note">Drop character actors here to link them. Member data is read live from each character.</p>
     {{#if canManageMembers}}
@@ -70,7 +70,7 @@
     <div class="ptg-pantheon-member-list">
       {{#each members as |member|}}
         <article class="ptg-pantheon-member{{#if member.missing}} missing{{/if}}" data-member-uuid="{{member.uuid}}">
-          <img src="{{member.img}}" alt="">
+          <img src="{{member.img}}" data-fallback-src="{{member.imageFallback}}" alt="{{member.name}}">
           <div>
             <h3>{{member.name}}</h3>
             {{#if member.missing}}

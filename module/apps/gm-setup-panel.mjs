@@ -43,7 +43,7 @@ export function registerGMSetupControls() {
       icon: "fas fa-tools",
       button: true,
       visible: Boolean(game.user?.isGM),
-      onClick: () => openGMSetupPanel()
+      onChange: () => openGMSetupPanel()
     };
 
     if (Array.isArray(controls)) {

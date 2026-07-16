@@ -6,6 +6,8 @@
   "description": "Foundry VTT v14 system for Part-Time Gods Second Edition.",
   "scripts": {
     "check": "node scripts/check-syntax.mjs",
+    "check:dragdrop-evidence": "node scripts/check-dragdrop-evidence.mjs",
+    "check:release-assets": "node scripts/check-release-assets.mjs",
     "validate": "node scripts/validate-release.mjs",
     "test": "node scripts/run-tests.mjs",
     "zip": "node scripts/build-release-zip.mjs",

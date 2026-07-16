@@ -9,7 +9,6 @@ export const VALID_CREATED_ITEM_TYPES = new Set([
   "condition",
   "curse",
   "domain",
-  "gearQuality",
   "occupation",
   "power",
   "relic",
@@ -22,18 +21,16 @@ export const VALID_CREATED_ITEM_TYPES = new Set([
 
 export const VALID_CREATED_ITEM_FOLDER_KEYS = new Set([
   ...VALID_CREATED_ITEM_TYPES,
-  "battle-fists",
-  "battle-wits",
-  "critical-failure-effects",
   "manifestation",
-  "manifestation-application",
-  "otherworld",
   "ritual"
 ]);
 
 export const JOURNAL_STYLE_ITEM_KINDS = new Set([
   "chapter-4-rule",
   "chapter-5-rule",
+  "critical-failure-effect",
+  "gear-quality",
+  "manifestation-application",
   "rules-reference",
   "complete-rules"
 ]);

@@ -1,6 +1,8 @@
+import { PTG_IMAGE_FALLBACK, imageSource, wireImageFallbacks } from "../util/image-fallback.mjs";
+
 const { ItemSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
-const ITEM_IMAGE_FALLBACK = "icons/svg/item-bag.svg";
+const ITEM_IMAGE_FALLBACK = PTG_IMAGE_FALLBACK;
 
 export class PTGItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static DEFAULT_OPTIONS = {
@@ -25,7 +27,7 @@ export class PTGItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     context.system = this.item.system;
     context.itemTypeLabel = game.i18n.localize(`TYPES.Item.${this.item.type}`);
     context.config = CONFIG.PTG;
-    context.itemImg = itemImageSource(this.item);
+    context.itemImg = imageSource(this.item?.img, ITEM_IMAGE_FALLBACK);
     context.itemImageFallback = ITEM_IMAGE_FALLBACK;
 
     return context;
@@ -33,25 +35,8 @@ export class PTGItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
   async _onRender(context, options) {
     await super._onRender(context, options);
-    wireItemSheetImageFallback(this.element);
+    wireImageFallbacks(this.element, ITEM_IMAGE_FALLBACK);
     annotateCompactFieldTitles(this.element);
-  }
-}
-
-function itemImageSource(item) {
-  const src = String(item?.img ?? "").trim();
-  return src || ITEM_IMAGE_FALLBACK;
-}
-
-function wireItemSheetImageFallback(root) {
-  for (const image of root?.querySelectorAll?.("img[data-fallback-src]") ?? []) {
-    const fallback = image.dataset.fallbackSrc || ITEM_IMAGE_FALLBACK;
-    if (!image.getAttribute("src")) image.setAttribute("src", fallback);
-    if (image.dataset.ptgFallbackWired) continue;
-    image.dataset.ptgFallbackWired = "true";
-    image.addEventListener("error", () => {
-      if (image.getAttribute("src") !== fallback) image.setAttribute("src", fallback);
-    });
   }
 }
 

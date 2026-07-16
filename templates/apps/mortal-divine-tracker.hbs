@@ -1,4 +1,45 @@
-<section class="ptg-balance-tracker ptg-md-tracker-form {{#if isGM}}is-gm{{else}}is-player{{/if}}">
+<section class="ptg-balance-tracker ptg-md-tracker-form {{#if isGM}}is-gm{{else}}is-player{{/if}}{{#if isPlayerBar}} is-player-bar{{/if}}">
+  {{#if isPlayerBar}}
+    <header class="ptg-balance-header md-tracker-header">
+      <strong>{{localize "PTG.Balance.PlayerBarTitle"}}</strong>
+      <span>{{localize "PTG.Balance.PlayerBarContext"}}</span>
+    </header>
+
+    <section class="ptg-balance-body md-tracker-body is-player is-player-bar" data-balance-player-view data-balance-player-bar>
+      <section class="ptg-balance-detail">
+        {{#if actor}}
+          <header class="ptg-balance-actor">
+            <img src="{{actor.img}}" data-fallback-src="{{actor.imageFallback}}" alt="{{actor.name}}">
+            <div>
+              <h2>{{actor.name}}</h2>
+              <p>{{actor.label}} ({{actor.value}})</p>
+            </div>
+          </header>
+
+          <section class="ptg-balance-meter" aria-label="{{localize "PTG.Balance.MeterAria"}}">
+            <div class="ptg-balance-scale">
+              <span>{{localize "PTG.Balance.Mortal"}}</span>
+              <strong>{{localize "PTG.Balance.Balanced"}}</strong>
+              <span>{{localize "PTG.Balance.Divine"}}</span>
+            </div>
+            <div class="ptg-balance-bar">
+              <i style="left: {{actor.percent}}%;"></i>
+            </div>
+            <div class="ptg-balance-values">
+              <span>{{min}}</span>
+              <span>0</span>
+              <span>+{{max}}</span>
+            </div>
+          </section>
+        {{else}}
+          <section class="ptg-balance-empty">
+            <h2>{{localize "PTG.Balance.Title"}}</h2>
+            <p>{{localize "PTG.Balance.NoOwnedCharacters"}}</p>
+          </section>
+        {{/if}}
+      </section>
+    </section>
+  {{else}}
   <header class="ptg-balance-header md-tracker-header">
     {{#if isGM}}
       <label class="ptg-balance-selector">
@@ -17,7 +58,7 @@
     {{/if}}
   </header>
 
-  <section class="ptg-balance-body md-tracker-body {{#unless isGM}}is-player{{/unless}}">
+  <section class="ptg-balance-body md-tracker-body {{#unless isGM}}is-player{{/unless}}" {{#unless isGM}}data-balance-player-view{{/unless}}>
     {{#if isGM}}
       <aside class="ptg-balance-party">
         <header>
@@ -28,7 +69,7 @@
           {{#each partyCharacters as |character|}}
             <details class="ptg-balance-party-card{{#if character.selected}} selected{{/if}}" {{#if character.selected}}open{{/if}}>
               <summary>
-                <img src="{{character.img}}" alt="">
+                <img src="{{character.img}}" data-fallback-src="{{character.imageFallback}}" alt="{{character.name}}">
                 <span>
                   <strong>{{character.name}}</strong>
                   <small>{{character.label}} ({{character.value}})</small>
@@ -38,6 +79,7 @@
               </summary>
               <div class="ptg-balance-party-card-actions">
                 <button type="button" data-balance-track="{{character.uuid}}">{{localize "PTG.Balance.Focus"}}</button>
+                <button type="button" data-balance-show-player="{{character.uuid}}">{{localize "PTG.Balance.ShowPlayerBar"}}</button>
                 <button type="button" data-balance-remove="{{character.uuid}}">{{localize "PTG.Balance.RemoveCharacter"}}</button>
               </div>
             </details>
@@ -51,7 +93,7 @@
     <section class="ptg-balance-detail">
       {{#if actor}}
         <header class="ptg-balance-actor">
-          <img src="{{actor.img}}" alt="{{actor.name}}">
+          <img src="{{actor.img}}" data-fallback-src="{{actor.imageFallback}}" alt="{{actor.name}}">
           <div>
             <h2>{{actor.name}}</h2>
             <p>{{actor.label}} ({{actor.value}})</p>
@@ -145,4 +187,5 @@
       {{/if}}
     </section>
   </section>
+  {{/if}}
 </section>

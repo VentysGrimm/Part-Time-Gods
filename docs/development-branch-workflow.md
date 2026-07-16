@@ -34,4 +34,5 @@ After `origin/develop` exists, keep new work on `develop`, open pull requests fr
 3. Rebuild generated packs and release ZIPs only after Foundry releases live LevelDB pack locks.
 4. Update QA and release audit docs with the current evidence.
 5. Merge or push the verified state to `main`.
-6. Publish the matching GitHub release assets for the manifest version.
+6. Push the matching `v<system.json version>` tag, or manually run the `Publish Release Assets` GitHub Actions workflow from `main`.
+7. Rerun `npm.cmd run check:release-assets` and complete the Foundry install-by-manifest smoke test.

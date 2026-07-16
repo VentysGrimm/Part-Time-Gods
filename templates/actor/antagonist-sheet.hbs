@@ -1,6 +1,6 @@
 <form class="ptg-sheet ptg-compact-sheet" autocomplete="off">
   <header class="ptg-header">
-    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}">
+    <img class="profile-img" src="{{actorImg}}" data-fallback-src="{{imageFallback}}" data-edit="img" title="{{actor.name}}" alt="{{actor.name}}">
     <div class="ptg-title">
       <input class="ptg-name" name="name" type="text" value="{{actor.name}}" placeholder="Antagonist Name">
       <div class="ptg-subtitle">Antagonist{{#if system.rank}} - {{system.rank}}{{/if}}</div>
@@ -83,7 +83,7 @@
     </label>
   </section>
 
-  <section class="ptg-editor-section ptg-antagonist-combat-panel">
+  <section class="ptg-panel-section ptg-antagonist-combat-panel">
     <h2>Combat Actions</h2>
     <div class="ptg-action-row">
       <button type="button" data-antagonist-combat-roll="attack">Roll Attack</button>

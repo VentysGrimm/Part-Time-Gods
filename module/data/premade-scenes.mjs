@@ -39,7 +39,7 @@ export function getGodTerritorySceneData({
     width: WIDTH,
     height: HEIGHT,
     padding: 0.05,
-    backgroundColor: SHEET_BACKGROUND,
+    levels: [defaultSceneLevel(SHEET_BACKGROUND)],
     grid: {
       type: squareGridType(),
       size: GRID_SIZE,
@@ -636,6 +636,39 @@ function sheetLabel(key, text, x, y, width, height, authorId, sort, fontSize) {
     fontSize,
     textColor: SHEET_INK,
     textAlpha: 1
+  };
+}
+
+function defaultSceneLevel(backgroundColor = SHEET_BACKGROUND, backgroundSrc = null) {
+  return {
+    _id: "defaultLevel0000",
+    name: "Level",
+    elevation: { bottom: 0, top: 20 },
+    background: {
+      color: backgroundColor,
+      src: backgroundSrc,
+      tint: "#ffffff",
+      alphaThreshold: 0.75
+    },
+    foreground: {
+      src: null,
+      tint: "#ffffff",
+      alphaThreshold: 0.75
+    },
+    fog: { src: null },
+    textures: {
+      anchorX: 0.5,
+      anchorY: 0.5,
+      offsetX: 0,
+      offsetY: 0,
+      fit: "fill",
+      scaleX: 1,
+      scaleY: 1,
+      rotation: 0
+    },
+    visibility: { levels: [] },
+    sort: 0,
+    flags: {}
   };
 }
 

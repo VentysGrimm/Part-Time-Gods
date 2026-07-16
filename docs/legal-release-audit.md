@@ -10,11 +10,12 @@ This audit covers the public release boundary for the Foundry VTT v14 system pac
 
 | Area | Result | Evidence |
 | --- | --- | --- |
-| Release ZIP contents | Pending 0.1.0 rebuild | `dist/part-time-gods-0.1.0.zip` must contain only runtime files: `system.json`, `part-time-gods.js`, `module/**`, `templates/**`, `styles/**`, `lang/**`, declared `packs/**`, README, INSTALL, LICENSE, ATTRIBUTION, and CHANGELOG. |
+| Release ZIP contents | Pass local build; remote publication pending | `npm.cmd run zip` created `dist/part-time-gods-0.1.0.zip` and `dist/system.json` after Foundry released pack locks. The ZIP builder includes only runtime files: `system.json`, `part-time-gods.js`, `module/**`, `templates/**`, `styles/**`, `lang/**`, declared `packs/**`, README, INSTALL, LICENSE, ATTRIBUTION, and CHANGELOG. `scripts/build-release-zip.mjs` refuses active Foundry pack locks before collecting files or modifying `dist`, `.github/workflows/release.yml` publishes the assets through GitHub Actions, and `scripts/check-release-assets.mjs` verifies declared pack lock state, stale local ZIPs, local manifest metadata, remote manifest metadata, and the remote ZIP URL. |
+| Manual drag/drop release evidence | Pending physical pass | `docs/qa/manual-dragdrop-matrix.md` and `scripts/check-dragdrop-evidence.mjs` track the human-level item and Territory actor drag rows that cannot be proven by source validation alone. The check must pass before #131/#165 drag/drop gates are treated as complete. |
 | Source PDFs and extraction caches | Pass | Archive listing check found no `pdf`, `source-material`, `pymupdf`, `tmp`, `temp`, `node_modules`, `.git`, `.agents`, `.codex`, `LOCK`, `LOG`, `LOG.old`, or `lost` paths. |
-| Rules reference payload | Pass | `module/data/complete-rules.json` has 9 journals and 48 pages, reduced to 3,026 total plain-text words after stripping long extracted source text. Largest page summary is 120 words. |
+| Rules reference payload | Pass | `module/data/complete-rules.json` has 9 journals and 51 pages, rewritten as source-backed summaries with 6,672 total plain-text words. Largest page summary is 455 words, with zero boilerplate, extractor-artifact, or thin pages under validation. |
 | Rules journal metadata | Pass | Every rules-reference page carries `flags.part-time-gods.safeSummary`, source page range metadata, stable `slug`, and stable `sourceId`. |
-| Compendium packs | Pass | `scripts/build-compendium-packs.mjs` rebuilt the shipped LevelDB packs after the rules-reference reduction. Release validation reports 9 rules journals, 48 embedded pages, 647 Items, 40 Choices, 62 Actors, 86 RollTables, 1 Scene, and 8 Macros. |
+| Compendium packs | Pending rebuild after Foundry closes | Source validation reports 9 rules journals, 51 embedded pages, 680 premade Items, 40 Choices, 62 Actors, 91 RollTables, 1 Scene, and 8 Macros. Rebuilding shipped LevelDB packs remains pending while Foundry holds live pack locks. |
 | Attribution and ownership | Pass | `ATTRIBUTION.md` separates MIT-licensed system code from Part-Time Gods Second Edition names, text, setting material, and trademarks owned by their rights holders. |
 | Rulebook access notice | Pass | `README.md` states that this package is a play aid and that users should have lawful access to the rulebook/source material needed for play. |
 | Trademarks, logos, and art | Pass | No custom PTG2E logos or copied source-book art are shipped. Runtime icon references use Foundry/core icon paths or generic icon assets expected from the Foundry environment. |
@@ -27,4 +28,4 @@ Rules-reference compendia are limited to short lookup summaries, source page met
 
 ## Automated Guard
 
-`npm run validate` now fails when rules-reference pages lack `safeSummary` flags or when the rules-reference text grows beyond the release-safe summary threshold.
+`npm run validate` now fails when rules-reference pages lack `safeSummary` flags, contain repeated placeholder boilerplate, contain known PDF extractor artifacts, fall below the minimum useful-summary length, repeat the same rules paragraph, or grow beyond the release-safe summary threshold.

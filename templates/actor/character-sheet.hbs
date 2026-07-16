@@ -42,11 +42,19 @@
       <div class="ptg-print-title-fields">
         <label class="ptg-print-title-field">
           <span>Name:</span>
-          <input class="ptg-name" name="name" type="text" value="{{actor.name}}">
+          {{#if sheetUnlocked}}
+            <input class="ptg-name" name="name" type="text" value="{{actor.name}}">
+          {{else}}
+            <strong class="ptg-print-display ptg-name-display">{{actor.name}}</strong>
+          {{/if}}
         </label>
         <label class="ptg-print-title-field">
           <span>God/dess Of:</span>
-          <input name="system.identity.concept" type="text" value="{{system.identity.concept}}">
+          {{#if sheetUnlocked}}
+            <input name="system.identity.concept" type="text" value="{{system.identity.concept}}">
+          {{else}}
+            <strong class="ptg-print-display">{{system.identity.concept}}</strong>
+          {{/if}}
         </label>
       </div>
     </header>
@@ -99,11 +107,19 @@
         </div>
         <label class="ptg-print-stat editable">
           <h2>Work FT/W</h2>
-          <input name="system.resources.occupationFreeTime" type="number" value="{{system.resources.occupationFreeTime}}" min="0">
+          {{#if sheetUnlocked}}
+            <input name="system.resources.occupationFreeTime" type="number" value="{{system.resources.occupationFreeTime}}" min="0">
+          {{else}}
+            <strong class="ptg-print-display">{{system.resources.occupationFreeTime}}</strong>
+          {{/if}}
         </label>
         <label class="ptg-print-stat editable">
           <h2 title="{{ptgLocalize "PTG.Help.Spark"}}">Spark</h2>
-          <input name="system.resources.spark" type="number" value="{{system.resources.spark}}" min="1" title="{{ptgLocalize "PTG.Help.Spark"}}">
+          {{#if sheetUnlocked}}
+            <input name="system.resources.spark" type="number" value="{{system.resources.spark}}" min="1" title="{{ptgLocalize "PTG.Help.Spark"}}">
+          {{else}}
+            <strong class="ptg-print-display">{{system.resources.spark}}</strong>
+          {{/if}}
         </label>
       </section>
 
@@ -140,7 +156,11 @@
             <header>
               <h2 title="{{track.help}}">{{track.label}}</h2>
               <span>Max</span>
-              <input name="{{track.maxName}}" type="number" value="{{track.max}}" min="0" aria-label="{{track.label}} Max" title="{{track.help}}">
+              {{#if @root.sheetUnlocked}}
+                <input name="{{track.maxName}}" type="number" value="{{track.max}}" min="0" aria-label="{{track.label}} Max" title="{{track.help}}">
+              {{else}}
+                <strong class="ptg-print-display" aria-label="{{track.label}} Max">{{track.max}}</strong>
+              {{/if}}
             </header>
             <div class="ptg-resource-pips" role="group" aria-label="{{track.label}} {{track.value}} of {{track.max}}" title="{{track.help}}">
               <button type="button" data-flat-resource-step="{{track.key}}" data-resource-delta="-1" aria-label="Decrease {{track.label}}">-</button>
@@ -206,23 +226,43 @@
     <section class="ptg-print-identity">
       <label>
         <span>Occupation:</span>
-        <input name="system.identity.occupation" type="text" value="{{system.identity.occupation}}">
+        {{#if sheetUnlocked}}
+          <input name="system.identity.occupation" type="text" value="{{system.identity.occupation}}">
+        {{else}}
+          <strong class="ptg-print-display">{{system.identity.occupation}}</strong>
+        {{/if}}
       </label>
       <label>
         <span>Age & Ethnicity:</span>
-        <input name="system.identity.ageEthnicity" type="text" value="{{system.identity.ageEthnicity}}">
+        {{#if sheetUnlocked}}
+          <input name="system.identity.ageEthnicity" type="text" value="{{system.identity.ageEthnicity}}">
+        {{else}}
+          <strong class="ptg-print-display">{{system.identity.ageEthnicity}}</strong>
+        {{/if}}
       </label>
       <label>
         <span>Theology:</span>
-        <input name="system.identity.theology" type="text" value="{{system.identity.theology}}">
+        {{#if sheetUnlocked}}
+          <input name="system.identity.theology" type="text" value="{{system.identity.theology}}">
+        {{else}}
+          <strong class="ptg-print-display">{{system.identity.theology}}</strong>
+        {{/if}}
       </label>
       <label>
         <span>Archetype:</span>
-        <input name="system.identity.archetype" type="text" value="{{system.identity.archetype}}">
+        {{#if sheetUnlocked}}
+          <input name="system.identity.archetype" type="text" value="{{system.identity.archetype}}">
+        {{else}}
+          <strong class="ptg-print-display">{{system.identity.archetype}}</strong>
+        {{/if}}
       </label>
       <label>
         <span>Dominion:</span>
-        <input name="system.identity.dominion" type="text" value="{{system.identity.dominion}}">
+        {{#if sheetUnlocked}}
+          <input name="system.identity.dominion" type="text" value="{{system.identity.dominion}}">
+        {{else}}
+          <strong class="ptg-print-display">{{system.identity.dominion}}</strong>
+        {{/if}}
       </label>
     </section>
 
@@ -235,7 +275,11 @@
               {{#each column as |key|}}
                 <label class="ptg-score-row">
                   <button type="button" data-roll-skill="{{key}}">{{ptgLabel "skills" key}}</button>
-                  <input name="system.skills.{{key}}" type="number" value="{{lookup @root.system.skills key}}" min="0">
+                  {{#if @root.sheetUnlocked}}
+                    <input name="system.skills.{{key}}" type="number" value="{{lookup @root.system.skills key}}" min="0">
+                  {{else}}
+                    <strong class="ptg-score-value">{{lookup @root.system.skills key}}</strong>
+                  {{/if}}
                 </label>
               {{/each}}
             </div>
@@ -253,7 +297,11 @@
                 {{#each column as |key|}}
                   <label class="ptg-score-row">
                     <button type="button" data-roll-manifestation="{{key}}" title="{{ptgLocalize "PTG.Help.ManifestationMeasures"}}">{{ptgLabel "manifestations" key}}</button>
-                    <input name="system.manifestations.{{key}}" type="number" value="{{lookup @root.system.manifestations key}}" min="0">
+                    {{#if @root.sheetUnlocked}}
+                      <input name="system.manifestations.{{key}}" type="number" value="{{lookup @root.system.manifestations key}}" min="0">
+                    {{else}}
+                      <strong class="ptg-score-value">{{lookup @root.system.manifestations key}}</strong>
+                    {{/if}}
                   </label>
                 {{/each}}
               </div>
@@ -270,7 +318,11 @@
         <section class="ptg-print-xp">
           <label>
             <span>XP Gained</span>
-            <input name="system.resources.xpGained" type="number" value="{{system.resources.xpGained}}" min="0">
+            {{#if sheetUnlocked}}
+              <input name="system.resources.xpGained" type="number" value="{{system.resources.xpGained}}" min="0">
+            {{else}}
+              <strong class="ptg-print-display">{{system.resources.xpGained}}</strong>
+            {{/if}}
           </label>
           <label>
             <span>XP Spent</span>

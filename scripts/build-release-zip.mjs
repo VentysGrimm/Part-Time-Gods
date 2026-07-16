@@ -14,6 +14,7 @@ const CRC_TABLE = Array.from({ length: 256 }, (_, index) => {
   return value >>> 0;
 });
 
+await assertPacksNotLocked();
 await addFile("system.json");
 await addFile("part-time-gods.js");
 for (const file of ["README.md", "INSTALL.md", "CHANGELOG.md", "ATTRIBUTION.md", "LICENSE"]) await addFileIfExists(file);
@@ -26,6 +27,35 @@ await fs.writeFile(outPath, createZip(files));
 await fs.copyFile(path.join(root, "system.json"), manifestOutPath);
 console.log(`Created ${path.relative(root, outPath)} with ${files.size} files.`);
 console.log(`Created ${path.relative(root, manifestOutPath)}.`);
+
+async function assertPacksNotLocked() {
+  const lockedPacks = [];
+
+  for (const pack of system.packs ?? []) {
+    const lockPath = path.join(root, pack.path, "LOCK");
+    try {
+      const handle = await fs.open(lockPath, "r+");
+      await handle.close();
+    } catch (error) {
+      if (error?.code === "ENOENT") continue;
+      if (["EBUSY", "EPERM", "EACCES"].includes(error?.code)) {
+        lockedPacks.push(`${pack.name} (${pack.path})`);
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  if (lockedPacks.length) {
+    throw new Error(
+      [
+        "Cannot build the release ZIP while Foundry has package compendium packs open.",
+        "Close Foundry VTT, then rerun `npm.cmd run zip`.",
+        `Locked packs: ${lockedPacks.join(", ")}`
+      ].join("\n")
+    );
+  }
+}
 
 async function removeStaleReleaseZips() {
   const entries = await fs.readdir(distDir, { withFileTypes: true });

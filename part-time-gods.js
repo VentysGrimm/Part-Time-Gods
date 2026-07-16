@@ -36,7 +36,14 @@ import { getPremadeJournals } from "./module/data/premade-journals.mjs";
 import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "./module/data/premade-scenes.mjs";
 import { openPTGCombatControls, PTG_INITIATIVE_FORMULA, registerPTGCombatHooks, rollPTGInitiative, rollPTGStatblockPool } from "./module/combat/ptg-combat.mjs";
 import { PartTimeGodsCombatant } from "./module/combat/ptg-combatant.mjs";
-import { maybeOpenMortalDivineBalanceTrackerOnReady, openMortalDivineBalanceTracker, registerMortalDivineTrackerSettings } from "./module/apps/mortal-divine-tracker.mjs";
+import {
+  maybeOpenMortalDivineBalanceTrackerOnReady,
+  openMortalDivineBalancePlayerBar,
+  openMortalDivineBalanceTracker,
+  registerMortalDivineTrackerSettings,
+  registerMortalDivineTrackerSocket,
+  showMortalDivineBalanceBarToOwners
+} from "./module/apps/mortal-divine-tracker.mjs";
 import {
   buildTerritoryGridCells,
   calculateTerritoryInfluence,
@@ -99,6 +106,8 @@ Hooks.once("init", async () => {
     openPTGCombatControls,
     maybeOpenMortalDivineBalanceTrackerOnReady,
     openMortalDivineBalanceTracker,
+    openMortalDivineBalancePlayerBar,
+    showMortalDivineBalanceBarToOwners,
     openPantheonPoolDialog,
     openPTGStoryWorkflow,
     organizePTGCompendiumFolders,
@@ -130,8 +139,11 @@ Hooks.once("init", async () => {
   };
   game.ptg.balance = {
     open: openMortalDivineBalanceTracker,
+    openPlayerBar: openMortalDivineBalancePlayerBar,
+    showPlayerBar: showMortalDivineBalanceBarToOwners,
     autoOpen: maybeOpenMortalDivineBalanceTrackerOnReady
   };
+  restoreIntegratedModuleApis();
 
   registerPTGCombatHooks();
   registerTerritoryGridSettings();
@@ -236,6 +248,9 @@ Hooks.once("init", async () => {
 
 Hooks.once("ready", async () => {
   console.log("Part-Time Gods 2E | Ready");
+  restoreIntegratedModuleApis();
+  registerMortalDivineTrackerSocket();
+  globalThis.setTimeout?.(restoreIntegratedModuleApis, 0);
 
   if (!game.user?.isGM) {
     await maybeOpenTerritoryInterfaceOnReady();
@@ -263,13 +278,46 @@ Hooks.once("ready", async () => {
   }
 
   if (game.settings.get(SYSTEM_ID, "autoPopulatePremadeCompendiums")) {
-    await populatePremadeCompendiums({ notify: true });
+    await populatePremadeCompendiums({ notify: true, skipLockedPacks: true });
   }
 
   await maybeOpenFirstRunGMSetup();
   await maybeOpenTerritoryInterfaceOnReady();
   await maybeOpenMortalDivineBalanceTrackerOnReady();
 });
+
+function restoreIntegratedModuleApis() {
+  if (!globalThis.game) return;
+
+  game.partTimeGods ??= {};
+  Object.assign(game.partTimeGods, {
+    openTerritoryInterface,
+    maybeOpenTerritoryInterfaceOnReady,
+    openTerritoryGridApp,
+    openTerritoryScene,
+    openMortalDivineBalanceTracker,
+    openMortalDivineBalancePlayerBar,
+    showMortalDivineBalanceBarToOwners,
+    maybeOpenMortalDivineBalanceTrackerOnReady
+  });
+
+  game.ptg ??= {};
+  game.ptg.territory = {
+    ...(game.ptg.territory ?? {}),
+    open: openTerritoryInterface,
+    openInterface: openTerritoryInterface,
+    openScene: openTerritoryScene,
+    viewScene: openTerritoryScene,
+    autoOpen: maybeOpenTerritoryInterfaceOnReady
+  };
+  game.ptg.balance = {
+    ...(game.ptg.balance ?? {}),
+    open: openMortalDivineBalanceTracker,
+    openPlayerBar: openMortalDivineBalancePlayerBar,
+    showPlayerBar: showMortalDivineBalanceBarToOwners,
+    autoOpen: maybeOpenMortalDivineBalanceTrackerOnReady
+  };
+}
 
 Hooks.on("dropCanvasData", async (canvas, data) => {
   if (data?.type !== "Item") return true;

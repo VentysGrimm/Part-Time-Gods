@@ -11,7 +11,7 @@ export class PTGDiceEngine {
     const finalPool = Number(poolSize);
     const fateDie = finalPool <= 0;
     const dice = fateDie ? 1 : Math.max(1, finalPool);
-    const roll = await new Roll(`${dice}d10`).evaluate({ async: true });
+    const roll = await new Roll(`${dice}d10`).evaluate();
 
     let successes = 0;
     let ones = 0;

@@ -16,6 +16,30 @@ test("PTG dice count 7-9 as one success and 10 as two successes", async () => {
   assert.equal(outcome.criticalFailure, false);
 });
 
+test("PTG dice use awaited Roll evaluation without sync or removed async options", async () => {
+  const OriginalRoll = globalThis.Roll;
+  globalThis.Roll = class FoundryV14Roll extends OriginalRoll {
+    evaluateSync() {
+      throw new Error("sync random dice are not supported");
+    }
+
+    async evaluate(options) {
+      assert.equal(options, undefined);
+      return super.evaluate();
+    }
+  };
+
+  try {
+    queueRolls([7]);
+    const outcome = await PTGDiceEngine.rollPool(1, { difficulty: 1, sendToChat: false });
+
+    assert.equal(outcome.successes, 1);
+    assert.equal(outcome.passed, true);
+  } finally {
+    globalThis.Roll = OriginalRoll;
+  }
+});
+
 test("Fate Die rolls one die for zero or negative pools", async () => {
   queueRolls([10], [1]);
 

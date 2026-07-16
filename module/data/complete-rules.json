@@ -13,7 +13,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Playing the Game, Dice Basics, and Glossary</h1><p>Part-Time Gods play alternates between mortal obligations and divine problems. Characters still have jobs, relationships, neighborhoods, and fragile human lives, but the Spark gives them mythic leverage when a scene turns supernatural.</p><p>Most checks are built from a Skill plus another Skill or a Manifestation. Roll the pool of d10s, count 7-9 as one success and 10 as two successes, then compare successes to the difficulty or opposing result. The dice engine, roll dialogs, and tests cover those mechanical pieces in Foundry.</p><p>Use this page as a glossary landing point. For character choices, use the Character Creation pack. For powers, rituals, and measures, use premade power Items. For opposition, use the Opposition Actors pack and builder. For table prompts, use the Story Workflow and RollTable packs.</p><ul><li>Core dice: d10 pool, 7-9 one success, 10 two successes.</li><li>Core tension: mortal duties and divine identity both matter.</li><li>Foundry links: dice engine, character sheet rolls, source-keyed Items, and rules-reference journals.</li></ul><p><strong>Structured Foundry support:</strong> module/dice/ptg-dice-engine.mjs, templates/chat/roll-card.hbs, packs/character-creation, packs/premade-items.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"11\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"12\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"13\"></span>"
+          "content": "<h1>Playing the Game, Dice Basics, and Glossary</h1><p>Part-Time Gods is built around the pressure between mortal obligations and divine problems. Sessions move through scenes, stories, table decisions, and consequences rather than a single combat-first loop.</p><p>The core resolution engine is a d10 dice pool. A check combines two relevant traits, rolls that many d10s, counts 7-9 as one success and 10 as two successes, then compares the total to the task difficulty or an opposing result.</p><p>The glossary on these pages defines the terms the system uses elsewhere: Actions, Attachments, Battle, Blessings, Conditions, Dominion, Free Time, Manifestations, Measures, Pantheon Pool, Spark, Territory, The Ways, Wealth, Worshippers, and related rules language.</p><ul><li>Core roll: Skill plus Skill, or Skill plus Manifestation when divine power is involved.</li><li>Core result: successes meet or beat Difficulty; no successes with a 1 creates a Critical Failure.</li><li>Foundry support: dice engine, roll cards, character sheet rolls, rules-reference journals, and source-keyed compendium records.</li></ul><p><strong>Foundry support:</strong> module/dice/ptg-dice-engine.mjs; templates/chat/roll-card.hbs; module/config/skills.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"11\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"12\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"13\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -31,7 +31,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 11,
             "sourcePageEnd": 13,
-            "safeSummary": "Core play reference for PTG2E book pp. 11-13, covering table roles, dice-pool reading, glossary terms, and where later Foundry mechanics live.",
+            "safeSummary": "Source-backed summary for PTG2E book pp. 11-13 covering play structure, d10 pool reading, glossary terms, and Foundry entry points.",
             "supportItems": [
               "module/dice/ptg-dice-engine.mjs",
               "templates/chat/roll-card.hbs",
@@ -62,7 +62,7 @@
     "sort": 200000,
     "pages": [
       {
-        "name": "Theologies and Dominions",
+        "name": "The Descending Storm and Modern Godhood",
         "type": "text",
         "sort": 100000,
         "title": {
@@ -71,7 +71,50 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Theologies and Dominions</h1><p>Theologies describe how a god understands the divine order and what sort of supernatural community or philosophy shaped their awakening. Dominions describe what the god rules, protects, embodies, or warps through mythic action.</p><p>In Foundry, Theologies and Dominion categories are character-creation choice Items. Their grants, Blessings, Curses, attachment options, source pages, and rules references are stored in structured data so the character creator can apply them instead of relying on hardcoded sheet text.</p><p>Specific Dominions from the random tables also exist as standalone Domain Items. Use those as quick prompts or as concrete portfolio entries when a player wants a more focused divine identity.</p><ul><li>Theology answers what the character believes about divinity.</li><li>Dominion answers what the character has mythic authority over.</li><li>Structured data: theology, domain, blessing, curse, and attachment Item grants.</li></ul><p><strong>Structured Foundry support:</strong> module/data/premade-choices.mjs, module/data/premade-items.mjs, templates/item/item-sheet.hbs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"23\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"24\"></span>"
+          "content": "<h1>The Descending Storm and Modern Godhood</h1><p>Chapter One explains the setting history behind modern divinity: humanity's first gods came from the Source and First Mother, old pantheons imprisoned that origin, and the attempt to monopolize divine power led to the Golden Web, the loss of immortality, the God Wars, Outsiders, and God-Killers.</p><p>The useful table-facing takeaway is that modern gods are survivors and successors, not untouchable mythic rulers. Their Spark can pass by inheritance, random occurrence, or spontaneous godhood, and every expression of divinity carries social, supernatural, and personal risk.</p><p>These pages support the Foundry system's emphasis on balancing mortal duties, theological politics, Territories, Pantheons, Outsider pressure, secrecy, and the mortal-divine tracker.</p><ul><li>The Source and First Mother are the buried origin of godhood.</li><li>The Golden Web and God Wars explain why gods are mortal, hidden, and scarce.</li><li>The Descending Storm explains why new gods and Outsiders are now increasing.</li></ul><p><strong>Foundry support:</strong> module/apps/mortal-divine-tracker.mjs; module/apps/territory-grid-app.mjs; module/workflows/story-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"14\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"15\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"16\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"17\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"18\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"19\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"20\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"21\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"22\"></span>"
+        },
+        "flags": {
+          "part-time-gods": {
+            "premade": true,
+            "kind": "rules-reference",
+            "ruleTopic": "the-descending-storm-and-modern-godhood",
+            "sourcePdf": "Part-Time Gods 2e (Updated).pdf",
+            "sourcePages": [
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22
+            ],
+            "slug": "the-descending-storm-and-modern-godhood",
+            "sourceId": "journal-page:rules-reference:the-descending-storm-and-modern-godhood",
+            "sourceBook": "Part-Time Gods Second Edition",
+            "sourcePageStart": 14,
+            "sourcePageEnd": 22,
+            "safeSummary": "Source-backed summary for PTG2E book pp. 14-22 covering the First Mother, Golden Web, God Wars, Outsiders, God-Killers, and modern godhood.",
+            "supportItems": [
+              "module/apps/mortal-divine-tracker.mjs",
+              "module/apps/territory-grid-app.mjs",
+              "module/workflows/story-workflow.mjs"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Theologies and Dominions",
+        "type": "text",
+        "sort": 200000,
+        "title": {
+          "show": true,
+          "level": 2
+        },
+        "text": {
+          "format": 1,
+          "content": "<h1>Theologies and Dominions</h1><p>Theologies are secret societies and divine philosophies. They shape how a god interprets the Spark, what duties they recognize, and what Blessings, Curses, resources, and social expectations they bring into play.</p><p>Dominions are the pieces of reality a god can affect. Modern gods usually control a focused expression of a larger idea rather than every possible meaning of that concept, so a specific Dominion matters at the table.</p><p>The source pages tie these concepts to character identity, divine politics, and how powers are framed. In Foundry, broad Dominion categories and specific Dominion prompts are separate data surfaces.</p><ul><li>Theology answers what the god believes divinity is for.</li><li>Dominion answers what reality bends around the god.</li><li>Specific Dominions help players narrow a broad concept into something playable.</li></ul><p><strong>Foundry support:</strong> module/data/premade-choices.mjs; module/data/premade-items.mjs; templates/item/item-sheet.hbs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"23\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"24\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -88,7 +131,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 23,
             "sourcePageEnd": 24,
-            "safeSummary": "Original summary for PTG2E book pp. 23-24, covering Theologies as divine worldviews and Dominions as the god's mythic portfolio.",
+            "safeSummary": "Source-backed summary for PTG2E book pp. 23-24 covering Theologies as divine worldviews and Dominions as focused mythic authority.",
             "supportItems": [
               "module/data/premade-choices.mjs",
               "module/data/premade-items.mjs",
@@ -100,14 +143,14 @@
       {
         "name": "Territories, Pantheons, Worshippers, and Outsiders",
         "type": "text",
-        "sort": 200000,
+        "sort": 300000,
         "title": {
           "show": true,
           "level": 2
         },
         "text": {
           "format": 1,
-          "content": "<h1>Territories, Pantheons, Worshippers, and Outsiders</h1><p>Territory is the part of the world where a god&#39;s mortal ties and divine influence become concrete. It is not just a map space; it is a network of locations, attachments, secrets, travel costs, and contested influence.</p><p>Pantheons give multiple gods a shared structure for action and a shared Pantheon Pool. Worshippers and Vassals provide support, favors, pressure, and risk. Outsiders are supernatural presences that can become threats, allies, servants, or scene complications depending on the table&#39;s choices.</p><p>The system represents these ideas through the Pantheon actor sheet, Pantheon Pool workflow, Territory Grid scene/app, Worshipper and Vassal Items, source-backed Vassal actor templates, and the Opposition Actors compendium.</p><ul><li>Territory: tracked with scene flags and grid coordinates.</li><li>Pantheon: shared actor and shared pool workflow.</li><li>Worshippers, Vassals, Outsiders: Item and Actor data with request/task hooks.</li></ul><p><strong>Structured Foundry support:</strong> module/apps/territory-grid-app.mjs, module/workflows/pantheon-pool-workflow.mjs, module/data/premade-actors.mjs, module/data/premade-items.mjs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"25\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"27\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"28\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"29\"></span>"
+          "content": "<h1>Territories, Pantheons, Worshippers, and Outsiders</h1><p>Territory is where a god&#39;s Spark leaves a mark on the world. A god&#39;s Dominion colors places, people, rumors, conflicts, and supernatural pressure inside the area they influence.</p><p>Pantheons combine territory and responsibility. They provide mutual defense, companionship, shared trouble, and political tension because members cannot simply remove one another without extreme consequences.</p><p>Worshippers create feedback between mortal attention and divine power, while Outsiders bring creatures and beings from beyond ordinary human life into the god&#39;s local problems.</p><ul><li>Territory belongs in scene tools, grid overlays, and location notes.</li><li>Pantheon support belongs on party actors, pool workflows, and shared-resource controls.</li><li>Worshippers, Vassals, and Outsiders belong in source-backed Items, Actors, and story prompts.</li></ul><p><strong>Foundry support:</strong> module/apps/territory-grid-app.mjs; module/workflows/pantheon-pool-workflow.mjs; module/data/premade-actors.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"25\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"27\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"28\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"29\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -126,7 +169,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 25,
             "sourcePageEnd": 29,
-            "safeSummary": "Original summary for PTG2E book pp. 25 and 27-29, covering divine territory, pantheon play, worshipper support, and outsider threats.",
+            "safeSummary": "Source-backed summary for PTG2E book pp. 25 and 27-29 covering divine territory, pantheon play, worshipper pressure, and outsider threats.",
             "supportItems": [
               "module/apps/territory-grid-app.mjs",
               "module/workflows/pantheon-pool-workflow.mjs",
@@ -139,14 +182,14 @@
       {
         "name": "Keeping Hidden and Staying Human",
         "type": "text",
-        "sort": 300000,
+        "sort": 400000,
         "title": {
           "show": true,
           "level": 2
         },
         "text": {
           "format": 1,
-          "content": "<h1>Keeping Hidden and Staying Human</h1><p>Part-Time Gods treats secrecy and humanity as play pressures rather than background color. A god can solve problems with divine power, but visible miracles, ignored relationships, job fallout, and neglected mortal needs create new problems.</p><p>Staying human means choosing when to spend time on work, attachments, recovery, and ordinary life. Keeping hidden means watching witnesses, territory, Outsiders, worshippers, and the consequences of supernatural attention.</p><p>In Foundry, the Mortal-Divine tracker, Free Time and Wealth workflow, Attachment Strain actions, Conditions, and Story Workflow prompts keep these pressures active without replacing GM judgment.</p><ul><li>Secrecy creates consequences when divinity becomes too visible.</li><li>Humanity is tracked through obligations, attachments, work, and recovery.</li><li>Foundry support: balance tracker, downtime resources, conditions, and story cards.</li></ul><p><strong>Structured Foundry support:</strong> module/apps/mortal-divine-tracker.mjs, module/workflows/story-workflow.mjs, module/sheets/character-sheet.mjs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"30\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"31\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"32\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"33\"></span>"
+          "content": "<h1>Keeping Hidden and Staying Human</h1><p>The source frames secrecy as a survival pressure. Gods live in a modern world where miracles, divine battles, Outsiders, cult behavior, and territory disputes can expose them or draw worse attention.</p><p>Staying human is just as important. Work, relationships, attachments, recovery, money, and ordinary obligations keep the god from becoming only a Dominion in human shape.</p><p>The system should keep both sides visible during play: divine action has fallout, but neglected mortal life also creates costs.</p><ul><li>Exposure creates witnesses, enemies, and story fallout.</li><li>Neglected humanity creates job trouble, attachment strain, isolation, and inhuman behavior.</li><li>Foundry support keeps mortal/divine pressure visible without replacing GM judgment.</li></ul><p><strong>Foundry support:</strong> module/apps/mortal-divine-tracker.mjs; module/workflows/story-workflow.mjs; module/sheets/character-sheet.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"30\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"31\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"32\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"33\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -165,7 +208,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 30,
             "sourcePageEnd": 33,
-            "safeSummary": "Original summary for PTG2E book pp. 30-33, covering secrecy, exposure, mortal balance, human obligations, and divine pressure.",
+            "safeSummary": "Source-backed summary for PTG2E book pp. 30-33 covering secrecy, exposure, mortal identity, and the danger of losing humanity to the Spark.",
             "supportItems": [
               "module/apps/mortal-divine-tracker.mjs",
               "module/workflows/story-workflow.mjs",
@@ -184,9 +227,9 @@
         "slug": "02-divine-concepts",
         "sourceId": "journal:rules-reference:02-divine-concepts",
         "sourceBook": "Part-Time Gods Second Edition",
-        "sourcePageStart": 23,
+        "sourcePageStart": 14,
         "sourcePageEnd": 33,
-        "safeSummary": "02. Divine Concepts is a curated rules-reference index for Part-Time Gods Second Edition, book pp. 23-25, 27-33."
+        "safeSummary": "02. Divine Concepts is a curated rules-reference index for Part-Time Gods Second Edition, book pp. 14-25, 27-33."
       }
     }
   },
@@ -204,7 +247,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Character Creation Overview</h1><p>Character Creation Overview is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 35-36. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Character Creation Overview</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"35\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"36\"></span>"
+          "content": "<h1>Character Creation Overview</h1><p>Character creation moves from mortal identity into divine identity. The source sequence starts with Occupation and Archetype, then moves into Dominion, Theology, Attachments, Truth, Skills, Manifestations, Specialties, and derived values.</p><p>Choice entries follow a consistent pattern: they provide story framing, mechanical grants, possible Attachments, Blessings, and Curses. Those choices are meant to create playable pressures, not just bonuses.</p><p>Foundry stores the choice data as structured Items so the creator can preview, apply, and audit grants instead of relying on loose text.</p><ul><li>Mortal side: Occupation and Archetype.</li><li>Divine side: Dominion, Theology, Truth, Attachments, and Entitlements.</li><li>Final setup: Skills, Manifestations, Specialties, derived resources, and concept notes.</li></ul><p><strong>Foundry support:</strong> module/data/premade-choices.mjs; module/apps/character-creator-app.mjs; module/sheets/character-sheet.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"35\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"36\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -221,7 +264,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 35,
             "sourcePageEnd": 36,
-            "safeSummary": "Character Creation Overview is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 35-36. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 35-36 covering the character creation sequence and choice formatting."
           }
         }
       },
@@ -235,7 +278,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Occupations: Academic, Blue Collar, and Creative</h1><p>Occupations: Academic, Blue Collar, and Creative is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 37-40. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Occupations: Academic, Blue Collar, and Creative</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"37\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"38\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"39\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"40\"></span>"
+          "content": "<h1>Occupations: Academic, Blue Collar, and Creative</h1><p>Occupation defines the character&#39;s working life and supplies starting Skills, Free Time, Wealth, Attachments, Blessing options, and Curse options. The source calls out that Occupation Free Time and Wealth matter later for going to work.</p><p>Academic careers emphasize study, expertise, and institutional ties. Blue Collar careers emphasize labor, craft, specialized practical knowledge, and endurance. Creative careers emphasize art, performance, vision, and public or personal expression.</p><p>The journal should point players to the structured career choices rather than duplicate every career block, because the Item data already carries the exact grant fields.</p><ul><li>Academic skills lean toward Crafts, Discipline, Knowledge, Perception, and Stealth.</li><li>Blue Collar skills lean toward Fighting, Fortitude, Might, Survival, and Travel.</li><li>Creative skills lean toward Crafts, Empathy, Marksman, Perform, and Speed.</li></ul><p><strong>Foundry support:</strong> packs/character-creation; templates/apps/character-creator.hbs; module/data/premade-choices.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"37\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"38\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"39\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"40\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -254,7 +297,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 37,
             "sourcePageEnd": 40,
-            "safeSummary": "Occupations: Academic, Blue Collar, and Creative is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 37-40. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 37-40 covering the Occupation step plus Academic, Blue Collar, and Creative career options."
           }
         }
       },
@@ -268,7 +311,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Occupations: Criminal, Fringe, Medical, and Peacekeepers</h1><p>Occupations: Criminal, Fringe, Medical, and Peacekeepers is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 41-45. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Occupations: Criminal, Fringe, Medical, and Peacekeepers</li><li>Criminal</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"41\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"42\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"43\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"44\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"45\"></span>"
+          "content": "<h1>Occupations: Criminal, Fringe, Medical, and Peacekeepers</h1><p>These occupation groups show how work creates both practical capability and social complication. Each career gives concrete resources and a suggested Attachment while tying the character to a different kind of mortal pressure.</p><p>Criminal careers focus on deception, influence, marksman skill, speed, and stealth. Fringe careers focus on surviving outside normal institutions. Medical careers combine care, discipline, knowledge, and the burden of limited free time.</p><p>Peacekeeper careers cover police, military, security, and similar roles where authority, duty, danger, and public trust can all become story hooks.</p><ul><li>Use Criminal careers for underworld access, danger, and reputation.</li><li>Use Fringe careers for outsiders, survival, and unconventional bonds.</li><li>Use Medical and Peacekeeper careers for duty, crisis work, and institutional obligations.</li></ul><p><strong>Foundry support:</strong> module/data/premade-choices.mjs; module/workflows/free-time-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"41\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"42\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"43\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"44\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"45\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -288,7 +331,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 41,
             "sourcePageEnd": 45,
-            "safeSummary": "Occupations: Criminal, Fringe, Medical, and Peacekeepers is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 41-45. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 41-45 covering Criminal, Fringe, Medical, and Peacekeeper occupation families."
           }
         }
       },
@@ -302,7 +345,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Occupations: Physical, Public Life, Unemployed, and White Collar</h1><p>Occupations: Physical, Public Life, Unemployed, and White Collar is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 46-50. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Occupations: Physical, Public Life, Unemployed, and White Collar</li><li>Level 2 &amp;quot;Geek Squad&amp;quot; (G)</li><li>Level 2 &amp;quot;My Office&amp;quot; (L)</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"46\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"47\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"48\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"49\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"50\"></span>"
+          "content": "<h1>Occupations: Physical, Public Life, Unemployed, and White Collar</h1><p>The second occupation group broadens mortal context from physical labor and public visibility to leisure, unemployment, office life, and high-pressure professional status.</p><p>Physical careers create direct action and training hooks. Public Life careers create reputation, public obligations, and audience pressure. Unemployed careers usually offer more Free Time but create different forms of dependency or instability.</p><p>White Collar careers tend to trade free time for wealth, influence, and institutional access. In play, these resources should create opportunities and demands, not just numbers on the sheet.</p><ul><li>Physical and Public Life careers are strong sources for scene-facing complications.</li><li>Unemployed careers are not empty; they create time, vulnerability, and social context.</li><li>White Collar careers bring money, office politics, and leverage.</li></ul><p><strong>Foundry support:</strong> module/data/premade-choices.mjs; module/workflows/story-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"46\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"47\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"48\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"49\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"50\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -322,7 +365,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 46,
             "sourcePageEnd": 50,
-            "safeSummary": "Occupations: Physical, Public Life, Unemployed, and White Collar is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 46-50. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 46-50 covering Physical, Public Life, Unemployed, and White Collar occupation families."
           }
         }
       },
@@ -336,7 +379,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Archetypes</h1><p>Archetypes is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 51-59. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Archetypes</li><li>Step Two: Archetype</li><li>+2 levels to Group Bond</li><li>+2 levels to Worshippers Entitlement</li><li>best spots to cut others off or lose a tail, the best</li><li>places to eat, and</li><li>who everyone is</li><li>in town. Gain a</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"51\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"52\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"53\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"54\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"55\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"56\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"57\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"58\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"59\"></span>"
+          "content": "<h1>Archetypes</h1><p>Archetype defines the character&#39;s mortal personality pattern. It is not only a label; it gives Attachments, Blessing options, and Curse options that show how the character behaves under pressure.</p><p>The source includes archetypes such as Caregiver, Companion, Dreamer, Fool, Hero, Lover, Rebel, Sage, Survivor, Trickster, Tyrant, and Wanderer. Each one turns a recognizable behavior into playable benefits and complications.</p><p>In Foundry, Archetype choice Items should be used for the actual grants, while this journal page orients the GM and player to what the step is doing.</p><ul><li>Pick Archetype for behavior and story pressure, not only for the strongest bonus.</li><li>Blessings are useful abilities or bonuses tied to the archetype.</li><li>Curses reward trouble by feeding Pantheon Dice when the flaw matters.</li></ul><p><strong>Foundry support:</strong> packs/character-creation; module/data/premade-choices.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"51\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"52\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"53\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"54\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"55\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"56\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"57\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"58\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"59\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -360,7 +403,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 51,
             "sourcePageEnd": 59,
-            "safeSummary": "Archetypes is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 51-59. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 51-59 covering Archetype selection, archetype Attachments, Blessings, and Curses."
           }
         }
       },
@@ -374,7 +417,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Dominions</h1><p>Dominions is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 60-66. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Dominions</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"60\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"61\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"62\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"63\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"64\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"65\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"66\"></span>"
+          "content": "<h1>Dominions</h1><p>Dominion selection gives the god a playable slice of reality. The source groups Dominions into categories so players can frame very broad ideas as concrete divine authority.</p><p>The listed categories include Bestial, Conceptual, Elemental, Emotional, Patron, and Crossover. Each category suggests examples, grants Manifestations, and offers Blessings and Curses that fit the way that Dominion acts in the world.</p><p>Specific Dominion Items in Foundry are prompt entries. The category choice carries the mechanical grants; the specific Dominion names help players describe what their god is actually about.</p><ul><li>Bestial and Elemental Dominions lean on creatures or forces.</li><li>Conceptual and Emotional Dominions lean on ideas and inner states.</li><li>Patron and Crossover Dominions lean on communities, roles, or overlapping concepts.</li></ul><p><strong>Foundry support:</strong> module/data/premade-choices.mjs; module/data/premade-items.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"60\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"61\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"62\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"63\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"64\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"65\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"66\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -396,7 +439,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 60,
             "sourcePageEnd": 66,
-            "safeSummary": "Dominions is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 60-66. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 60-66 covering Dominion categories, examples, Blessings, Curses, and Manifestation grants."
           }
         }
       },
@@ -410,7 +453,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Theologies: Ascendants, Cult of the Saints, and Drifting Kingdoms</h1><p>Theologies: Ascendants, Cult of the Saints, and Drifting Kingdoms is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 67-69, 72-73, 76-77. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Theologies: Ascendants, Cult of the Saints, and Drifting Kingdoms</li><li>Cult of the Saints</li><li>Drifting Kingdoms</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"67\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"68\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"69\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"72\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"73\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"76\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"77\"></span>"
+          "content": "<h1>Theologies: Ascendants, Cult of the Saints, and Drifting Kingdoms</h1><p>The Ascendants pursue the power and stature of old gods. Their play themes lean toward ambition, lost grandeur, divine hierarchy, and the temptation to become something less human.</p><p>The Cult of the Saints interprets godhood through service, faith, sacrifice, and sacred duty. Their Blessings and Curses often turn conviction into useful aid or a dangerous obligation.</p><p>The Drifting Kingdoms represent gods who survive through motion, change, territory shifts, and loose structures. They are useful for characters who resist stillness and fixed hierarchy.</p><ul><li>Ascendants ask what power is worth.</li><li>Saints ask what service demands.</li><li>Drifting Kingdoms ask whether freedom protects the god or keeps them isolated.</li></ul><p><strong>Foundry support:</strong> module/data/premade-choices.mjs; module/data/premade-items.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"67\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"68\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"69\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"72\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"73\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"76\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"77\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -432,7 +475,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 67,
             "sourcePageEnd": 77,
-            "safeSummary": "Theologies: Ascendants, Cult of the Saints, and Drifting Kingdoms is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 67-69, 72-73, 76-77. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 67-69, 72-73, and 76-77 covering three Theology options and their play themes."
           }
         }
       },
@@ -446,7 +489,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Theologies: Kunitsukami, Masks of Jana, and Order of Meskhenet</h1><p>Theologies: Kunitsukami, Masks of Jana, and Order of Meskhenet is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 80-81, 84-85, 88-89. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Theologies: Kunitsukami, Masks of Jana, and Order of Meskhenet</li><li>Masks of Jana</li><li>Order of Meskhenet</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"80\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"81\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"84\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"85\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"88\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"89\"></span>"
+          "content": "<h1>Theologies: Kunitsukami, Masks of Jana, and Order of Meskhenet</h1><p>The Kunitsukami center divine life on place, community, tradition, and the relationship between local spirits, human communities, and sacred duty.</p><p>The Masks of Jana focus on secrecy, cleanup, protection, and control of divine exposure. They are a strong fit when the character sees hidden work as a responsibility.</p><p>The Order of Meskhenet values lineage, Spark purity, inheritance, and traditional legitimacy. Their stories often turn on succession, prestige, and who deserves divine power.</p><ul><li>Kunitsukami tie the god to land and local spirits.</li><li>Masks of Jana tie the god to hidden guardianship and containment.</li><li>Order of Meskhenet tie the god to inheritance, pedigree, and obligation.</li></ul><p><strong>Foundry support:</strong> module/data/premade-choices.mjs; module/workflows/story-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"80\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"81\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"84\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"85\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"88\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"89\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -467,7 +510,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 80,
             "sourcePageEnd": 89,
-            "safeSummary": "Theologies: Kunitsukami, Masks of Jana, and Order of Meskhenet is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 80-81, 84-85, 88-89. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 80-81, 84-85, and 88-89 covering three Theology options and their play themes."
           }
         }
       },
@@ -481,7 +524,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Theologies: Phoenix Society, Puck-Eaters, and Warlock&#39;s Fate</h1><p>Theologies: Phoenix Society, Puck-Eaters, and Warlock&#39;s Fate is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 92-93, 96-97, 100-101. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Theologies: Phoenix Society, Puck-Eaters, and Warlock&amp;#39;s Fate</li><li>Phoenix Society</li><li>Warlock&amp;#39;s Fate</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"92\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"93\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"96\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"97\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"100\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"101\"></span>"
+          "content": "<h1>Theologies: Phoenix Society, Puck-Eaters, and Warlock&#39;s Fate</h1><p>The Phoenix Society puts humanity first and treats divine power as something that should serve mortal survival and flourishing. Their stories often test whether a god can stay close to ordinary human life.</p><p>The Puck-Eaters are dangerous pragmatists who confront Outsiders and divine threats with harsh methods. Their themes include consumption, survival, and the risk of becoming monstrous while fighting monsters.</p><p>Warlock&#39;s Fate studies magic, relics, realms, and the structure of reality. They are the Theology most tied to research, experiments, lost lore, and the mystery of the Source.</p><ul><li>Phoenix Society creates strong mortal-contact pressure.</li><li>Puck-Eaters create Outsider conflict and hard choices.</li><li>Warlock&#39;s Fate creates research hooks, relic hunts, and Otherworld travel goals.</li></ul><p><strong>Foundry support:</strong> module/data/premade-choices.mjs; module/data/premade-roll-tables.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"92\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"93\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"96\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"97\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"100\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"101\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -502,7 +545,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 92,
             "sourcePageEnd": 101,
-            "safeSummary": "Theologies: Phoenix Society, Puck-Eaters, and Warlock's Fate is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 92-93, 96-97, 100-101. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 92-93, 96-97, and 100-101 covering three Theology options and their play themes."
           }
         }
       },
@@ -516,7 +559,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Attachments and Bonds</h1><p>Attachments and Bonds is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 104-107. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Attachments and Bonds</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"104\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"105\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"106\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"107\"></span>"
+          "content": "<h1>Attachments and Bonds</h1><p>Attachments are the people, groups, places, and divine ties that keep a god invested in the world. Bonds are mortal-side Attachments, and Entitlements are divine-side Attachments.</p><p>Individual, Group, and Landmark Bonds behave differently in fiction, but all can take Strain when used, ignored, endangered, or damaged. Strain turns relationships into resources with costs.</p><p>The source gives follow-up actions and examples for asking Bonds for aid. Foundry should keep the Bond visible, track its level and Strain, and expose its action notes cleanly.</p><ul><li>Individual Bonds are people.</li><li>Group Bonds are communities or organizations.</li><li>Landmark Bonds are important places.</li></ul><p><strong>Foundry support:</strong> templates/actor/parts/item-list.hbs; module/workflows/story-workflow.mjs; templates/item/item-sheet.hbs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"104\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"105\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"106\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"107\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -535,7 +578,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 104,
             "sourcePageEnd": 107,
-            "safeSummary": "Attachments and Bonds is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 104-107. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 104-107 covering Attachments, Bond types, Strain, favors, and follow-up actions."
           }
         }
       },
@@ -549,7 +592,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Failings</h1><p>Failings is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 108-110. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Failings</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"108\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"109\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"110\"></span>"
+          "content": "<h1>Failings</h1><p>Failings are flaws, bad habits, obligations, or vulnerable patterns that create trouble for the character. They are not purely punitive; they create moments where the table can reward complication.</p><p>When a Failing meaningfully makes the character&#39;s life worse, the group gains Pantheon Dice. That turns roleplayed weakness into a shared resource and gives players a reason to let flaws matter.</p><p>Foundry stores Failings as curse-type Item data so the trigger can be read, edited, and displayed without being squeezed into a short text field.</p><ul><li>A Failing should be concrete enough for the GM to invoke.</li><li>The trigger should describe table-visible trouble.</li><li>The reward is group-facing through Pantheon Dice.</li></ul><p><strong>Foundry support:</strong> module/data/premade-items.mjs; module/workflows/pantheon-pool-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"108\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"109\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"110\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -567,7 +610,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 108,
             "sourcePageEnd": 110,
-            "safeSummary": "Failings is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 108-110. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 108-110 covering Failings as personal weaknesses and Pantheon Dice triggers."
           }
         }
       },
@@ -581,7 +624,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Relics</h1><p>Relics is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 111-115. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Relics</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"111\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"112\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"113\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"114\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"115\"></span>"
+          "content": "<h1>Relics</h1><p>Relics are divine artifacts that carry old power, special permissions, and story weight. They may provide bonuses, powers, weapon or armor qualities, access to other realms, or strange conditions.</p><p>The source treats Relics as more than gear. Ownership, attunement, theft, binding, and side effects can all become story hooks, especially because modern gods cannot simply create the great artifacts of old at will.</p><p>Foundry Relic Items need enough space for concept, source, qualities, powers, conditions, and GM-facing notes.</p><ul><li>Use Relics for artifacts with divine history or unique permissions.</li><li>Track any quality, cost, condition, or activation hook in structured fields.</li><li>Use the Binding ritual when a Relic&#39;s loyalty or location matters.</li></ul><p><strong>Foundry support:</strong> module/data/premade-items.mjs; templates/item/item-sheet.hbs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"111\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"112\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"113\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"114\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"115\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -601,7 +644,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 111,
             "sourcePageEnd": 115,
-            "safeSummary": "Relics is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 111-115. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 111-115 covering Relics, attunement, conditions, powers, qualities, and item costs."
           }
         }
       },
@@ -615,7 +658,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Truths</h1><p>Truths is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 116-120. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Truths</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"116\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"117\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"118\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"119\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"120\"></span>"
+          "content": "<h1>Truths</h1><p>Truths are statements about the god that reality accepts as true. They are not ordinary opinions; they establish supernatural facts, permissions, or repeatable abilities.</p><p>A Truth should connect to the character&#39;s myth, Dominion, and behavior at the table. The source gives examples that combine a short statement with a benefit, cost, or activation procedure.</p><p>In Foundry, Truth Items should display the statement, trigger, benefit, and action cost without truncation, because players often need to read the full condition during play.</p><ul><li>A Truth should be concise enough to remember.</li><li>Its rule effect should be clear enough to invoke.</li><li>Costs and triggers should be visible on the actor sheet.</li></ul><p><strong>Foundry support:</strong> templates/actor/character-sheet.hbs; templates/item/item-sheet.hbs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"116\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"117\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"118\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"119\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"120\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -635,7 +678,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 116,
             "sourcePageEnd": 120,
-            "safeSummary": "Truths is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 116-120. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 116-120 covering Truths as universal statements about a god with mechanical benefits."
           }
         }
       },
@@ -649,7 +692,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Vassals and Worshippers</h1><p>Vassals and Worshippers is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 121-124. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Vassals and Worshippers</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"121\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"122\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"123\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"124\"></span>"
+          "content": "<h1>Vassals and Worshippers</h1><p>Vassals are mythic creatures or supernatural servants tied to the god. Worshippers are mortals who give prayer, support, attention, and pressure in exchange for answered needs.</p><p>Both can help the god, but their help is not free. Requests, prayer support, strain, availability, belief, and story obligations all matter when deciding what they can do.</p><p>Foundry represents Worshippers and Vassals as Items, with Vassal actor templates for cases where the servant needs a stat block in a scene.</p><ul><li>Worshippers provide prayer, aid, and mortal pressure.</li><li>Vassals provide mythic support, tasks, and sometimes combat presence.</li><li>Requests should generate chat cards or workflow prompts so the cost is visible.</li></ul><p><strong>Foundry support:</strong> module/data/premade-items.mjs; module/data/premade-actors.mjs; module/workflows/story-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"121\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"122\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"123\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"124\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -668,7 +711,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 121,
             "sourcePageEnd": 124,
-            "safeSummary": "Vassals and Worshippers is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 121-124. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 121-124 covering Vassals, Worshippers, requests, prayers, and strain-based support."
           }
         }
       },
@@ -682,7 +725,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Final Touches and Advancement</h1><p>Final Touches and Advancement is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 125-131, 133-135. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Final Touches and Advancement</li><li>Nearby Locations</li><li>Manifestation Bonuses</li><li>Experience Spending Chart</li><li>Cost</li><li>XP Expenditure</li><li>4 XP</li><li>Bonds (Level 1-4)</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"125\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"126\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"127\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"128\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"129\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"130\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"131\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"133\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"134\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"135\"></span>"
+          "content": "<h1>Final Touches and Advancement</h1><p>Final touches turn the chosen concept into complete numbers. Players assign Skill points, Manifestation points, Specialties, derived values, health, psyche, Spark-related resources, and final descriptive details.</p><p>The source also explains advancement: characters improve through experience, raise abilities, deepen divine power, and can lose or recover parts of their divinity through major story events.</p><p>Foundry should calculate derived values where possible and keep source-granted options visible so manual final choices can be checked instead of guessed.</p><ul><li>Track assigned Skill and Manifestation points separately from choice grants.</li><li>Specialties are narrow bonuses and should remain readable on the sheet.</li><li>Spark and Fragments are core divine resources and must stay visible in play.</li></ul><p><strong>Foundry support:</strong> module/documents/models/actor/character-model.mjs; module/sheets/character-sheet.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"125\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"126\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"127\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"128\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"129\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"130\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"131\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"133\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"134\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"135\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -707,7 +750,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 125,
             "sourcePageEnd": 135,
-            "safeSummary": "Final Touches and Advancement is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 125-131, 133-135. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 125-131 and 133-135 covering final character math, Skills, Manifestations, Specialties, Spark, Fragments, and advancement."
           }
         }
       }
@@ -741,7 +784,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Natural Gifts, Spark, and Divine Limits</h1><p>Natural Gifts, Spark, and Divine Limits is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 137-142. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Natural Gifts, Spark, and Divine Limits</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"137\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"138\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"139\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"140\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"141\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"142\"></span>"
+          "content": "<h1>Natural Gifts, Spark, and Divine Limits</h1><p>Chapter 3 begins with what the Spark gives every god before they use formal Manifestations. Natural gifts cover divine durability, perception, presence, and the way a god interacts with supernatural reality.</p><p>Spark measures divine potency, while Fragments fuel powerful effects, risks, and sacrifices. Losing Fragments can reduce Spark, and reaching zero Spark means the god loses divinity.</p><p>The source also establishes limits: gods are powerful but not unlimited, and divine action still needs costs, fictional permissions, resistance, or consequences.</p><ul><li>Use Spark as a scale of divine power.</li><li>Use Fragments as spendable and losable divine fuel.</li><li>Use Legendary Acts and limits as GM-facing story tools.</li></ul><p><strong>Foundry support:</strong> templates/actor/character-sheet.hbs; module/workflows/damage-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"137\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"138\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"139\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"140\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"141\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"142\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -762,7 +805,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 137,
             "sourcePageEnd": 142,
-            "safeSummary": "Natural Gifts, Spark, and Divine Limits is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 137-142. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 137-142 covering natural divine gifts, Spark, Fragments, Legendary Acts, and limits on divine power."
           }
         }
       },
@@ -776,7 +819,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Manifestation Rules</h1><p>Manifestation Rules is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 143-147. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Manifestation Rules</li><li>Area Affected</li><li>Duration</li><li>Devoted Successes</li><li>Effect</li><li>One small room/area</li><li>One building</li><li>1-mile area</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"143\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"144\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"145\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"146\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"147\"></span>"
+          "content": "<h1>Manifestation Rules</h1><p>Manifestations are divine skills used to manipulate a Dominion. A typical divine check combines a Manifestation with an appropriate Skill, then spends successes on Measures such as damage, range, targets, duration, scale, detail, magnitude, modifier, area, or trigger.</p><p>The source emphasizes GM adjudication. Dominion fit, resistance, Backlash, bonuses, tools, Relics, Territory, and Pantheon Pool support can all change how a Manifestation works.</p><p>Critical failure on a Manifestation can create Backlash, turning the failed divine attempt into harmful or uncontrolled effects.</p><ul><li>Pick the Manifestation for what the god is doing.</li><li>Pick the Skill for how the god does it.</li><li>Spend successes on Measures to size, aim, sustain, or shape the effect.</li></ul><p><strong>Foundry support:</strong> module/data/premade-items.mjs; module/apps/skill-combo-dialog.mjs; module/dice/ptg-dice-engine.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"143\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"144\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"145\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"146\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"147\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -796,7 +839,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 143,
             "sourcePageEnd": 147,
-            "safeSummary": "Manifestation Rules is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 143-147. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 143-147 covering Manifestation checks, Measures, Backlash, bonuses, resistance, and costs."
           }
         }
       },
@@ -810,7 +853,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Manifestation Skills: Aegis, Beckon, Journey, Minion, and Oracle</h1><p>Manifestation Skills: Aegis, Beckon, Journey, Minion, and Oracle is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 148-157. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Manifestation Skills: Aegis, Beckon, Journey, Minion, and Oracle</li><li>Damage,</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"148\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"149\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"150\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"151\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"152\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"153\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"154\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"155\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"156\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"157\"></span>"
+          "content": "<h1>Manifestation Skills: Aegis, Beckon, Journey, Minion, and Oracle</h1><p>Aegis protects, warns, and purges. Beckon summons, banishes, and multiplies. Journey moves the god or target through space, allows phasing, and supports swift movement.</p><p>Minion grants, enchants, or animates lesser agents. Oracle senses areas, reads minds, and looks across time. Each application has suggested checks and common Measures in the source.</p><p>Foundry stores detailed application guidance as rules-reference journal pages while base Manifestation Items remain the draggable power entries. The journal pages preserve likely Skills and Measures while still allowing GM adjustment.</p><ul><li>Aegis: Protection Field, Purge, Warning.</li><li>Beckon and Journey: Banish, Multiply, Summon, Blink, Phasing, Swift.</li><li>Minion and Oracle: Bestow, Enchant, Instill Life, Area Sense, Read Minds, Temporal View.</li></ul><p><strong>Foundry support:</strong> module/data/premade-journals.mjs; module/apps/skill-combo-dialog.mjs; base Manifestation Items.</p><span class=\"ptg-source-page-marker\" data-book-page=\"148\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"149\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"150\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"151\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"152\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"153\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"154\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"155\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"156\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"157\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -835,7 +878,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 148,
             "sourcePageEnd": 157,
-            "safeSummary": "Manifestation Skills: Aegis, Beckon, Journey, Minion, and Oracle is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 148-157. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 148-157 covering five Manifestation families and their applications."
           }
         }
       },
@@ -849,7 +892,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Manifestation Skills: Puppetry, Ruin, Shaping, and Soul</h1><p>Manifestation Skills: Puppetry, Ruin, Shaping, and Soul is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 158-165. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Manifestation Skills: Puppetry, Ruin, Shaping, and Soul</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"158\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"159\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"160\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"161\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"162\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"163\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"164\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"165\"></span>"
+          "content": "<h1>Manifestation Skills: Puppetry, Ruin, Shaping, and Soul</h1><p>Puppetry controls, manipulates, or transfers influence. Ruin destroys, curses, blasts, and forces divine harm. Shaping changes ambience, matter, vessels, and the surrounding form of things.</p><p>Soul reaches spirits, identity, memory, emotion, and personhood through applications such as Call Spirit, Figments, and Redefine.</p><p>These applications can be broad, so source-backed journal metadata should guide suggested checks while leaving final costs, resistance, and consequences to the GM.</p><ul><li>Puppetry: Manipulation, Marionette, Transfer.</li><li>Ruin: Blast, Geas, Warrior.</li><li>Shaping and Soul: Ambience, Transmutation, Vessel, Call Spirit, Figments, Redefine.</li></ul><p><strong>Foundry support:</strong> module/data/premade-journals.mjs; module/apps/skill-combo-dialog.mjs; base Manifestation Items.</p><span class=\"ptg-source-page-marker\" data-book-page=\"158\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"159\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"160\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"161\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"162\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"163\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"164\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"165\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -872,7 +915,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 158,
             "sourcePageEnd": 165,
-            "safeSummary": "Manifestation Skills: Puppetry, Ruin, Shaping, and Soul is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 158-165. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 158-165 covering four Manifestation families and their applications."
           }
         }
       },
@@ -886,7 +929,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Rituals and Otherworlds</h1><p>Rituals and Otherworlds is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 166-173. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Rituals and Otherworlds</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"166\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"167\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"168\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"169\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"170\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"171\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"172\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"173\"></span>"
+          "content": "<h1>Rituals and Otherworlds</h1><p>Rituals are universal divine workings that require ceremony, Free Time, and sometimes Fragments. They are not tied to a god&#39;s Dominion the same way Manifestation applications are, though a god&#39;s symbolism can color how the ritual looks.</p><p>The source groups rituals into Territory rituals, Spark rituals, and Otherworldly rituals. Existing premade Power Items cover the individual rituals such as Admittance, Bolster, Challenge, Detection, Dowsing, Temporary Convergence, Binding, Divination, Pocket Realm, and Portal.</p><p>Otherworld travel belongs here as procedure, not as standalone power Items. Travel through the Ways is an adventure with stages, each costing 1 Free Time and using a Skill + Skill check; success and failure alter the remaining journey rather than simply stopping it.</p><ul><li>Portal stage: Knowledge + Influence for planning and entry into the Ways.</li><li>Path and Crossroads stages: Travel + Intuition, then Survival + Travel for navigation, hazards, and intervening realms.</li><li>Outsiders and Realm stages: Stealth + Perception, then Discipline + Tech for avoiding threats and arriving somewhere meaningful.</li></ul><p><strong>Foundry support:</strong> module/data/premade-items.mjs for ritual Items; rules-reference journal for Ways travel; module/workflows/story-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"166\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"167\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"168\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"169\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"170\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"171\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"172\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"173\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -909,7 +952,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 166,
             "sourcePageEnd": 173,
-            "safeSummary": "Rituals and Otherworlds is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 166-173. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 166-173 covering universal rituals, otherworldly rituals, realms, the Ways, and staged Otherworld travel."
           }
         }
       }
@@ -943,7 +986,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Blessings, Curses, and the Skill-Combo System</h1><p>Blessings, Curses, and the Skill-Combo System is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 175-177. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Blessings, Curses, and the Skill-Combo System</li><li>Skill Name Athletics Crafts Deception</li><li>Discipline Empathy Fighting Fortitude Influence</li><li>Intuition Knowledge Marksman Medicine Might Perception</li><li>Perform Speed Stealth Survival Tech</li><li>Travel</li><li>Used for local knowledge and vehicle operation</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"175\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"176\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"177\"></span>"
+          "content": "<h1>Blessings, Curses, and the Skill-Combo System</h1><p>Blessings are positive traits from character choices, while Curses create trouble that can feed the Pantheon Pool. Both should be read as table-facing prompts as much as mechanical modifiers.</p><p>The Skill-Combo system asks the table to combine two relevant Skills for a mundane check, or a Skill and Manifestation for divine power. The source also establishes how Critical Failures create consequences.</p><p>Foundry should expose Blessing and Curse triggers clearly and keep the combo dialog scrollable so long skill descriptions remain usable.</p><ul><li>Blessings usually grant a bonus, permission, or special action.</li><li>Curses create Pantheon Dice when the flaw complicates play.</li><li>Critical Failure effects should be rolled, selected, or adjudicated from source-backed options.</li></ul><p><strong>Foundry support:</strong> module/apps/skill-combo-dialog.mjs; module/data/premade-items.mjs for Blessing and Curse Items; module/data/premade-roll-tables.mjs and rules-reference journals for Critical Failure Effects.</p><span class=\"ptg-source-page-marker\" data-book-page=\"175\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"176\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"177\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -961,7 +1004,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 175,
             "sourcePageEnd": 177,
-            "safeSummary": "Blessings, Curses, and the Skill-Combo System is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 175-177. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 175-177 covering Blessings, Curses, Skill combos, and Critical Failure consequences."
           }
         }
       },
@@ -975,7 +1018,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Skill List</h1><p>Skill List is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 178-182. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Skill List</li><li>Forming A Combo</li><li>The most important Skill in the combo is designated</li><li>as the Primary Skill, what they are doing, while the</li><li>other one is the Secondary Skill, which assists or adds</li><li>style to the action. The player can offer suggestions</li><li>GM CHOICE OR BY</li><li>suspicious type, she may have approached the</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"178\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"179\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"180\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"181\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"182\"></span>"
+          "content": "<h1>Skill List</h1><p>The Skill list gives the vocabulary for mundane action. Skills cover social, physical, mental, technical, travel, survival, combat, and perceptive activity.</p><p>The source explains that checks form combos from two Skills. A Specialty can apply to a narrower use and add a bonus when the exact situation fits.</p><p>Foundry&#39;s skill config and roll dialogs should make the list easy to scan, searchable by label, and consistent with the character sheet.</p><ul><li>Use the first Skill for the main approach.</li><li>Use the second Skill for method, support, or context.</li><li>Use Specialties only when the narrow situation matches.</li></ul><p><strong>Foundry support:</strong> module/config/skills.mjs; module/apps/skill-combo-dialog.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"178\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"179\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"180\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"181\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"182\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -995,7 +1038,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 178,
             "sourcePageEnd": 182,
-            "safeSummary": "Skill List is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 178-182. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 178-182 covering the twenty Skills, combos, and Specialties."
           }
         }
       },
@@ -1009,7 +1052,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Rolling Dice and Checks</h1><p>Rolling Dice and Checks is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 183-186. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Rolling Dice and Checks</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"183\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"184\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"185\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"186\"></span>"
+          "content": "<h1>Rolling Dice and Checks</h1><p>Checks roll d10 pools and count successes against difficulty. Modifiers can add or remove dice, while the Fate Die keeps a zero-die check from becoming impossible to roll.</p><p>The source covers simple checks, opposed checks, extended checks, support, Boosts, Critical Failure, Specialties, Tools, and repetitive Skill use. These rules decide how much momentum or complication a roll creates.</p><p>Foundry&#39;s roll cards should show the pool, successes, difficulty, applied modifiers, and critical-failure state clearly enough that the table can resolve the scene without rereading the chapter.</p><ul><li>Difficulty ranges from easy tasks to extreme or legendary tasks.</li><li>Boosts turn extra success into added benefits or shared dice.</li><li>Support, tools, and specialties should be visible as roll modifiers.</li></ul><p><strong>Foundry support:</strong> module/dice/ptg-dice-engine.mjs; templates/chat/roll-card.hbs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"183\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"184\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"185\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"186\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1028,7 +1071,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 183,
             "sourcePageEnd": 186,
-            "safeSummary": "Rolling Dice and Checks is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 183-186. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 183-186 covering dice pools, difficulties, boosts, penalties, opposed and extended checks, support, specialties, tools, and repetition."
           }
         }
       },
@@ -1042,7 +1085,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Pantheon Pool, Strength, and Movement</h1><p>Pantheon Pool, Strength, and Movement is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 187-189. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Pantheon Pool, Strength, and Movement</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"187\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"188\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"189\"></span>"
+          "content": "<h1>Pantheon Pool, Strength, and Movement</h1><p>The Pantheon Pool is a shared dice resource. Players can add to it through Curses, Boosts, and other effects, then spend from it when the group agrees the moment matters.</p><p>Strength and Movement translate character scale into practical action. Strength handles carrying, lifting, breaking, and similar feats; Movement covers speed, travel across terrain, and chase-like situations.</p><p>Foundry support should keep the shared pool visible, preserve spending history in chat, and expose Strength and Movement as readable derived values.</p><ul><li>Pantheon Pool is group-facing and should not be hidden in a single actor.</li><li>Strength handles physical scale and feats.</li><li>Movement handles speed, positioning, and travel pressure.</li></ul><p><strong>Foundry support:</strong> module/workflows/pantheon-pool-workflow.mjs; templates/actor/pantheon-sheet.hbs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"187\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"188\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"189\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1060,7 +1103,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 187,
             "sourcePageEnd": 189,
-            "safeSummary": "Pantheon Pool, Strength, and Movement is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 187-189. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 187-189 covering Pantheon Pool use, Strength, feats of strength, and movement."
           }
         }
       },
@@ -1074,7 +1117,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Free Time and Wealth</h1><p>Free Time and Wealth is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 190-192. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Free Time and Wealth</li><li>Item/Services Lists</li><li>Cost 0</li><li>Free (which is never a bad thing, right?)</li><li>Cost 1</li><li>Cheap or easily accessible (most things)</li><li>Cost 2 Cost 3</li><li>Costly items or luxury services Pricey items or hard to find items</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"190\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"191\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"192\"></span>"
+          "content": "<h1>Free Time and Wealth</h1><p>Free Time measures a character&#39;s available time and attention, while Wealth measures ready purchasing power. The source uses both to make ordinary life compete with divine demands.</p><p>Free Time pays for travel, scenes, rituals, and recovery. Wealth pays for goods, services, and shortcuts. Going to Work restores resources based on Occupation values and can create its own fiction.</p><p>Foundry should keep Free Time and Wealth visible on character sheets and make workflow prompts explicit when a ritual, travel choice, or downtime action spends them.</p><ul><li>Free Time is time pressure, not just a counter.</li><li>Wealth is purchasing power and social access.</li><li>Going to Work links downtime back to the character&#39;s Occupation.</li></ul><p><strong>Foundry support:</strong> module/workflows/free-time-workflow.mjs; module/sheets/character-sheet.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"190\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"191\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"192\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1092,7 +1135,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 190,
             "sourcePageEnd": 192,
-            "safeSummary": "Free Time and Wealth is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 190-192. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 190-192 covering Free Time, Wealth, costs, travel, scenes, and going to work."
           }
         }
       },
@@ -1106,7 +1149,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Interacting with Attachments and Territory</h1><p>Interacting with Attachments and Territory is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 193-195. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Interacting with Attachments and Territory</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"193\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"194\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"195\"></span>"
+          "content": "<h1>Interacting with Attachments and Territory</h1><p>Attachment interaction lets characters lean on Bonds and Entitlements, but the source makes strain and neglect matter. Asking too much, ignoring needs, or using support at the wrong time can damage the relationship.</p><p>Territory interaction turns the map into play space. Spheres of Influence, movement on the grid, contested areas, and known or hidden information help the GM make divine geography active.</p><p>Foundry should connect actor data, territory points, and scene overlays so the GM can adjust the territory while players see the relevant scene state.</p><ul><li>Attachment actions should show cost, Strain, and benefit.</li><li>Territory grid positions should carry public and GM-only notes.</li><li>Movement and influence are scene procedures, not just decorative map data.</li></ul><p><strong>Foundry support:</strong> module/apps/territory-grid-app.mjs; module/workflows/story-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"193\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"194\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"195\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1124,7 +1167,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 193,
             "sourcePageEnd": 195,
-            "safeSummary": "Interacting with Attachments and Territory is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 193-195. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 193-195 covering Attachment interaction, Strain, Territory interaction, Spheres of Influence, and moving on the grid."
           }
         }
       }
@@ -1158,7 +1201,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Timing, Initiative, and Turns</h1><p>Timing, Initiative, and Turns is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 197-199. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Timing, Initiative, and Turns</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"197\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"198\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"199\"></span>"
+          "content": "<h1>Timing, Initiative, and Turns</h1><p>Divine Battles structure high-pressure conflicts into timing, initiative, rounds, and turns. Initiative determines when characters act, and the turn sequence gives each participant space to take actions and defenses.</p><p>The source distinguishes Quick and Standard actions and defenses. Characters can prepare, react, move, attack, defend, and use divine powers depending on the battle context.</p><p>Foundry combat tracker integration should use the system initiative formula and preserve manual GM control for unusual divine timing.</p><ul><li>Roll initiative at the start of battle or round as the GM requires.</li><li>Track Quick and Standard action use visibly.</li><li>Keep initiative modifiers from Blessings and gear available to automation.</li></ul><p><strong>Foundry support:</strong> module/combat/ptg-combat.mjs; module/data/premade-items.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"197\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"198\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"199\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1176,7 +1219,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 197,
             "sourcePageEnd": 199,
-            "safeSummary": "Timing, Initiative, and Turns is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 197-199. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 197-199 covering battle timing, initiative, rounds, turns, and action economy."
           }
         }
       },
@@ -1190,7 +1233,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Actions and Defenses</h1><p>Actions and Defenses is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 200-203. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Actions and Defenses</li><li>Free Time and Battles Bonus dice gained by spending Free</li><li>Time can be a useful tool during a</li><li>particularly difficult Battle. Within the</li><li>Battle of Fists Actions/</li><li>context of the game, spending Free</li><li>organizations looking to take out any kind of competition,</li><li>Surviving a Battle of Fists is literally a life or death situation. While</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"200\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"201\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"202\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"203\"></span>"
+          "content": "<h1>Actions and Defenses</h1><p>Actions and defenses split into Battle of Fists and Battle of Wits. Fists covers physical conflict, while Wits covers social, psychological, and tactical pressure.</p><p>Each battle mode uses the same action economy: Quick Actions, Standard Actions, Quick Defenses, and Standard Defenses. These are rules procedures available to combatants, not powers that should live as owned Items.</p><p>The dedicated Battle of Fists and Battle of Wits journal pages list the source-backed procedures. Use the Foundry combat tracker, PTG Combat Controls, and damage workflow to resolve initiative, roll results, Health or Psyche damage, armor, and Conditions.</p><ul><li>Fists procedures include Feint, Move, Close Combat Attack, Dodge, Block, and Run for Cover.</li><li>Wits procedures include Mislead, Read the Room, Fast Talk, Frighten, Laugh It Off, and Stand My Ground.</li><li>Divine Powers can appear in either battle mode when the fiction supports them.</li></ul><p><strong>Foundry support:</strong> module/combat/ptg-combat.mjs; module/workflows/damage-workflow.mjs; module/apps/skill-combo-dialog.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"200\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"201\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"202\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"203\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1209,7 +1252,70 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 200,
             "sourcePageEnd": 203,
-            "safeSummary": "Actions and Defenses is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 200-203. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 200-203 covering action economy plus Battle of Fists and Battle of Wits procedure pages as journal rules, not Items."
+          }
+        }
+      },
+      {
+        "name": "Battle of Fists Actions and Defenses",
+        "type": "text",
+        "sort": 210000,
+        "title": {
+          "show": true,
+          "level": 2
+        },
+        "text": {
+          "format": 1,
+          "content": "<h1>Battle of Fists Actions and Defenses</h1><p>Battle of Fists covers physical conflict: close attacks, ranged attacks, grabs, movement, cover, protecting allies, and defensive reactions.</p><p>These entries are rules procedures rather than reusable powers. Use them from this journal page and resolve the roll or damage through PTG Combat Controls, the character sheet, or the GM&#39;s combat workflow.</p><h3>Quick Actions</h3><ul><li><strong>Feint:</strong> Fighting + Deception. Throw the opponent off balance; success sets up a later attack bonus.</li><li><strong>Move:</strong> No roll by default. Move up to the character&#39;s Movement as the Quick Action.</li><li><strong>Prepare:</strong> No roll by default. Reload, draw a weapon, stand up, or set up the next battle step.</li><li><strong>Pulling Punches:</strong> Fighting + Medicine. Hold back harm so the next Standard Action sends a message without full damage.</li><li><strong>Resist Condition:</strong> Varies by fiction. Use the Quick Action to resist a Condition when its recovery calls for a check.</li><li><strong>Touch:</strong> Fighting + Speed. Touch a target without a full attack, often to deliver another effect.</li></ul><h3>Standard Actions</h3><ul><li><strong>Ambush:</strong> Stealth + varies. Attack from hiding with a Secondary Skill that fits the weapon or method.</li><li><strong>Close Combat Attack:</strong> Fighting + Speed. Attack unarmed or with a melee weapon.</li><li><strong>Disarm:</strong> Fighting + Perception. Knock away or strip a target&#39;s wielded weapon and benefits.</li><li><strong>Grab or Break Grab:</strong> Might + Speed. Start or escape a grapple and apply the grab&#39;s physical pressure.</li><li><strong>Protect:</strong> Fighting + Fortitude. Step in front of an attack meant for someone else and reduce damage by the result.</li><li><strong>Ranged Attack:</strong> Marksman + Perception. Shoot or fire a ranged weapon using range and weapon quality rules.</li><li><strong>Sprint:</strong> No roll by default. Move at triple Movement, with danger if leaving close combat.</li><li><strong>Tackle:</strong> Might + Speed. Bring the target down and deal normal damage, with attacker risk unless a Boost changes it.</li><li><strong>Throwing Attack:</strong> Marksman + Athletics. Throw a weapon at a target using the Range rules.</li><li><strong>Divine Powers:</strong> Varies by fiction. Use a Manifestation, Truth, or other divine ability that fits a Battle of Fists.</li></ul><h3>Defenses</h3><ul><li><strong>Brace:</strong> No roll by default. Improve protection against impact or punish a Sprinting attacker if the defense wins.</li><li><strong>Catch:</strong> Athletics + Speed. Catch a falling target or incoming object; sharp targets can impose danger.</li><li><strong>Prepare:</strong> No roll by default. Ready a defensive tool, position, or item.</li><li><strong>Block:</strong> Fighting + Speed. Block an incoming physical attack with body, weapon, or shield.</li><li><strong>Dodge:</strong> Athletics + Speed. Move out of the way of a close or physical attack.</li><li><strong>Run for Cover:</strong> Intuition + Speed. Reach cover that may absorb or reduce the attack when the fiction supports it.</li><li><strong>Divine Powers:</strong> Varies by fiction. Use a defensive Manifestation or divine ability such as Aegis or Soul.</li></ul><p><strong>Foundry support:</strong> module/combat/ptg-combat.mjs; module/workflows/damage-workflow.mjs; module/apps/skill-combo-dialog.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"200\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"201\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"202\"></span>"
+        },
+        "flags": {
+          "part-time-gods": {
+            "premade": true,
+            "kind": "rules-reference",
+            "ruleTopic": "battle-of-fists-actions-and-defenses",
+            "sourcePdf": "Part-Time Gods 2e (Updated).pdf",
+            "sourcePages": [
+              200,
+              201,
+              202
+            ],
+            "slug": "battle-of-fists-actions-and-defenses",
+            "sourceId": "journal-page:rules-reference:battle-of-fists-actions-and-defenses",
+            "sourceBook": "Part-Time Gods Second Edition",
+            "sourcePageStart": 200,
+            "sourcePageEnd": 202,
+            "safeSummary": "Source-backed journal rules for PTG2E book pp. 200-202 covering Battle of Fists Quick Actions, Standard Actions, Quick Defenses, and Standard Defenses."
+          }
+        }
+      },
+      {
+        "name": "Battle of Wits Actions and Defenses",
+        "type": "text",
+        "sort": 220000,
+        "title": {
+          "show": true,
+          "level": 2
+        },
+        "text": {
+          "format": 1,
+          "content": "<h1>Battle of Wits Actions and Defenses</h1><p>Battle of Wits covers social, mental, tactical, and emotional conflict. These actions can damage Psyche, create or resist social Conditions, reveal leverage, or shift momentum.</p><p>These entries belong in the rules-reference journal because they are procedures for a conflict mode, not powers that a character owns. Use the combat and damage workflows to resolve the actual roll, damage, and Condition effects.</p><h3>Quick Actions</h3><ul><li><strong>Mislead:</strong> Influence + Deception. Twist words to distract the target and make the next mental attack harder to defend.</li><li><strong>Present Evidence:</strong> No roll by default. Reveal evidence as a mental weapon for a limited number of turns.</li><li><strong>Read the Room:</strong> Empathy + Survival. Assess openings and disposition; success helps later pressure.</li><li><strong>Resist Condition:</strong> Varies by fiction. Use the Quick Action to resist a mental or social Condition.</li><li><strong>Shout Out:</strong> No roll by default. Give an order, warning, or suggestion while staying in the exchange.</li><li><strong>Taunt:</strong> Deception + Discipline. Provoke the target to set up Fast Talk, with risk if it fails.</li></ul><h3>Standard Actions</h3><ul><li><strong>Compose:</strong> Discipline + Empathy. Steady the mind and ignore incoming mental damage from the next attack.</li><li><strong>Encourage:</strong> Intuition + Perception. Help an ally ignore part of a Condition for the moment.</li><li><strong>Escalate:</strong> Intuition + Empathy. Push a situation or existing Condition over the edge.</li><li><strong>Fast Talk:</strong> Varies + Speed. Talk around, over-explain, or redirect the issue with a fitting Skill.</li><li><strong>Frighten:</strong> Influence + Discipline. Intimidate the target and potentially cause damage or Afraid.</li><li><strong>Provoke:</strong> Influence + Empathy. Push the target into doing something, with backlash on failure.</li><li><strong>Retreat:</strong> Deception + Perform. Leave the Battle of Wits gracefully or suffer mental fallout.</li><li><strong>Take Something:</strong> Deception + Empathy. Steal trust, confidence, momentum, or emotional footing.</li><li><strong>Uncomfortable Silence:</strong> Discipline + Empathy. Make the exchange awkward and assign Initiative pressure.</li><li><strong>Divine Powers:</strong> Varies by fiction. Use a Manifestation, Truth, or other divine ability that fits a Battle of Wits.</li></ul><h3>Defenses</h3><ul><li><strong>Big Reveal:</strong> Influence + Deception. Reveal evidence or a secret to throw off Fast Talk or Take Something.</li><li><strong>Give the Signal:</strong> Deception + Stealth. Send a hidden cue and potentially improve Compose&#39;s damage reduction.</li><li><strong>Um Actually:</strong> No roll by default. Use superior information to set up a Knowledge-based defensive bonus.</li><li><strong>Laugh It Off:</strong> Discipline + Deception. Dismiss a volatile or cutting attack as if it cannot touch the defender.</li><li><strong>Stand My Ground:</strong> Empathy + Discipline. Meet the attack&#39;s intensity and hold firm.</li><li><strong>Turn It Around:</strong> Varies + Intuition. Reverse the attack and improve later damage or next-round Initiative.</li><li><strong>Divine Powers:</strong> Varies by fiction. Use a defensive Manifestation or divine ability in the social or mental exchange.</li></ul><p><strong>Foundry support:</strong> module/combat/ptg-combat.mjs; module/workflows/damage-workflow.mjs; module/apps/skill-combo-dialog.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"202\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"203\"></span>"
+        },
+        "flags": {
+          "part-time-gods": {
+            "premade": true,
+            "kind": "rules-reference",
+            "ruleTopic": "battle-of-wits-actions-and-defenses",
+            "sourcePdf": "Part-Time Gods 2e (Updated).pdf",
+            "sourcePages": [
+              202,
+              203
+            ],
+            "slug": "battle-of-wits-actions-and-defenses",
+            "sourceId": "journal-page:rules-reference:battle-of-wits-actions-and-defenses",
+            "sourceBook": "Part-Time Gods Second Edition",
+            "sourcePageStart": 202,
+            "sourcePageEnd": 203,
+            "safeSummary": "Source-backed journal rules for PTG2E book pp. 202-203 covering Battle of Wits Quick Actions, Standard Actions, Quick Defenses, and Standard Defenses."
           }
         }
       },
@@ -1223,7 +1329,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Damage, Conditions, and Healing</h1><p>Damage, Conditions, and Healing is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 204-208. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Damage, Conditions, and Healing</li><li>are the most severe and longest lasting. The Condi-</li><li>tion sticks around for one Session before dropping</li><li>Healthcare</li><li>Isn&amp;#39;t Cheap</li><li>Medical Treatment</li><li>Going to see a doctor of any type can be quite an expensive endeavor. If the</li><li>The advances of modern medicine have created a world</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"204\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"205\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"206\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"207\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"208\"></span>"
+          "content": "<h1>Damage, Conditions, and Healing</h1><p>Damage is tracked against Health or Psyche depending on whether the harm is physical or mental/social. Armor, defenses, and qualities can reduce or redirect the result before damage is applied.</p><p>Conditions describe lasting problems such as injury, confusion, pain, poison, fear, or other penalties. The source distinguishes damage, condition level, natural healing, active medical care, and removal procedures.</p><p>Foundry Conditions should remain Item documents with readable recovery, usage, source, and removal notes so the sheet can display them without clipping.</p><ul><li>Health and Psyche are separate damage tracks.</li><li>Conditions should carry level, effect, recovery, and removal guidance.</li><li>Medical treatment and natural healing are different procedures.</li></ul><p><strong>Foundry support:</strong> module/conditions/condition-workflow.mjs; module/workflows/damage-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"204\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"205\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"206\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"207\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"208\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1243,7 +1349,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 204,
             "sourcePageEnd": 208,
-            "safeSummary": "Damage, Conditions, and Healing is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 204-208. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 204-208 covering damage tracks, Conditions, natural healing, condition removal, and medical treatment."
           }
         }
       },
@@ -1257,7 +1363,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Armor, Weapons, and Range</h1><p>Armor, Weapons, and Range is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 209-212. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Armor, Weapons, and Range</li><li>Battle Modifiers</li><li>Positive Armor Qualities</li><li>Effect</li><li>Aquatic</li><li>Bargain</li><li>Heavy</li><li>Light</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"209\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"210\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"211\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"212\"></span>"
+          "content": "<h1>Armor, Weapons, and Range</h1><p>Battle modifiers, armor, weapons, and range convert gear and situation into consequences. Armor reduces harm, weapons supply damage and qualities, and range defines whether a tactic can reach the target.</p><p>Qualities matter because they add fictional and mechanical hooks such as Brutal, Concealable, Defending, Heavy, Light, Piercing, Quick, Reload, or similar tags.</p><p>Foundry Armor and Weapon Items need scrollable quality and range fields because a single item can carry several tags and source notes; the full Gear Quality definitions live in rules-reference journal pages.</p><ul><li>Armor has rating and qualities.</li><li>Weapons have damage, range, and qualities.</li><li>Range and battle modifiers should be visible during attack and defense resolution.</li></ul><p><strong>Foundry support:</strong> module/data/premade-items.mjs; templates/item/item-sheet.hbs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"209\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"210\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"211\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"212\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1276,7 +1382,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 209,
             "sourcePageEnd": 212,
-            "safeSummary": "Armor, Weapons, and Range is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 209-212. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 209-212 covering battle modifiers, armor, weapon qualities, ranges, and battle examples."
           }
         }
       }
@@ -1310,7 +1416,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Antagonist Types and Formatting</h1><p>Antagonist Types and Formatting is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 217-219. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Antagonist Types and Formatting</li><li>Threshold: 15</li><li>Armor: 1</li><li>Attack: 8</li><li>Defense: 8</li><li>Initiative: +5</li><li>Damage: +1</li><li>Skills (3 dice): Athletics, Survival, Speed</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"217\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"218\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"219\"></span>"
+          "content": "<h1>Antagonist Types and Formatting</h1><p>The Opposition chapter begins by explaining how antagonists function in play. Enemies are not just numbers; they are pressures on territory, attachments, secrecy, and divine identity.</p><p>The source gives formatting expectations for stat blocks: rank or type, threshold, armor, spark, fragments, attack, defense, initiative, damage, skills, powers, and notes where relevant.</p><p>Foundry actor data should preserve the stat block shape while cleaning extractor artifacts from journal entries.</p><ul><li>Use actor sheets for runnable opposition.</li><li>Use journals for procedure and source navigation.</li><li>Use the builder for custom stat blocks and quick threats.</li></ul><p><strong>Foundry support:</strong> module/data/premade-actors.mjs; module/apps/opposition-builder-app.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"217\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"218\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"219\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1328,7 +1434,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 217,
             "sourcePageEnd": 219,
-            "safeSummary": "Antagonist Types and Formatting is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 217-219. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 217-219 covering opposition purpose, antagonist types, stat formatting, and condition handling."
           }
         }
       },
@@ -1342,7 +1448,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Animals and Mortals</h1><p>Animals and Mortals is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 220-224. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Animals and Mortals</li><li>Threshold: 10</li><li>Armor: 1</li><li>Attack: 8</li><li>Defense: 8</li><li>Initiative: +6</li><li>Damage: +2</li><li>Skills (4 dice): Athletics, Fortitude, Might, Perception, Survival</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"220\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"221\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"222\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"223\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"224\"></span>"
+          "content": "<h1>Animals and Mortals</h1><p>Animals and mortals ground the Opposition chapter in everyday threats. They can still matter to gods because numbers, surprise, equipment, territory, and social fallout change the stakes.</p><p>Animal entries cover creature-scale threats and swarms. Mortal entries cover people with training, authority, weapons, or institutional backing.</p><p>Foundry ships these as actor records so the GM can drop them into scenes and adjust them rather than rebuilding each stat block.</p><ul><li>Animals are useful for environmental danger and Dominion fallout.</li><li>Mortals are useful for police, criminals, witnesses, followers, and armed pressure.</li><li>Threshold and damage keep these threats fast to run.</li></ul><p><strong>Foundry support:</strong> packs/opposition-actors; module/data/premade-actors.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"220\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"221\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"222\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"223\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"224\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1362,7 +1468,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 220,
             "sourcePageEnd": 224,
-            "safeSummary": "Animals and Mortals is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 220-224. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 220-224 covering animal and mortal opposition examples."
           }
         }
       },
@@ -1376,7 +1482,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>The Touched</h1><p>The Touched is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 225, 227-230. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>The Touched</li><li>Rank: Novice/Veteran/Exemplar</li><li>Threshold: 9/13/17</li><li>Armor: 1/2/3</li><li>Spark: 1/2/3</li><li>Fragments: 2/4/6</li><li>Attack: 6/8/10</li><li>Defense: 5/7/11</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"225\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"227\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"228\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"229\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"230\"></span>"
+          "content": "<h1>The Touched</h1><p>The Touched are mortals or former mortals altered by divine power. They sit between ordinary opposition and fully divine threats, making them strong story tools for fallout from gods and Outsiders.</p><p>The source includes ranks and templates that scale Threshold, Armor, Spark, Fragments, Attack, Defense, Initiative, Damage, Skills, and powers.</p><p>Foundry actor records should keep those ranked values intact while letting the GM adjust identity, motivation, and relationship to the characters.</p><ul><li>Use Touched threats when divine influence has changed a mortal life.</li><li>Scale rank to match the scene&#39;s danger.</li><li>Tie powers to the source of the Spark or supernatural pressure.</li></ul><p><strong>Foundry support:</strong> module/data/premade-actors.mjs; templates/actor/antagonist-sheet.hbs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"225\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"227\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"228\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"229\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"230\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1396,7 +1502,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 225,
             "sourcePageEnd": 230,
-            "safeSummary": "The Touched is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 225, 227-230. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 225 and 227-230 covering Forsaken, Chosen Ones, and other Spark-touched opposition."
           }
         }
       },
@@ -1410,7 +1516,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Other Gods</h1><p>Other Gods is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 231-233. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Other Gods</li><li>DescTeHnEding OPSPtOoSrITmION</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"231\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"232\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"233\"></span>"
+          "content": "<h1>Other Gods</h1><p>Other gods are not generic monsters. They have Dominions, Theologies, Territories, followers, wounds, ambitions, and mortal lives of their own.</p><p>The source uses them as rivals, allies, invaders, mentors, enemies, or cautionary examples. Their conflicts often center on territory, Sparks, relics, worshippers, secrecy, and the fear of losing humanity.</p><p>Foundry represents sample other gods as Actors, while this journal page should explain how to treat them as narrative forces with full divine context.</p><ul><li>Give rival gods clear motives and territory interests.</li><li>Use Theology and Dominion to shape how they act.</li><li>Avoid extractor junk in this page; opposition headings belong in clean prose.</li></ul><p><strong>Foundry support:</strong> packs/opposition-actors; module/apps/opposition-builder-app.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"231\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"232\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"233\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1428,7 +1534,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 231,
             "sourcePageEnd": 233,
-            "safeSummary": "Other Gods is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 231-233. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 231-233 covering rival gods as opposition and story forces."
           }
         }
       },
@@ -1442,7 +1548,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Outsiders: Overview through Hydras</h1><p>Outsiders: Overview through Hydras is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 234-243. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Outsiders: Overview through Hydras</li><li>Cherub (Warrior) Vassal: 2</li><li>Threshold: 9</li><li>Armor: 1</li><li>Spark: 3</li><li>Fragments: 6</li><li>Attack: 8</li><li>Defense: 6</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"234\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"235\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"236\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"237\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"238\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"239\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"240\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"241\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"242\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"243\"></span>"
+          "content": "<h1>Outsiders: Overview through Hydras</h1><p>Outsiders are divine-adjacent beings and monsters from beyond ordinary human life. They share roots with the Source and Spark, but their needs and motives are not necessarily human.</p><p>The early Outsider entries include a range of creature roles, from servants and tempters to dangerous predators and mythic threats. Their stat blocks vary in Threshold, Armor, Spark, Fragments, attacks, defenses, and special powers.</p><p>Foundry should keep each Outsider runnable as an Actor and use the journal only for source orientation.</p><ul><li>Use Outsiders to challenge secrecy and territory boundaries.</li><li>Use their powers as scene complications, not just combat attacks.</li><li>Keep Vassal links visible when an Outsider can serve a god.</li></ul><p><strong>Foundry support:</strong> module/data/premade-actors.mjs; module/data/premade-items.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"234\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"235\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"236\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"237\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"238\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"239\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"240\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"241\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"242\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"243\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1467,7 +1573,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 234,
             "sourcePageEnd": 243,
-            "safeSummary": "Outsiders: Overview through Hydras is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 234-243. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 234-243 covering Outsider overview and early stat blocks through Hydras."
           }
         }
       },
@@ -1481,7 +1587,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Outsiders: Kappa through Satyrs</h1><p>Outsiders: Kappa through Satyrs is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 244-245, 247-253. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Outsiders: Kappa through Satyrs</li><li>Threshold: 18</li><li>Armor: 1</li><li>Spark: 2</li><li>Fragments: 4</li><li>Attack: 4</li><li>Defense: 3</li><li>Initiative: +5</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"244\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"245\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"247\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"248\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"249\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"250\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"251\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"252\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"253\"></span>"
+          "content": "<h1>Outsiders: Kappa through Satyrs</h1><p>This range continues the Outsider catalog with creatures that can act as enemies, servants, territory complications, or weird contacts in the Ways.</p><p>The source entries combine rank, combat numbers, Skills, powers, and descriptive hooks. Those mechanics belong in Actor data, while the journal should help the GM find the right family of threat.</p><p>Because many Outsiders can appear in groups or as Vassals, their Foundry records need source IDs and clean stat notes.</p><ul><li>Use mid-tier Outsiders for territory encounters and realm travel complications.</li><li>Check actor Skills and powers before running a scene.</li><li>Treat social or trickster Outsiders as story threats even before combat starts.</li></ul><p><strong>Foundry support:</strong> packs/opposition-actors; module/data/premade-actors.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"244\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"245\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"247\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"248\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"249\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"250\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"251\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"252\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"253\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1505,7 +1611,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 244,
             "sourcePageEnd": 253,
-            "safeSummary": "Outsiders: Kappa through Satyrs is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 244-245, 247-253. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 244-245 and 247-253 covering mid-chapter Outsider stat blocks."
           }
         }
       },
@@ -1519,7 +1625,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Outsiders: Slashers through Elementals</h1><p>Outsiders: Slashers through Elementals is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 254-258. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Outsiders: Slashers through Elementals</li><li>Snarlequin (Warrior) Vassal: 3</li><li>Threshold: 14</li><li>Armor: 1</li><li>Spark: 2 Fragments: 4</li><li>Attack: 9</li><li>Defense: 11</li><li>Initiative: 6</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"254\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"255\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"256\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"257\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"258\"></span>"
+          "content": "<h1>Outsiders: Slashers through Elementals</h1><p>The final Outsider group includes some of the stranger and more dangerous opposition options, including threats that can dominate a scene through raw power, unusual conditions, or realm-specific behavior.</p><p>The source stat blocks should remain in Actor data with Threshold, Armor, Spark, Fragments, Attack, Defense, Initiative, Damage, Skills, powers, and condition notes preserved.</p><p>Use these entries when the table needs divine-scale trouble, an Otherworld hazard, or a creature that changes what territory and safety mean.</p><ul><li>Use stronger Outsiders sparingly and tie them to source, realm, or territory.</li><li>Review powers and damage before dropping them into combat.</li><li>Use conditions and special rules to make each creature distinct.</li></ul><p><strong>Foundry support:</strong> module/data/premade-actors.mjs; module/workflows/damage-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"254\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"255\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"256\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"257\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"258\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1539,7 +1645,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 254,
             "sourcePageEnd": 258,
-            "safeSummary": "Outsiders: Slashers through Elementals is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 254-258. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book pp. 254-258 covering late-chapter Outsider stat blocks."
           }
         }
       },
@@ -1553,7 +1659,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Custom Antagonists</h1><p>Custom Antagonists is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 259. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Custom Antagonists</li><li>Threshold Armor Attack/Defense Initiative Damage Skills Spark</li><li>Low 5 0 4 to 5 dice +2 0 3 dice 1</li><li>Medium 10 1 6 to 7 dice +3 to +5 +1 4 dice 2</li><li>High 15 2 8 to 10 dice +6 to +8 +2 4 dice 3</li><li>Adept 20 2 11 to 13 dice +9 to +10 +3 5 dice 4</li><li>Divine 25 3 14 to 16 dice +11 to +13 +4 6 dice 5</li><li>DescTeHnEding OPSPtOoSrITmION</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"259\"></span>"
+          "content": "<h1>Custom Antagonists</h1><p>Custom antagonists use tiered numbers to let the GM build a threat quickly. The source gives ranges for Threshold, Armor, Attack, Defense, Initiative, Damage, Skills, Spark, Fragments, and powers.</p><p>The point of the table is speed. Pick a threat tier, choose what matters in the scene, add a few defining Skills or powers, and adjust for the table&#39;s current danger level.</p><p>Foundry&#39;s opposition builder should create runnable Actors from this structure rather than leaving the GM to copy table fragments into notes.</p><ul><li>Low and Medium threats support quick scenes.</li><li>High, Adept, and Divine threats support serious opposition.</li><li>Always add motive, scene role, and one memorable pressure.</li></ul><p><strong>Foundry support:</strong> module/apps/opposition-builder-app.mjs; module/data/premade-actors.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"259\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1569,7 +1675,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 259,
             "sourcePageEnd": 259,
-            "safeSummary": "Custom Antagonists is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 259. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book p. 259 covering custom antagonist build tiers and stat expectations."
           }
         }
       }
@@ -1603,7 +1709,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Developing Stories, Extras, Setting, and Plots</h1><p>Chapter 7 frames story prep around people, places, and pressures that matter to the gods. Crucial Extras should have enough motive, attachment, and trouble to push scenes forward without requiring a full stat block every time.</p><p>The setting should make divine problems collide with ordinary routines: neighborhoods, jobs, institutions, worshippers, rival gods, Outsiders, and recurring mortal NPCs. Plots work best when they threaten something the characters care about and force choices between human and divine priorities.</p><p>Use the Story Workflow for prompts, the Opposition Builder for scene-specific threats, and source-backed roll tables when a quick name, hook, location, or pressure would move play forward.</p><ul><li>Build stories around attachments, territory, secrets, and divine obligations.</li><li>Use Extras as active pressure points, not scenery.</li><li>Foundry support: story workflow, opposition builder, roll tables, and actor/item notes.</li></ul><p><strong>Structured Foundry support:</strong> module/workflows/story-workflow.mjs, module/data/premade-macros.mjs, module/data/premade-roll-tables.mjs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"263\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"264\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"265\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"266\"></span>"
+          "content": "<h1>Developing Stories, Extras, Setting, and Plots</h1><p>Chapter 7 shifts from rules execution to campaign craft. Stories should make mortal life and divine duty collide through people, places, secrets, factions, territory, and consequences.</p><p>Crucial Extras need motives, relationships, pressure, and enough detail to matter when the gods act. Setting material should create recurring choices rather than static backdrop.</p><p>Plots should threaten something the characters care about and push them into decisions between ordinary life and godhood.</p><ul><li>Build stories around attachments, territory, and divine obligations.</li><li>Use Extras as active pressure points.</li><li>Use roll tables and workflow prompts when the table needs a quick hook.</li></ul><p><strong>Foundry support:</strong> module/workflows/story-workflow.mjs; module/data/premade-roll-tables.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"263\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"264\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"265\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"266\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1622,7 +1728,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 263,
             "sourcePageEnd": 266,
-            "safeSummary": "Original summary for PTG2E book pp. 263-266, covering story preparation, crucial extras, setting pressure, plots, and scene seeds.",
+            "safeSummary": "Source-backed summary for PTG2E book pp. 263-266 covering story preparation, crucial Extras, setting pressure, and plots.",
             "supportItems": [
               "module/workflows/story-workflow.mjs",
               "module/data/premade-macros.mjs",
@@ -1641,7 +1747,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Pacing, Conflict, Conclusions, and Story Tricks</h1><p>Good pacing gives mortal scenes, divine scenes, investigation, relationship strain, and conflict room to breathe. Not every problem needs a battle; some conflicts are social, logistical, spiritual, or emotional until the players escalate them.</p><p>Conclusions should answer the scene&#39;s driving question and leave useful fallout: a changed attachment, a revealed secret, a new enemy, a cost paid, or a lead into the next divine problem. Story tricks are tools for changing pressure when the table stalls or a conflict needs a sharper choice.</p><p>Foundry support lives in chat cards, Conditions, damage workflows, combat controls, story prompts, and journal source references. The GM still chooses stakes, fallout, and when a conflict is truly resolved.</p><ul><li>Pace scenes by question, pressure, and consequence.</li><li>Conflict can be physical, social, divine, investigative, or relational.</li><li>Foundry support: combat workflow, conditions, damage, chat cards, and story prompts.</li></ul><p><strong>Structured Foundry support:</strong> module/combat/ptg-combat.mjs, module/workflows/damage-workflow.mjs, module/conditions/condition-workflow.mjs, module/workflows/story-workflow.mjs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"267\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"268\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"269\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"270\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"271\"></span>"
+          "content": "<h1>Pacing, Conflict, Conclusions, and Story Tricks</h1><p>Pacing decides when a scene breathes and when pressure spikes. Not every problem should become a battle, and not every battle should resolve the story&#39;s core question.</p><p>Conflicts can be physical, social, investigative, spiritual, or emotional. Conclusions should answer the immediate question while leaving fallout that matters in later scenes.</p><p>Story tricks give the GM ways to adjust pressure, highlight Curses, complicate choices, and pull the table back toward human consequences.</p><ul><li>End scenes when the question has changed or been answered.</li><li>Let consequences carry forward.</li><li>Use Curses and Attachments as pacing tools, not only mechanical triggers.</li></ul><p><strong>Foundry support:</strong> module/workflows/story-workflow.mjs; module/workflows/damage-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"267\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"268\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"269\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"270\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"271\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1661,7 +1767,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 267,
             "sourcePageEnd": 271,
-            "safeSummary": "Original summary for PTG2E book pp. 267-271, covering scene pacing, conflict choice, conclusion timing, and reusable story tricks.",
+            "safeSummary": "Source-backed summary for PTG2E book pp. 267-271 covering scene pacing, conflict choice, conclusions, and story tricks.",
             "supportItems": [
               "module/combat/ptg-combat.mjs",
               "module/workflows/damage-workflow.mjs",
@@ -1681,7 +1787,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Attachment Tricks, Downtime, Territory, and Sourcing Players</h1><p>Attachment tricks turn Bonds, Worshippers, Vassals, Relics, and Failings into active scene hooks. A request, neglected need, strain increase, favor, or threatened location can all pull the god back into mortal consequences.</p><p>Downtime keeps the campaign from becoming only crisis scenes. Work, vacation, human resources, recovery, job fallout, and table-authored obligations are useful ways to make Free Time and Wealth matter between divine conflicts.</p><p>Territory handling combines grid coordinates, known information, secrets, movement costs, influence, and contested landmarks. Player sourcing lets the table answer focused questions and then turn those answers into scenes, locations, attachments, or threats.</p><ul><li>Attachment tricks: create scenes from needs, favors, strain, and neglect.</li><li>Downtime: spend or recover Free Time and Wealth while changing obligations.</li><li>Territory/player sourcing: use grid tools, roll tables, and story workflow prompts.</li></ul><p><strong>Structured Foundry support:</strong> module/workflows/story-workflow.mjs, module/apps/territory-grid-app.mjs, module/data/premade-scenes.mjs, module/data/premade-roll-tables.mjs.</p><p>Use the original rulebook for full examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"272\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"273\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"274\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"275\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"276\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"277\"></span>"
+          "content": "<h1>Attachment Tricks, Downtime, Territory, and Sourcing Players</h1><p>Attachment tricks turn Bonds, Worshippers, Relics, Vassals, Failings, and territory points into active prompts. Requests, neglect, favors, strain, and threatened locations can all start scenes.</p><p>Downtime gives Free Time, Wealth, work, recovery, and ordinary obligations a place in the campaign. It keeps the story from becoming only supernatural crisis.</p><p>Territory handling and player sourcing let the table answer focused questions, map important places, and create hooks that belong to the characters.</p><ul><li>Use downtime to recover resources and create new obligations.</li><li>Use territory to locate conflict on the map.</li><li>Ask players source questions that create usable people, places, and pressure.</li></ul><p><strong>Foundry support:</strong> module/apps/territory-grid-app.mjs; module/workflows/story-workflow.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"272\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"273\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"274\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"275\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"276\"></span><span class=\"ptg-source-page-marker\" data-book-page=\"277\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1702,7 +1808,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 272,
             "sourcePageEnd": 277,
-            "safeSummary": "Original summary for PTG2E book pp. 272-277, covering attachment pressure, downtime fallout, territory handling, and player-sourced prompts.",
+            "safeSummary": "Source-backed summary for PTG2E book pp. 272-277 covering attachment tricks, downtime, territory handling, and player-sourced prompts.",
             "supportItems": [
               "module/workflows/story-workflow.mjs",
               "module/apps/territory-grid-app.mjs",
@@ -1742,7 +1848,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Random Occupations</h1><p>Random Occupations is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 282. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Random Occupations</li><li>1-2 ReRoll 3-4 Strangers</li><li>Subtype Occupation Subtype Occupation Subtype Occupation Subtype Occupation</li><li>1-3 Criminal</li><li>Roll Again</li><li>2-4</li><li>Big Time</li><li>5-7</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"282\"></span>"
+          "content": "<h1>Random Occupations</h1><p>The random Occupation table supports fast character creation, NPC creation, and inspiration when a player wants chance to shape the character&#39;s mortal life.</p><p>The table points back to the Occupation families and career choices. Use it to pick a broad field and then consult the structured choice Item for grants, resources, Attachments, Blessing, and Curse.</p><p>In Foundry, random table support should create or suggest source-keyed choices rather than replacing the actual Occupation data.</p><ul><li>Use for quick PCs, NPCs, pregens, or inspiration.</li><li>Resolve the result into a character-creation choice Item.</li><li>Keep rolled prompts editable so players can adapt the concept.</li></ul><p><strong>Foundry support:</strong> module/data/premade-roll-tables.mjs; module/data/premade-choices.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"282\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1758,7 +1864,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 282,
             "sourcePageEnd": 282,
-            "safeSummary": "Random Occupations is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 282. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book p. 282 covering the random Occupation table and career prompts."
           }
         }
       },
@@ -1772,7 +1878,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Random Archetypes</h1><p>Random Archetypes is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 283. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Random Archetypes</li><li>Attachment Blessing Curse</li><li>1-5 6-10 1 2-4 5-7 8-10 1-5 6-10</li><li>1-3 Hero</li><li>4-6 Rebel</li><li>7-9 Wanderer</li><li>+2 Individual Bond Levels 1-5</li><li>+2 Group Bond Levels</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"283\"></span>"
+          "content": "<h1>Random Archetypes</h1><p>The random Archetype table helps pick a mortal personality pattern quickly. It points to the same Archetype choice records used by intentional character creation.</p><p>A random result should still be interpreted. The player should connect the Archetype to mortal life, Bonds, Blessings, Curses, and the character&#39;s divine future.</p><p>Foundry roll tables can suggest the result, while the character creator applies the final structured choice.</p><ul><li>Roll when the table wants surprise.</li><li>Apply the matching Archetype Item for actual grants.</li><li>Adjust description and Attachments to fit the character.</li></ul><p><strong>Foundry support:</strong> module/data/premade-roll-tables.mjs; module/apps/character-creator-app.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"283\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1788,7 +1894,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 283,
             "sourcePageEnd": 283,
-            "safeSummary": "Random Archetypes is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 283. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book p. 283 covering the random Archetype table and related choice prompts."
           }
         }
       },
@@ -1802,7 +1908,7 @@
         },
         "text": {
           "format": 1,
-          "content": "<h1>Random Dominions, Attachments, and Theologies</h1><p>Random Dominions, Attachments, and Theologies is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 284. It preserves source-page lookup metadata without reproducing the source-book text.</p><ul><li>Random Dominions, Attachments, and Theologies</li><li>2-4 Bestial</li><li>Cattle</li><li>Serpents</li><li>Monkeys</li><li>Octopuses</li><li>Elephants</li><li>Spiders</li></ul><p>Use the original rulebook for complete rules text, examples, procedures, and exact wording.</p><span class=\"ptg-source-page-marker\" data-book-page=\"284\"></span>"
+          "content": "<h1>Random Dominions, Attachments, and Theologies</h1><p>The final random table page helps generate divine identity and relationship hooks. It can suggest Dominion category, specific portfolio ideas, Attachment direction, or Theology.</p><p>These tables are best used as prompts rather than mandates. A rolled result should be shaped into a specific god concept, a readable title, and Attachments the player actually wants at the table.</p><p>Foundry should preserve the random prompts while routing final mechanical choices through the structured compendium records.</p><ul><li>Use Dominion prompts to inspire a focused portfolio.</li><li>Use Attachment prompts to anchor the god in mortal and divine relationships.</li><li>Use Theology prompts to create immediate society ties and pressure.</li></ul><p><strong>Foundry support:</strong> module/data/premade-roll-tables.mjs; module/util/random-god-generator.mjs.</p><span class=\"ptg-source-page-marker\" data-book-page=\"284\"></span>"
         },
         "flags": {
           "part-time-gods": {
@@ -1818,7 +1924,7 @@
             "sourceBook": "Part-Time Gods Second Edition",
             "sourcePageStart": 284,
             "sourcePageEnd": 284,
-            "safeSummary": "Random Dominions, Attachments, and Theologies is a curated Foundry play aid for Part-Time Gods Second Edition, book pp. 284. It preserves source-page lookup metadata without reproducing the source-book text."
+            "safeSummary": "Source-backed summary for PTG2E book p. 284 covering random Dominion, Attachment, and Theology prompts."
           }
         }
       }

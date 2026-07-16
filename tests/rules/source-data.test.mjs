@@ -1,6 +1,8 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { installFoundryTestEnvironment, SYSTEM_ID } from "../helpers/foundry-test-env.mjs";
+import { installFoundryTestEnvironment, repoRoot, SYSTEM_ID } from "../helpers/foundry-test-env.mjs";
 import { auditCreatedItemDocuments, itemAuditIssueLines } from "../../module/data/premade-item-audit.mjs";
 
 installFoundryTestEnvironment();
@@ -76,6 +78,7 @@ test("Chapter 4 rules journals cover dice, resource, and consequence procedures"
   assert.ok(diceJournal, "Chapter 4 rules are stored as a JournalEntry");
   for (const name of [
     "Blessings, Curses, and the Skill-Combo System",
+    "Critical Failure Effects",
     "Rolling Dice and Checks",
     "Pantheon Pool, Strength, and Movement",
     "Free Time and Wealth",
@@ -86,7 +89,11 @@ test("Chapter 4 rules journals cover dice, resource, and consequence procedures"
     assert.ok(page.flags?.[SYSTEM_ID]?.sourcePages?.length, `${name} source pages`);
   }
 
-  assert.equal(criticalFailureEffects.length, 11);
+  assert.equal(criticalFailureEffects.length, 0);
+  const criticalFailureText = plainText(diceJournal.pages.find(page => page.name === "Critical Failure Effects")?.text.content ?? "");
+  for (const definition of items.CRITICAL_FAILURE_EFFECT_DEFINITIONS) {
+    assert.match(criticalFailureText, new RegExp(`\\b${escapeRegExp(definition.name)}\\b`), `${definition.name} journal entry`);
+  }
 
   for (const name of ["Possible Critical Failure Effects", "Boost Effect Menu", "Pantheon Pool Uses", "Attachment Interaction Choices", "Wealth Cost Tiers"]) {
     assert.ok(tableNames.has(name), `${name} RollTable`);
@@ -97,6 +104,32 @@ test("Chapter 4 rules journals cover dice, resource, and consequence procedures"
   assert.equal(Object.keys(skills.PTG_SKILLS).length, 20);
   for (const [key, skill] of Object.entries(skills.PTG_SKILLS)) {
     assert.ok(skill.specialties.length > 0, `${key} specialties`);
+  }
+});
+
+test("Manifestation Application references live in rules journals, not premade Items", async () => {
+  const applicationItems = items.PTG_PREMADE_ITEMS.filter(item =>
+    item.flags?.[SYSTEM_ID]?.kind === "manifestation-application"
+    || item.flags?.[SYSTEM_ID]?.folder === "manifestation-application"
+  );
+  const rulesJournals = await journals.getPremadeJournals();
+  const expressionJournal = rulesJournals.find(journal => journal.name === "04. Divine Expressions");
+  const applicationPages = [
+    expressionJournal?.pages.find(page => page.name === "Manifestation Applications: Aegis, Beckon, Journey, Minion, and Oracle"),
+    expressionJournal?.pages.find(page => page.name === "Manifestation Applications: Puppetry, Ruin, Shaping, and Soul")
+  ].filter(Boolean);
+  const applicationText = plainText(applicationPages.map(page => page.text.content).join(" "));
+
+  assert.equal(applicationItems.length, 0);
+  assert.equal(applicationPages.length, 2);
+
+  for (const definition of items.MANIFESTATION_APPLICATION_DEFINITIONS) {
+    const label = `${titleCase(definition.manifestation)}: ${definition.name}`;
+    assert.match(applicationText, new RegExp(`\\b${escapeRegExp(label)}\\b`), `${label} journal entry`);
+    assert.ok(definition.skills.some(skill => applicationText.includes(`${titleCase(definition.manifestation)} + ${titleCase(skill)}`)), `${label} suggested Skill`);
+    for (const measure of definition.commonMeasures) {
+      assert.ok(applicationText.includes(measureLabel(measure)), `${label} ${measure} Measure`);
+    }
   }
 });
 
@@ -116,48 +149,60 @@ test("Chapter 5 battle data covers actions, defenses, gear, and conditions", asy
   for (const name of [
     "Timing, Initiative, and Turns",
     "Actions and Defenses",
+    "Battle of Fists Actions and Defenses",
+    "Battle of Wits Actions and Defenses",
     "Damage, Conditions, and Healing",
-    "Armor, Weapons, and Range"
+    "Armor, Weapons, and Range",
+    "Gear Qualities: Armor and General",
+    "Gear Qualities: Weapon"
   ]) {
     const page = battleJournal.pages.find(candidate => candidate.name === name);
     assert.ok(page, `${name} JournalEntry page`);
     assert.ok(page.flags?.[SYSTEM_ID]?.sourcePages?.length, `${name} source pages`);
   }
 
-  assert.equal(battleActions.length, 46);
+  assert.equal(battleActions.length, 0);
 
-  for (const name of [
-    "Battle of Fists Quick Action: Feint",
-    "Battle of Fists Standard Action: Close Combat Attack",
-    "Battle of Fists Standard Defense: Dodge",
-    "Battle of Wits Quick Action: Mislead",
-    "Battle of Wits Standard Action: Fast Talk",
-    "Battle of Wits Standard Defense: Stand My Ground"
-  ]) {
-    const item = battleActions.find(candidate => candidate.name === name);
-    assert.ok(item, `${name} battle action`);
-    assert.equal(item.system.automation.roll.type, "battle-action");
-    assert.ok(["quick", "standard"].includes(item.system.activation));
-    assert.ok(["health", "psyche"].includes(item.system.automation.roll.damageResource));
+  const fistsText = plainText(battleJournal.pages.find(page => page.name === "Battle of Fists Actions and Defenses")?.text.content ?? "");
+  const witsText = plainText(battleJournal.pages.find(page => page.name === "Battle of Wits Actions and Defenses")?.text.content ?? "");
+  for (const name of ["Feint", "Close Combat Attack", "Dodge", "Run for Cover"]) {
+    assert.match(fistsText, new RegExp(`\\b${name}\\b`), `${name} Fists journal action`);
+  }
+  for (const name of ["Mislead", "Fast Talk", "Laugh It Off", "Stand My Ground"]) {
+    assert.match(witsText, new RegExp(`\\b${name}\\b`), `${name} Wits journal action`);
   }
 
   assert.ok((counts.get("condition") ?? []).length >= 20);
-  assert.ok((counts.get("gearQuality") ?? []).length >= 42);
+  assert.equal((counts.get("gearQuality") ?? []).length, 0);
   assert.ok((counts.get("armor") ?? []).length >= 14);
   assert.ok((counts.get("weapon") ?? []).length >= 9);
+
+  const gearQualityItems = items.PTG_PREMADE_ITEMS.filter(item => item.type === "gearQuality" || item.flags?.[SYSTEM_ID]?.kind === "gear-quality");
+  const gearText = plainText([
+    battleJournal.pages.find(page => page.name === "Gear Qualities: Armor and General")?.text.content ?? "",
+    battleJournal.pages.find(page => page.name === "Gear Qualities: Weapon")?.text.content ?? ""
+  ].join(" "));
+  assert.equal(gearQualityItems.length, 0);
+  for (const key of Object.keys(items.QUALITY_DEFINITIONS)) {
+    assert.match(gearText, new RegExp(`\\b${escapeRegExp(titleCase(key))}\\b`), `${titleCase(key)} journal quality`);
+  }
 });
 
 test("Premade source data exposes initiative modifiers for automation", () => {
   const reactive = items.PTG_PREMADE_ITEMS.find(item => item.type === "blessing" && item.name === "Reactive");
-  const quick = items.PTG_PREMADE_ITEMS.find(item => item.type === "gearQuality" && item.name === "Quick");
 
   assert.ok(reactive, "Reactive blessing item");
   assert.equal(reactive.system.automation.enabled, true);
   assert.deepEqual(reactive.system.automation.bonus, { initiative: 2 });
+});
 
-  assert.ok(quick, "Quick gear quality item");
-  assert.equal(quick.system.automation.enabled, true);
-  assert.equal(quick.system.automation.bonus.initiative, 1);
+test("Gear Quality journal keeps Quick initiative guidance", async () => {
+  const rulesJournals = await journals.getPremadeJournals();
+  const battleJournal = rulesJournals.find(journal => journal.name === "06. Divine Battles");
+  const quickText = plainText(battleJournal.pages.find(page => page.name === "Gear Qualities: Weapon")?.text.content ?? "");
+
+  assert.match(quickText, /\bQuick\b/);
+  assert.match(quickText, /\binitiative\b/i);
 });
 
 test("Premade source data exposes structured Blessing hooks beyond visible prose", () => {
@@ -189,13 +234,77 @@ test("Premade Items stay in valid item folders without journal-style leaks", () 
   ]);
 
   assert.deepEqual(itemAuditIssueLines(audit), []);
-  assert.equal(audit.summary.totalItems, 771);
+  assert.equal(audit.summary.totalItems, 640);
   assert.equal(audit.counts.collections["character-creation"], 40);
-  assert.equal(audit.counts.collections["premade-items"], 731);
-  assert.equal(audit.counts.folders["battle-fists"], 23);
-  assert.equal(audit.counts.folders["battle-wits"], 23);
-  assert.equal(audit.counts.folders["critical-failure-effects"], 11);
-  assert.equal(audit.counts.folders["manifestation-application"], 27);
+  assert.equal(audit.counts.collections["premade-items"], 600);
+  assert.equal(audit.counts.folders["battle-fists"] ?? 0, 0);
+  assert.equal(audit.counts.folders["battle-wits"] ?? 0, 0);
+  assert.equal(audit.counts.folders["critical-failure-effects"] ?? 0, 0);
+  assert.equal(audit.counts.folders["gearQuality"] ?? 0, 0);
+  assert.equal(audit.counts.folders["manifestation-application"] ?? 0, 0);
+  assert.equal(compendiums.isRetiredPremadeItemFolderName("Battle of Fists Actions"), true);
+  assert.equal(compendiums.isRetiredPremadeItemFolderName("Battle of Wits Actions"), true);
+  assert.equal(compendiums.isRetiredPremadeItemFolderName("Battle-fistss"), true);
+  assert.equal(compendiums.isRetiredPremadeItemFolderName("Battle-witss"), true);
+  assert.equal(compendiums.isRetiredPremadeItemFolderName("Critical Failure Effects"), true);
+  assert.equal(compendiums.isRetiredPremadeItemFolderName("Gear Qualities"), true);
+  assert.equal(compendiums.isRetiredPremadeItemFolderName("Manifestation Applications"), true);
+  assert.equal(compendiums.isRetiredPremadeItemFolderName("Blessings"), false);
+  assert.equal(audit.counts.folders.otherworld ?? 0, 0);
+  assert.equal(items.PTG_PREMADE_ITEMS.filter(item => item.flags?.[SYSTEM_ID]?.kind === "otherworld-travel").length, 0);
+});
+
+test("Rules journals are source-backed summaries without repeated placeholder text", async () => {
+  const rulesJournals = await journals.getPremadeJournals();
+  const pages = rulesJournals.flatMap(journal => journal.pages.map(page => ({ journal, page })));
+  const boilerplate = /curated Foundry play aid|preserves source-page lookup metadata|Use the original rulebook|complete rules text/i;
+  const extractorArtifact = /DescTeHnEding|DeCsrceeantidnigng|OPSPtOoSrITmION/i;
+  const paragraphs = new Map();
+
+  assert.equal(rulesJournals.length, 9);
+  assert.equal(pages.length, 56);
+
+  for (const { journal, page } of pages) {
+    const content = page.text.content;
+    assert.doesNotMatch(content, boilerplate, `${journal.name}:${page.name} boilerplate`);
+    assert.doesNotMatch(page.flags[SYSTEM_ID].safeSummary, boilerplate, `${journal.name}:${page.name} summary boilerplate`);
+    assert.doesNotMatch(content, extractorArtifact, `${journal.name}:${page.name} extractor artifact`);
+    assert.ok(plainWordCount(content) >= 85, `${journal.name}:${page.name} needs a useful summary`);
+
+    for (const match of content.matchAll(/<p(?:\s[^>]*)?>(.*?)<\/p>/gis)) {
+      if (/<strong>\s*Foundry support:/i.test(match[1])) continue;
+      const text = plainText(match[1]).toLowerCase();
+      if (text.length < 80) continue;
+      paragraphs.set(text, [...(paragraphs.get(text) ?? []), `${journal.name}:${page.name}`]);
+    }
+  }
+
+  const duplicatePageNames = rulesJournals.flatMap(journal => {
+    const counts = new Map();
+    for (const page of journal.pages ?? []) counts.set(page.name, (counts.get(page.name) ?? 0) + 1);
+    return [...counts.entries()]
+      .filter(([, count]) => count > 1)
+      .map(([name, count]) => `${journal.name}:${name}:${count}`);
+  });
+  assert.deepEqual(duplicatePageNames, []);
+
+  const repeated = [...paragraphs.values()].filter(references => references.length > 1);
+  assert.deepEqual(repeated, []);
+
+  const ritualPage = pages.find(({ page }) => page.name === "Rituals and Otherworlds")?.page;
+  assert.ok(ritualPage, "Rituals and Otherworlds page");
+  const ritualText = plainText(ritualPage.text.content);
+  assert.match(ritualText, /Otherworld travel belongs here as procedure, not as standalone power Items/);
+  assert.match(ritualText, /Portal stage: Knowledge \+ Influence/);
+  assert.match(ritualText, /Outsiders and Realm stages: Stealth \+ Perception, then Discipline \+ Tech/);
+
+  const settingPage = pages.find(({ page }) => page.name === "The Descending Storm and Modern Godhood")?.page;
+  assert.ok(settingPage, "The Descending Storm and Modern Godhood page");
+  assert.deepEqual(settingPage.flags[SYSTEM_ID].sourcePages, [14, 15, 16, 17, 18, 19, 20, 21, 22]);
+  const settingText = plainText(settingPage.text.content);
+  assert.match(settingText, /Golden Web/);
+  assert.match(settingText, /God Wars/);
+  assert.match(settingText, /modern gods are survivors and successors/);
 });
 
 test("Workflow macros are compatibility launchers with native UI homes", () => {
@@ -214,6 +323,36 @@ test("Workflow macros are compatibility launchers with native UI homes", () => {
     const macro = workflowMacros.find(candidate => candidate.name === macroName);
     assert.ok(macro, `${macroName} exists`);
     assert.match(macro.command, /openTerritoryInterface/, `${macroName} uses unified Territory interface`);
+  }
+});
+
+test("Integrated Territory API remains primary while Territory macros stay compatibility-only", async () => {
+  const entryPoint = await fs.readFile(path.join(repoRoot, "part-time-gods.js"), "utf8");
+  const workflowMacros = macros.PTG_PREMADE_MACROS.filter(macro => macro.flags?.[SYSTEM_ID]?.kind === "workflow-macro");
+  const territoryMacros = workflowMacros.filter(macro => /^PTG: (Create Territory Scene|Territory Controls)$/.test(macro.name));
+
+  assert.match(entryPoint, /game\.ptg\.territory\s*=\s*{/, "initial integrated Territory API registration");
+  assert.match(entryPoint, /\.\.\.\(game\.ptg\.territory \?\? {}\)/, "restored Territory API preserves external additions");
+  for (const token of [
+    "open: openTerritoryInterface",
+    "openInterface: openTerritoryInterface",
+    "openScene: openTerritoryScene",
+    "viewScene: openTerritoryScene",
+    "autoOpen: maybeOpenTerritoryInterfaceOnReady",
+    "restoreIntegratedModuleApis",
+    "setTimeout?.(restoreIntegratedModuleApis, 0)",
+    "await maybeOpenTerritoryInterfaceOnReady();"
+  ]) {
+    assert.ok(entryPoint.includes(token), `entry point missing ${token}`);
+  }
+
+  assert.equal(territoryMacros.length, 2);
+  for (const macro of territoryMacros) {
+    const flags = macro.flags[SYSTEM_ID];
+    assert.equal(flags.compatibilityLauncher, true, `${macro.name} stays compatibility-only`);
+    assert.match(flags.nativeHome, /Unified Territory interface/i, `${macro.name} points to the native interface`);
+    assert.doesNotMatch(flags.nativeHome, /macro/i, `${macro.name} native home is not macro-first`);
+    assert.match(macro.command, /openTerritoryInterface/, `${macro.name} delegates to the integrated API`);
   }
 });
 
@@ -372,8 +511,8 @@ test("Territory scene background controls update scene and foreground overlay", 
     backgroundColor: "#112233"
   });
 
-  assert.equal(update["background.src"], "worlds/ptg/territory.jpg");
-  assert.equal(update.backgroundColor, "#112233");
+  assert.equal(update.levels[0].background.src, "worlds/ptg/territory.jpg");
+  assert.equal(update.levels[0].background.color, "#112233");
 
   const cleared = territory.territorySceneBackgroundUpdateData({
     backgroundSrc: "worlds/ptg/old.jpg",
@@ -381,15 +520,18 @@ test("Territory scene background controls update scene and foreground overlay", 
     clearImage: true
   });
 
-  assert.equal(cleared["background.src"], "");
-  assert.equal(cleared.backgroundColor, "#f4f0e8");
+  assert.equal(cleared.levels[0].background.src, null);
+  assert.equal(cleared.levels[0].background.color, "#f4f0e8");
 
   const originalUser = game.user;
   game.user = { isGM: true };
   try {
     const scene = {
-      background: { src: "worlds/ptg/old.jpg" },
-      backgroundColor: "#445566",
+      levels: [{
+        _id: "defaultLevel0000",
+        name: "Level",
+        background: { src: "worlds/ptg/old.jpg", color: "#445566" }
+      }],
       flags: {},
       drawings: {
         contents: [
@@ -415,10 +557,14 @@ test("Territory scene background controls update scene and foreground overlay", 
           }
         ]
       },
+      toObject() {
+        return {
+          levels: foundry.utils.deepClone(this.levels)
+        };
+      },
       async update(data) {
         this.updated = data;
-        this.background = { src: data["background.src"] };
-        this.backgroundColor = data.backgroundColor;
+        this.levels = foundry.utils.deepClone(data.levels);
       },
       async setFlag(system, key, value) {
         this.flags[system] ??= {};
@@ -434,15 +580,24 @@ test("Territory scene background controls update scene and foreground overlay", 
       backgroundColor: "#112233"
     });
 
-    assert.deepEqual(applied, update);
-    assert.deepEqual(scene.updated, update);
+    assert.equal(applied.levels[0].background.src, "worlds/ptg/territory.jpg");
+    assert.equal(applied.levels[0].background.color, "#112233");
+    assert.deepEqual(scene.updated, applied);
     assert.equal(scene.flags[SYSTEM_ID].territoryBackground.src, "worlds/ptg/territory.jpg");
     assert.equal(scene.flags[SYSTEM_ID].territoryBackground.color, "#112233");
     assert.equal(scene.embeddedUpdate.documentType, "Drawing");
-    assert.deepEqual(scene.embeddedUpdate.updates, [
-      { _id: "column", hidden: false, locked: true, sort: 5000 },
-      { _id: "border", hidden: false, locked: true, sort: 5001 }
-    ]);
+    const columnUpdate = scene.embeddedUpdate.updates.find(drawing => drawing._id === "column");
+    const borderUpdate = scene.embeddedUpdate.updates.find(drawing => drawing._id === "border");
+    assert.equal(columnUpdate.x, 100);
+    assert.equal(columnUpdate.y, 0);
+    assert.equal(columnUpdate.shape.width, 100);
+    assert.equal(columnUpdate.hidden, false);
+    assert.equal(columnUpdate.locked, true);
+    assert.equal(borderUpdate.x, 100);
+    assert.equal(borderUpdate.y, 100);
+    assert.equal(borderUpdate.shape.width, 1000);
+    assert.equal(borderUpdate.hidden, false);
+    assert.equal(borderUpdate.locked, true);
   } finally {
     game.user = originalUser;
   }
@@ -487,12 +642,72 @@ test("Territory scene background controls report scene update failures", async (
   }
 });
 
+test("Territory scene background file picker uses Foundry v14 implementation", () => {
+  const originalGlobalFilePicker = globalThis.FilePicker;
+  const originalApps = foundry.applications.apps;
+  class LegacyFilePicker {}
+  class V14FilePicker {}
+
+  try {
+    delete globalThis.FilePicker;
+    foundry.applications.apps = { FilePicker: { implementation: V14FilePicker } };
+    assert.equal(territory.territoryFilePickerClass(), V14FilePicker);
+
+    globalThis.FilePicker = LegacyFilePicker;
+    assert.equal(territory.territoryFilePickerClass(), LegacyFilePicker);
+  } finally {
+    if (originalGlobalFilePicker) globalThis.FilePicker = originalGlobalFilePicker;
+    else delete globalThis.FilePicker;
+    foundry.applications.apps = originalApps;
+  }
+});
+
+test("Territory GM drop resolves Actor and Token UUID payloads", async () => {
+  const actor = {
+    documentName: "Actor",
+    type: "character",
+    id: "owned",
+    uuid: "Actor.owned",
+    name: "Owned Character"
+  };
+  const token = {
+    documentName: "Token",
+    actor
+  };
+  const originalFromUuid = globalThis.fromUuid;
+  const originalActors = game.actors;
+  const warnings = [];
+  const originalWarn = console.warn;
+
+  globalThis.fromUuid = async uuid => {
+    if (uuid === "Actor.owned") return actor;
+    if (uuid === "Scene.scene.Token.token") return token;
+    return null;
+  };
+  game.actors = new Map([["owned", actor]]);
+  console.warn = (...args) => warnings.push(args);
+
+  try {
+    assert.equal(await territory.territoryActorFromDropData({ uuid: "Actor.owned" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ uuid: "Scene.scene.Token.token" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ type: "Actor", id: "owned" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ type: "Token", id: "owned" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ type: "Item", id: "owned" }), null);
+    assert.equal(warnings.length, 0);
+  } finally {
+    globalThis.fromUuid = originalFromUuid;
+    game.actors = originalActors;
+    console.warn = originalWarn;
+  }
+});
+
 test("Mortal-Divine tracker roster respects GM and player visibility", () => {
   const owned = {
     name: "Owned Character",
     type: "character",
     uuid: "Actor.owned",
-    isOwner: true
+    isOwner: true,
+    ownership: { player: 3 }
   };
   const other = {
     name: "Other Character",
@@ -537,6 +752,85 @@ test("Mortal-Divine tracker roster respects GM and player visibility", () => {
     isGM: false
   });
   assert.deepEqual(playerFallback.map(actor => actor.uuid), ["Actor.observer", "Actor.owned"]);
+});
+
+test("Mortal-Divine player bar targets owning non-GM users despite stale active flags", () => {
+  const originalUser = game.user;
+  game.user = { id: "gm", isGM: true };
+
+  const actor = {
+    name: "Shared Character",
+    type: "character",
+    uuid: "Actor.shared",
+    isOwner: true,
+    ownership: {
+      owner: 3,
+      inactive: 3,
+      observer: 2,
+      default: 0
+    }
+  };
+  const users = [
+    { id: "gm", name: "GM", isGM: true, active: true },
+    { id: "owner", name: "Owner", isGM: false, active: true },
+    { id: "inactive", name: "Inactive Owner", isGM: false, active: false },
+    { id: "observer", name: "Observer", isGM: false, active: true },
+    { id: "stranger", name: "Stranger", isGM: false, active: true }
+  ];
+
+  try {
+    assert.equal(balance.canViewBalanceActor(actor, users[3]), false);
+    assert.deepEqual(balance.balanceBarOwnerUsers(actor, users).map(user => user.id), ["owner", "inactive"]);
+  } finally {
+    game.user = originalUser;
+  }
+});
+
+test("Mortal-Divine template exposes GM send control and compact player bar surface", async () => {
+  const template = await fs.readFile(path.join(repoRoot, "templates/apps/mortal-divine-tracker.hbs"), "utf8");
+
+  assert.match(template, /data-balance-show-player/);
+  assert.match(template, /data-balance-player-bar/);
+  assert.match(template, /PTG\.Balance\.ShowPlayerBar/);
+  assert.match(template, /PTG\.Balance\.PlayerBarContext/);
+});
+
+test("Mortal-Divine tracker resolves dropped Character actors for GM roster import", async () => {
+  const actor = {
+    documentName: "Actor",
+    type: "character",
+    id: "owned",
+    uuid: "Actor.owned",
+    name: "Owned Character"
+  };
+  const token = {
+    documentName: "Token",
+    actor
+  };
+  const originalFromUuid = globalThis.fromUuid;
+  const originalActors = game.actors;
+  const warnings = [];
+  const originalWarn = console.warn;
+
+  globalThis.fromUuid = async uuid => {
+    if (uuid === "Actor.owned") return actor;
+    if (uuid === "Scene.scene.Token.token") return token;
+    return null;
+  };
+  game.actors = new Map([["owned", actor]]);
+  console.warn = (...args) => warnings.push(args);
+
+  try {
+    assert.equal(await balance.balanceActorFromDropData({ uuid: "Actor.owned" }), actor);
+    assert.equal(await balance.balanceActorFromDropData({ uuid: "Scene.scene.Token.token" }), actor);
+    assert.equal(await balance.balanceActorFromDropData({ type: "Actor", id: "owned" }), actor);
+    assert.equal(await balance.balanceActorFromDropData({ type: "Item", id: "item" }), null);
+    assert.equal(warnings.length, 0);
+  } finally {
+    globalThis.fromUuid = originalFromUuid;
+    game.actors = originalActors;
+    console.warn = originalWarn;
+  }
 });
 
 test("Premade scene refresh replaces stale managed drawing rows", async () => {
@@ -612,6 +906,136 @@ test("Premade scene refresh skips already-current managed drawing rows", async (
   assert.equal(await compendiums.refreshPremadeSceneDrawings(document, { drawings: [sourceDrawing] }), false);
 });
 
+test("Premade compendium document updates include the existing pack document id", () => {
+  const document = {
+    id: "existingPackDoc001",
+    toObject() {
+      return { _id: "fallbackPackDoc001" };
+    }
+  };
+
+  assert.deepEqual(
+    compendiums.compendiumDocumentUpdateData(document, {
+      _id: "sourceDocumentId",
+      folder: "folder001",
+      name: "Updated Entry"
+    }),
+    {
+      _id: "existingPackDoc001",
+      folder: "folder001",
+      name: "Updated Entry"
+    }
+  );
+});
+
+test("Premade compendium lock helpers detect and sync metadata-only lock state", async () => {
+  const calls = [];
+  const pack = {
+    metadata: { locked: true },
+    async configure(update) {
+      calls.push(update);
+    }
+  };
+
+  assert.equal(compendiums.isCompendiumPackLocked(pack), true);
+
+  await compendiums.setCompendiumPackLocked(pack, false);
+  assert.deepEqual(calls, [{ locked: false }]);
+  assert.equal(pack.metadata.locked, false);
+  assert.equal(pack.locked, false);
+  assert.equal(compendiums.isCompendiumPackLocked(pack), false);
+
+  await compendiums.setCompendiumPackLocked(pack, true);
+  assert.deepEqual(calls, [{ locked: false }, { locked: true }]);
+  assert.equal(pack.metadata.locked, true);
+  assert.equal(pack.locked, true);
+  assert.equal(compendiums.isCompendiumPackLocked(pack), true);
+});
+
+test("Premade compendium lock helper reports when Foundry keeps a pack locked", async () => {
+  const calls = [];
+  const pack = {
+    metadata: { locked: true },
+    get locked() {
+      return true;
+    },
+    async configure(update) {
+      calls.push(update);
+    }
+  };
+
+  assert.equal(await compendiums.setCompendiumPackLocked(pack, false), false);
+  assert.deepEqual(calls, [{ locked: false }]);
+  assert.equal(pack.metadata.locked, false);
+  assert.equal(compendiums.isCompendiumPackLocked(pack), true);
+});
+
+test("Premade compendium startup skip treats package packs as protected", () => {
+  assert.equal(
+    compendiums.shouldSkipPremadePackWrites({ metadata: { packageType: "system", locked: false } }, { skipLockedPacks: true }),
+    true
+  );
+  assert.equal(
+    compendiums.shouldSkipPremadePackWrites({ metadata: { packageType: "world", locked: false } }, { skipLockedPacks: true }),
+    false
+  );
+  assert.equal(
+    compendiums.shouldSkipPremadePackWrites({ metadata: { packageType: "system", locked: false } }, { skipLockedPacks: false }),
+    false
+  );
+});
+
+test("Premade rules journal refresh replaces stale embedded page rows", async () => {
+  const rulesJournals = await journals.getPremadeJournals();
+  const battleJournal = rulesJournals.find(journal => journal.name === "06. Divine Battles");
+  assert.ok(battleJournal, "Divine Battles source journal");
+
+  const stalePages = Array.from({ length: 3 }, (_, index) => ({
+    id: `oldPage${index}`,
+    name: "Timing, Initiative, and Turns",
+    flags: {
+      [SYSTEM_ID]: {
+        premade: true,
+        kind: "rules-reference",
+        slug: `stale-timing-${index}`
+      }
+    },
+    toObject() {
+      return {
+        _id: this.id,
+        name: this.name,
+        type: "text",
+        text: { content: "<p>Stale repeated page.</p>" },
+        flags: this.flags
+      };
+    }
+  }));
+  const document = {
+    pages: stalePages,
+    deleted: [],
+    created: [],
+    async deleteEmbeddedDocuments(documentType, ids) {
+      this.deleted.push({ documentType, ids });
+    },
+    async createEmbeddedDocuments(documentType, pages) {
+      this.created.push({ documentType, pages });
+    }
+  };
+
+  const changed = await compendiums.refreshPremadeJournalPages(document, battleJournal);
+
+  assert.equal(changed, true);
+  assert.deepEqual(document.deleted, [{ documentType: "JournalEntryPage", ids: ["oldPage0", "oldPage1", "oldPage2"] }]);
+  assert.equal(document.created.length, 1);
+  assert.equal(document.created[0].documentType, "JournalEntryPage");
+  assert.deepEqual(
+    document.created[0].pages.map(page => page.name),
+    battleJournal.pages.map(page => page.name)
+  );
+  assert.ok(document.created[0].pages.some(page => page.name === "Battle of Fists Actions and Defenses"));
+  assert.ok(document.created[0].pages.some(page => page.name === "Battle of Wits Actions and Defenses"));
+});
+
 function groupByType(documents) {
   const grouped = new Map();
   for (const document of documents) {
@@ -619,4 +1043,43 @@ function groupByType(documents) {
     grouped.get(document.type).push(document);
   }
   return grouped;
+}
+
+function plainText(value) {
+  return String(value ?? "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function plainWordCount(value) {
+  const text = plainText(value);
+  return text ? text.split(/\s+/).length : 0;
+}
+
+function escapeRegExp(value) {
+  return String(value ?? "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function titleCase(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\b[a-z]/g, char => char.toUpperCase());
+}
+
+function measureLabel(key) {
+  return {
+    area: "Area Affected",
+    damage: "Damage",
+    detail: "Effect Detail",
+    duration: "Duration",
+    magnitude: "Magnitude",
+    modifier: "Modifier",
+    range: "Range",
+    scale: "Scale",
+    targets: "Targets",
+    trigger: "Trigger"
+  }[key] ?? titleCase(key);
 }

@@ -20,6 +20,7 @@ const EXPECTED_MANIFESTATION_APPLICATIONS = {
 const EXPECTED_MANIFESTATION_MEASURES = ["damage", "range", "targets", "duration", "scale", "detail", "magnitude", "modifier", "area", "trigger"];
 const EXPECTED_CHAPTER_FOUR_JOURNAL_PAGES = {
   "Blessings, Curses, and the Skill-Combo System": [175, 176, 177],
+  "Critical Failure Effects": [176, 177],
   "Skill List": [178, 179, 180, 181, 182],
   "Rolling Dice and Checks": [183, 184, 185, 186],
   "Pantheon Pool, Strength, and Movement": [187, 188, 189],
@@ -49,8 +50,12 @@ const EXPECTED_CHAPTER_FOUR_ROLL_TABLES = [
 const EXPECTED_CHAPTER_FIVE_JOURNAL_PAGES = {
   "Timing, Initiative, and Turns": [197, 198, 199],
   "Actions and Defenses": [200, 201, 202, 203],
+  "Battle of Fists Actions and Defenses": [200, 201, 202],
+  "Battle of Wits Actions and Defenses": [202, 203],
   "Damage, Conditions, and Healing": [204, 205, 206, 207, 208],
-  "Armor, Weapons, and Range": [209, 210, 211, 212]
+  "Armor, Weapons, and Range": [209, 210, 211, 212],
+  "Gear Qualities: Armor and General": [209, 210, 211, 212],
+  "Gear Qualities: Weapon": [210, 211, 212]
 };
 const EXPECTED_CHAPTER_FIVE_BATTLE_ACTIONS = {
   fists: {
@@ -66,6 +71,9 @@ const EXPECTED_CHAPTER_FIVE_BATTLE_ACTIONS = {
     "standard-defense": ["Laugh It Off", "Stand My Ground", "Turn It Around", "Divine Powers"]
   }
 };
+const RULES_JOURNAL_MIN_PAGE_WORDS = 85;
+const RULES_JOURNAL_BOILERPLATE_PATTERN = /curated Foundry play aid|preserves source-page lookup metadata|Use the original rulebook|complete rules text/i;
+const RULES_JOURNAL_EXTRACTOR_ARTIFACT_PATTERN = /DescTeHnEding|DeCsrceeantidnigng|OPSPtOoSrITmION/i;
 installFoundrySourceMocks();
 
 const system = await readJson("system.json");
@@ -75,6 +83,8 @@ const errors = [];
 assertEqual(system.id, SYSTEM_ID, "system id");
 assertPackageVersion(system, packageManifest);
 assertReleaseUrls(system);
+await assertReleaseZipBuilderScaffold();
+await assertManualQAGateScaffold();
 await assertFile("part-time-gods.js", "Main system entry point");
 await assertManifestAssets(system);
 await assertProductionUxScaffold();
@@ -92,6 +102,7 @@ console.log(JSON.stringify(sourceResult.summary, null, 2));
 console.log("Release validation passed.");
 
 async function assertManifestAssets(manifest) {
+  if (manifest.socket !== true) errors.push("System manifest must enable package sockets with socket: true for player-facing GM controls");
   for (const language of manifest.languages ?? []) {
     await assertFile(language.path, "Language file");
     await readJson(language.path).catch(error => errors.push(`Language JSON does not parse: ${language.path}: ${error.message}`));
@@ -140,28 +151,33 @@ async function assertProductionUxScaffold() {
   }
 
   const entryPoint = await readText("part-time-gods.js");
-  for (const token of ["registerGMSetupSettings()", "registerGMSetupControls()", "maybeOpenFirstRunGMSetup()", "registerTerritoryGridSettings()", "maybeOpenTerritoryInterfaceOnReady()", "openTerritoryInterface", "maybeOpenMortalDivineBalanceTrackerOnReady()", "game.ptg.balance"]) {
+  for (const token of ["registerGMSetupSettings()", "registerGMSetupControls()", "maybeOpenFirstRunGMSetup()", "registerTerritoryGridSettings()", "maybeOpenTerritoryInterfaceOnReady()", "openTerritoryInterface", "maybeOpenMortalDivineBalanceTrackerOnReady()", "registerMortalDivineTrackerSocket()", "openMortalDivineBalancePlayerBar", "showMortalDivineBalanceBarToOwners", "game.ptg.territory", "game.ptg.balance", "restoreIntegratedModuleApis", "setTimeout?.(restoreIntegratedModuleApis"]) {
     if (!entryPoint.includes(token)) errors.push(`Main entry point missing ${token}`);
   }
 
   const balanceModule = await readText("module/apps/mortal-divine-tracker.mjs");
-  for (const token of ["maybeOpenMortalDivineBalanceTrackerOnReady", "autoOpenMortalDivineTracker", "mortalDivineTrackedCharacters", "visibleBalanceTrackerActors", "normalizeTrackedCharacterUuids", "addTrackedCharacter", "removeTrackedCharacterUuid", "canViewBalanceActor"]) {
+  for (const token of ["maybeOpenMortalDivineBalanceTrackerOnReady", "autoOpenMortalDivineTracker", "mortalDivineTrackedCharacters", "visibleBalanceTrackerActors", "normalizeTrackedCharacterUuids", "balanceActorFromDropData", "addTrackedCharacter", "removeTrackedCharacterUuid", "canViewBalanceActor", "balanceBarOwnerUsers", "registerMortalDivineTrackerSocket", "openMortalDivineBalancePlayerBar", "showMortalDivineBalanceBarToOwners", "mortalDivineBalance.showPlayerBar", "#onClick", "Object.hasOwn(button.dataset, \"balanceAction\")", "root.addEventListener(\"click\", event => this.#onClick(event))", "#onDragOver", "root.addEventListener(\"drop\", event => this.#onDrop(event), true)"]) {
     if (!balanceModule.includes(token)) errors.push(`Mortal-Divine tracker module missing ${token}`);
   }
 
   const balanceTemplate = await readText("templates/apps/mortal-divine-tracker.hbs");
-  for (const token of ["is-gm", "is-player", "data-balance-add", "data-balance-remove", "<details class=\"ptg-balance-party-card", "PTG.Balance.PlayerView"]) {
+  for (const token of ["is-gm", "is-player", "is-player-bar", "data-balance-player-view", "data-balance-player-bar", "data-balance-show-player", "data-balance-add", "data-balance-remove", "<details class=\"ptg-balance-party-card", "PTG.Balance.PlayerView", "PTG.Balance.ShowPlayerBar", "PTG.Balance.PlayerBarContext"]) {
     if (!balanceTemplate.includes(token)) errors.push(`Mortal-Divine tracker template missing ${token}`);
   }
 
   const territoryModule = await readText("module/apps/territory-grid-app.mjs");
-  for (const token of ["registerTerritoryGridSettings", "maybeOpenTerritoryInterfaceOnReady", "autoOpenTerritoryInterface", "openTerritoryScene", "fitTerritorySceneToCanvas", "territorySceneFitPan", "setTerritorySceneBackground", "territorySceneBackgroundUpdateData", "ensureTerritoryGridOverlayForeground", "openTerritoryControls", "territoryPointsFromActor", "dropEventData", "canEditTerritory", "findTerritoryScene", "LOCATION_TYPES", "CONTROL_TYPES", "TERRITORY_STATUSES", "DISCOVERY_STATES", "RITUAL_EVENT_TYPES", "gmNotes", "publicNotes", "footprint", "ritualEvents", "data-territory-background-browse", "wireTerritoryBackgroundDialog", "FilePicker"]) {
+  for (const token of ["registerTerritoryGridSettings", "maybeOpenTerritoryInterfaceOnReady", "autoOpenTerritoryInterface", "openTerritoryScene", "fitTerritorySceneToCanvas", "territorySceneFitPan", "setTerritorySceneBackground", "territorySceneBackgroundUpdateData", "ensureTerritoryGridOverlayForeground", "openTerritoryControls", "territoryPointsFromActor", "getDragEventData", "root.addEventListener(\"drop\", event => this.#onDrop(event), true)", "canEditTerritory", "findTerritoryScene", "LOCATION_TYPES", "CONTROL_TYPES", "TERRITORY_STATUSES", "DISCOVERY_STATES", "RITUAL_EVENT_TYPES", "gmNotes", "publicNotes", "footprint", "ritualEvents", "data-territory-background-browse", "wireTerritoryBackgroundDialog", "territoryFilePickerClass", "FilePicker", "implementation"]) {
     if (!territoryModule.includes(token)) errors.push(`Integrated Territory interface missing ${token}`);
   }
 
   const territoryTemplate = await readText("templates/apps/territory-grid-app.hbs");
   for (const token of ["data-action=\"view-scene\"", "data-action=\"territory-controls\"", "data-action=\"background\"", "can-drop-actors", "data-territory-drop-root", "controlLabel", "statusLabel", "discoveryLabel", "eventLabel"]) {
     if (!territoryTemplate.includes(token)) errors.push(`Territory GM interface template missing ${token}`);
+  }
+
+  const dropDataModule = await readText("module/util/drop-data.mjs");
+  for (const token of ["parseDataTransfer", "application/json", "text/html", "data-uuid", "dropDataFromUuid", "data._id", "decodeHTMLAttribute"]) {
+    if (!dropDataModule.includes(token)) errors.push(`Shared drop-data helper missing ${token}`);
   }
 
   const setupTemplate = await readText("templates/apps/gm-setup-panel.hbs");
@@ -202,7 +218,7 @@ async function assertProductionUxScaffold() {
   for (const key of ["PTG.Help.PantheonPool", "PTG.Help.Fragments", "PTG.Help.Spark", "PTG.Help.Strain"]) {
     if (!pantheonTemplate.includes(key)) errors.push(`Pantheon sheet missing localized help key ${key}`);
   }
-  for (const token of ["data-member-add", "canManageMembers", "member.canOpen", "member.limited"]) {
+  for (const token of ["ptg-panel-section ptg-pantheon-tools", "ptg-panel-section ptg-pantheon-members", "data-member-add", "canManageMembers", "member.canOpen", "member.limited"]) {
     if (!pantheonTemplate.includes(token)) errors.push(`Pantheon party sheet missing member-management token ${token}`);
   }
 
@@ -223,11 +239,21 @@ async function assertProductionUxScaffold() {
     ".part-time-gods.sheet.item :where(textarea[readonly])",
     ".part-time-gods.sheet.item :where(input:not([type=\"checkbox\"])[readonly])",
     ".ptg-sheet :where(input:not([type=\"checkbox\"]), select, textarea)",
+    ".ptg-sheet .ptg-long-field",
+    ".ptg-panel-section",
+    ".ptg-compact-sheet > :where(header, nav, section)",
+    ".part-time-gods.sheet.pantheon .ptg-compact-sheet > *",
+    "flex-shrink: 0 !important",
+    ".part-time-gods.sheet.pantheon .ptg-compact-sheet > .ptg-editor-section",
+    "min-height: max-content",
+    "overflow-x: auto",
+    "text-overflow: clip",
     "min-height: 2.5rem",
     "var(--ptg-sheet-field, #ffffff)",
     "details.ptg-editor-section",
     ".ptg-edit-lock-bar",
     ".ptg-sheet.is-locked",
+    ".ptg-sheet.is-locked :where(textarea[readonly])",
     "[data-edit][data-ptg-edit-locked=\"true\"]",
     ".ptg-print-ability-actions",
     ".ptg-print-truth-actions button",
@@ -250,22 +276,85 @@ async function assertProductionUxScaffold() {
     ".ptg-attachment-definition-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-condition-recovery-dialog :where(input:not([type=\"checkbox\"]), select, textarea)",
     ".ptg-print-title-field input",
+    ".ptg-print-title-field .ptg-print-display",
+    "grid-template-columns: minmax(6.75rem, 8.75rem) minmax(0, 1fr)",
+    "min-block-size: 46px",
+    "font-size: clamp(15px, 5cqw, 20px)",
+    "isolation: isolate",
+    "z-index: 1",
+    "background-attachment: local",
+    "background-clip: padding-box",
+    "background-origin: padding-box",
+    "background-repeat: repeat-y",
+    "--ptg-lined-row-height: 36px",
+    "--ptg-lined-row-height: 30px",
+    "--ptg-lined-row-height: 40px",
+    "background-image: linear-gradient(",
+    "background-size: 100% var(--ptg-lined-row-height)",
+    "var(--ptg-lined-rule-color)",
+    "overflow-x: hidden",
+    "overscroll-behavior: contain",
+    "scrollbar-width: thin",
+    "contain: paint",
+    "word-break: normal",
+    ".part-time-gods img[data-fallback-src]",
+    ".part-time-gods :where(img[data-fallback-src], .profile-img",
+    ".ptg-pantheon-member img",
+    ".ptg-balance-party-card img",
+    ".ptg-balance-actor img",
+    "aspect-ratio: 1 / 1",
+    "object-fit: contain",
+    "object-position: center",
+    "image-rendering: auto",
+    "inline-size: auto !important",
+    "max-inline-size: min(100%, 24rem)",
+    "max-inline-size: min(100%, 18rem)",
+    "max-block-size: 12rem",
+    "max-height: 22rem",
+    ".ptg-print-ability-list",
+    ".ptg-print-truth-list",
+    "max-height: 18rem",
+    ".ptg-editor-section :where(figure, picture, svg, canvas, video)",
+    ".ptg-editor-section :where(hr)",
+    ".ptg-editor-section :where(th, td)",
+    ".ptg-sheet-detail-body :where(img)",
+    "width: fit-content",
+    "border: 1px solid rgba(17, 17, 17, 0.35)",
+    ".ptg-character-sheet .ptg-print-page .ptg-sheet-detail-body :where(hr)",
+    ".ptg-character-sheet .ptg-print-page .ptg-item-details :where(figure, picture, svg, canvas, video)",
+    ".ptg-character-sheet .ptg-print-page .ptg-editor-section :where(th, td)",
+    ".ptg-character-sheet .ptg-print-page .ptg-item-details :where(img)",
+    ".ptg-score-value",
+    ".ptg-creator-attachment-grid",
+    ".ptg-creator-attachment-row",
+    ".ptg-creator-attachment-notes",
+    ".ptg-creator-review",
+    ".ptg-creator-steps button.ptg-creator-step-review",
+    ".ptg-creator-dialog fieldset.ptg-creator-fieldset-review",
     ".ptg-territory-overlay-note",
     ".ptg-territory-grid-app.is-readonly",
     ".ptg-territory-grid-app.can-drop-actors",
+    ".ptg-territory-cell .ptg-territory-point-main strong",
+    ".ptg-territory-cell .ptg-territory-point-delete",
+    "text-overflow: ellipsis",
+    "word-break: keep-all",
     "scrollbar-gutter: stable",
     "min-height: 360px",
     ".ptg-territory-point-details",
     ".ptg-territory-status-contested",
     ".ptg-territory-control-pantheon",
     ".ptg-territory-file-row",
-    ".ptg-balance-tracker-window {",
+    ".ptg-balance-tracker-window,",
+    ".ptg-balance-player-bar-window",
     "max-width: calc(100vw - 24px)",
     "max-height: calc(100vh - 32px)",
     "container-type: inline-size",
     ".ptg-balance-tracker.is-player",
+    ".ptg-balance-tracker.is-player-bar",
     ".ptg-balance-body.is-player",
+    ".ptg-balance-body.is-player-bar",
     ".ptg-balance-body.is-player .ptg-balance-detail",
+    ".ptg-balance-body.is-player-bar .ptg-balance-detail",
     ".ptg-balance-party-list",
     "@container (max-width: 680px)",
     ".ptg-balance-party-card summary",
@@ -286,7 +375,14 @@ async function assertProductionUxScaffold() {
     "overflow-x: hidden",
     "overflow-y: auto",
     "max-height: 100%",
-    "max-height: min(100%, clamp(160px, calc(100vh - 180px), 560px))"
+    "max-height: min(100%, clamp(160px, calc(100vh - 180px), 560px))",
+    ".ptg-combat-dialog-window",
+    ":is(.application, .app, .window-app):has(.ptg-combat-dialog) .dialog-content",
+    ":is(.application, .app, .window-app):has(.ptg-combat-dialog) [data-application-part=\"footer\"]",
+    ":is(.application, .app, .window-app):has(.ptg-combat-dialog) .dialog-buttons",
+    ".ptg-combat-dialog-window .ptg-combat-dialog",
+    "max-height: min(100%, calc(100vh - 180px))",
+    "scrollbar-gutter: stable"
   ];
   for (const token of readableSurfaceTokens) {
     if (!stylesheet.includes(token)) errors.push(`Readable sheet/dialog stylesheet guard missing ${token}`);
@@ -297,6 +393,7 @@ async function assertProductionUxScaffold() {
     "<details class=\"ptg-editor-section\" open>",
     "<summary><span>",
     "<details class=\"ptg-editor-section ptg-rules-explanation\" open>",
+    "class=\"ptg-long-field\"",
     "data-fallback-src=\"{{itemImageFallback}}\"",
     "alt=\"{{item.name}}\""
   ]) {
@@ -312,7 +409,8 @@ async function assertProductionUxScaffold() {
     for (const token of [
       "part-time-gods sheet item",
       sheetClass,
-      "data-fallback-src=\"icons/svg/item-bag.svg\"",
+      "src=\"{{itemImg}}\"",
+      "data-fallback-src=\"{{itemImageFallback}}\"",
       "alt=\"{{item.name}}\"",
       "ptg-header",
       "ptg-title",
@@ -324,14 +422,81 @@ async function assertProductionUxScaffold() {
     }
   }
 
+  const imageFallbackSource = await readText("module/util/image-fallback.mjs");
+  for (const token of ["PTG_IMAGE_FALLBACK", "imageSource", "wireImageFallbacks", "img[data-fallback-src]", "ptgFallbackWired", "addEventListener(\"error\""]) {
+    if (!imageFallbackSource.includes(token)) errors.push(`Shared image fallback helper missing ${token}`);
+  }
+
   const itemSheet = await readText("module/sheets/item-sheet.mjs");
-  for (const token of ["ITEM_IMAGE_FALLBACK", "itemImageSource", "wireItemSheetImageFallback", "annotateCompactFieldTitles", "img[data-fallback-src]"]) {
+  for (const token of ["ITEM_IMAGE_FALLBACK", "imageSource(this.item?.img", "wireImageFallbacks(this.element", "annotateCompactFieldTitles"]) {
     if (!itemSheet.includes(token)) errors.push(`Item sheet media/readability helper missing ${token}`);
+  }
+
+  for (const [template, tokens] of [
+    ["templates/actor/antagonist-sheet.hbs", ["src=\"{{actorImg}}\"", "data-fallback-src=\"{{imageFallback}}\"", "alt=\"{{actor.name}}\""]],
+    ["templates/actor/pantheon-sheet.hbs", ["src=\"{{actorImg}}\"", "data-fallback-src=\"{{imageFallback}}\"", "data-fallback-src=\"{{member.imageFallback}}\"", "alt=\"{{member.name}}\""]],
+    ["templates/apps/mortal-divine-tracker.hbs", ["data-fallback-src=\"{{character.imageFallback}}\"", "data-fallback-src=\"{{actor.imageFallback}}\"", "alt=\"{{character.name}}\""]]
+  ]) {
+    const source = await readText(template);
+    for (const token of tokens) {
+      if (!source.includes(token)) errors.push(`${template} image fallback guard missing ${token}`);
+    }
+  }
+
+  for (const [sourcePath, tokens] of [
+    ["module/sheets/antagonist-sheet.mjs", ["actorImg", "imageFallback", "wireImageFallbacks(this.element"]],
+    ["module/sheets/pantheon-sheet.mjs", ["actorImg", "imageFallback: PTG_IMAGE_FALLBACK", "wireImageFallbacks(this.element"]],
+    ["module/apps/mortal-divine-tracker.mjs", ["imageFallback", "wireImageFallbacks(root", "partyCharacterContext"]]
+  ]) {
+    const source = await readText(sourcePath);
+    for (const token of tokens) {
+      if (!source.includes(token)) errors.push(`${sourcePath} image fallback wiring missing ${token}`);
+    }
   }
 
   const characterLockTemplate = await readText("templates/actor/character-sheet.hbs");
   if (!characterLockTemplate.includes("data-ptg-edit-lock-toggle")) errors.push("Character sheet missing sheet edit lock toggle");
   if (!characterLockTemplate.includes("sheetLocked") || !characterLockTemplate.includes("canEditSheet")) errors.push("Character sheet missing sheet edit lock context");
+  for (const token of ["{{#if sheetUnlocked}}", "ptg-print-display", "ptg-score-value"]) {
+    if (!characterLockTemplate.includes(token)) errors.push(`Character sheet locked-mode display template missing ${token}`);
+  }
+
+  const characterItemListTemplate = await readText("templates/actor/parts/item-list.hbs");
+  for (const token of ["data-fallback-src=\"icons/svg/item-bag.svg\"", "alt=\"{{item.name}}\""]) {
+    if (!characterItemListTemplate.includes(token)) errors.push(`Character item list image fallback missing ${token}`);
+  }
+
+  const characterSheetSource = await readText("module/sheets/character-sheet.mjs");
+  for (const token of ["commonActions", "ptg-common-actions", "data-common-action", "prepareCharacterCommonActions", "context.commonActions"]) {
+    if (characterLockTemplate.includes(token) || characterSheetSource.includes(token)) {
+      errors.push(`Character sheet duplicate common action strip should not include ${token}`);
+    }
+  }
+  for (const token of ["CHARACTER_ITEM_IMAGE_FALLBACK", "wireImageFallbacks(this.element"]) {
+    if (!characterSheetSource.includes(token)) errors.push(`Character sheet image fallback helper missing ${token}`);
+  }
+  for (const token of ["readCreatorStartingAttachments", "creatorStartingAttachmentRowsHTML", "creatorStartingAttachmentItem", "startingAttachments", "Step Five: Attachments"]) {
+    if (!characterSheetSource.includes(token)) errors.push(`Character creator backed attachment workflow missing ${token}`);
+  }
+  for (const token of ["attachmentDefinitions: \"auto\"", "domainOptions: creatorDomainOptions", "creatorDomainOptions"]) {
+    if (!characterSheetSource.includes(token)) errors.push(`Character creator non-interactive source application missing ${token}`);
+  }
+  for (const token of ["characterCreatorProblemSteps", "characterCreatorReviewHTML", "validateCreatorSourceSelections", "failedChoices", "reviewErrors", "ptg-creator-fieldset-review"]) {
+    if (!characterSheetSource.includes(token)) errors.push(`Character creator failed-review recovery missing ${token}`);
+  }
+  for (const token of [
+    "creatorArchetypeOptionsHTML(options, priorArchetypeOptions, priorChoices.archetype ?? \"\")",
+    "creatorCareerOptionValue",
+    "selectedCreatorCareerOptionAttribute",
+    "creatorArchetypeOptionValue",
+    "creatorArchetypeOptionIndexFromValue",
+    "hidden disabled",
+    "option.disabled = !show",
+    "option.selected = true",
+    "candidate.value && !candidate.hidden && !candidate.disabled"
+  ]) {
+    if (!characterSheetSource.includes(token)) errors.push(`Character creator dependent selector guard missing ${token}`);
+  }
 
   for (const template of [
     "templates/actor/antagonist-sheet.hbs",
@@ -351,6 +516,11 @@ async function assertProductionUxScaffold() {
     "isSheetEditLocked",
     "toggleSheetEditLock",
     "WeakSet",
+    "lockedSheets",
+    "shouldDefaultSheetUnlocked",
+    "control.tagName?.toUpperCase?.() === \"TEXTAREA\"",
+    "control.readOnly = true",
+    "control.setAttribute(\"aria-readonly\", \"true\")",
     "[data-roll-skill]",
     "[data-roll-manifestation]",
     "[data-ritual-action]",
@@ -360,6 +530,14 @@ async function assertProductionUxScaffold() {
     "[data-item-action='toggle-details']"
   ]) {
     if (!lockHelper.includes(token)) errors.push(`Sheet edit lock helper missing ${token}`);
+  }
+
+  const actorDocumentSource = await readText("module/documents/actor/part-time-gods-actor.mjs");
+  for (const token of ["options.attachmentDefinitions", "automaticAttachmentDefinition", "selectionOptions.domainOptions", "selectDomainOptions(item, this, options)"]) {
+    if (!actorDocumentSource.includes(token)) errors.push(`Actor choice non-interactive creator apply hook missing ${token}`);
+  }
+  for (const token of ["parseOccupationCareerOption", "text.split(\"::\").at(-1)", "selectionOptions.occupationCareerOption, item.uuid"]) {
+    if (!actorDocumentSource.includes(token)) errors.push(`Actor choice scoped occupation career parser missing ${token}`);
   }
 }
 
@@ -400,7 +578,7 @@ async function assertChapterFiveCombatScaffold() {
   }
 
   const combat = await readText("module/combat/ptg-combat.mjs");
-  for (const token of ["PTG_INITIATIVE_FORMULA", "actorInitiative", "itemInitiativeModifier", "initiativeProcedureHTML", "quickAction", "standardAction", "quickDefense", "standardDefense", "battleFists", "battleWits", "damageResource", "Apply Damage (Health or Psyche)", "physicalDamage", "mentalDamage", "healing", "rollPTGInitiative", "rollPTGStatblockPool", "applyConditionToActor", "conditionCombatModifier", "automation.bonus?.initiative"]) {
+  for (const token of ["PTG_INITIATIVE_FORMULA", "actorInitiative", "itemInitiativeModifier", "initiativeProcedureHTML", "quickAction", "standardAction", "quickDefense", "standardDefense", "battleFists", "battleWits", "damageResource", "Apply Damage (Health or Psyche)", "physicalDamage", "mentalDamage", "healing", "rollPTGInitiative", "rollPTGStatblockPool", "applyConditionToActor", "conditionCombatModifier", "automation.bonus?.initiative", "ptg-combat-dialog-window", "width: 700", "height: 680"]) {
     if (!combat.includes(token)) errors.push(`Combat workflow missing Chapter 5 token ${token}`);
   }
 
@@ -425,7 +603,7 @@ async function assertChapterFiveCombatScaffold() {
   }
 
   const antagonistTemplate = await readText("templates/actor/antagonist-sheet.hbs");
-  for (const token of ["data-antagonist-combat-roll=\"attack\"", "data-antagonist-combat-roll=\"defense\"", "data-antagonist-combat-controls"]) {
+  for (const token of ["ptg-panel-section ptg-antagonist-combat-panel", "data-antagonist-combat-roll=\"attack\"", "data-antagonist-combat-roll=\"defense\"", "data-antagonist-combat-controls"]) {
     if (!antagonistTemplate.includes(token)) errors.push(`Antagonist sheet missing combat action ${token}`);
   }
 }
@@ -437,16 +615,46 @@ async function assertPremadeItemFolderScaffold() {
   const itemAuditScript = await readText("scripts/audit-premade-items.mjs");
   const itemAuditDoc = await readText("docs/premade-item-compendium-audit.md");
   const folderTokens = [
+    "document.flags?.[SYSTEM_ID]?.folder ?? document.type ?? \"item\""
+  ];
+  const retiredFolderLabels = [
     "\"battle-fists\": \"Battle of Fists Actions\"",
     "\"battle-wits\": \"Battle of Wits Actions\"",
     "\"critical-failure-effects\": \"Critical Failure Effects\"",
     "\"manifestation-application\": \"Manifestation Applications\"",
-    "document.flags?.[SYSTEM_ID]?.folder ?? document.type ?? \"item\""
+    "gearQuality: \"Gear Qualities\""
+  ];
+  const retiredFolderKeys = ["\"battle-fists\"", "\"battle-wits\""];
+  const retiredRuntimeTokens = [
+    "RETIRED_PREMADE_ITEM_FOLDER_LABELS",
+    "Battle-fistss",
+    "Battle-witss",
+    "isRetiredPremadeItemFolderName",
+    "isRetiredFolderName"
+  ];
+  const rulesRefreshTokens = [
+    "refreshPremadeJournalPages",
+    "JournalEntryPage",
+    "sameManagedJournalPageSet",
+    "isManagedRulesPage"
   ];
 
   for (const token of folderTokens) {
     if (!compendiumSource.includes(token)) errors.push(`Runtime premade Item folder scaffold missing ${token}`);
     if (!packBuilder.includes(token)) errors.push(`Pack-builder premade Item folder scaffold missing ${token}`);
+  }
+  for (const token of retiredFolderLabels) {
+    if (compendiumSource.includes(token)) errors.push(`Runtime premade Item folder scaffold should not recreate battle-action Items: ${token}`);
+    if (packBuilder.includes(token)) errors.push(`Pack-builder premade Item folder scaffold should not recreate battle-action Items: ${token}`);
+  }
+  for (const token of retiredFolderKeys) {
+    if (itemAudit.includes(token)) errors.push(`Premade Item audit helper should not allow battle-action Item folders: ${token}`);
+  }
+  for (const token of retiredRuntimeTokens) {
+    if (!compendiumSource.includes(token)) errors.push(`Runtime premade Item retired-folder cleanup missing ${token}`);
+  }
+  for (const token of rulesRefreshTokens) {
+    if (!compendiumSource.includes(token)) errors.push(`Runtime rules-reference refresh missing ${token}`);
   }
   for (const token of ["auditCreatedItemDocuments", "JOURNAL_STYLE_ITEM_KINDS", "journalSourceItems"]) {
     if (!itemAudit.includes(token)) errors.push(`Premade Item audit helper missing ${token}`);
@@ -466,6 +674,98 @@ function assertReleaseUrls(manifest) {
   const expectedDownload = `https://github.com/VentysGrimm/Part-Time-Gods/releases/download/v${manifest.version}/${manifest.id}-${manifest.version}.zip`;
   if (String(manifest.download ?? "") !== expectedDownload) {
     errors.push(`Download URL should point at the v${manifest.version} GitHub Release ZIP: ${manifest.download}`);
+  }
+}
+
+async function assertReleaseZipBuilderScaffold() {
+  const source = await readText("scripts/build-release-zip.mjs");
+  const releaseAssetChecker = await readText("scripts/check-release-assets.mjs");
+  const releaseWorkflow = await readText(".github/workflows/release.yml");
+  if (packageManifest.scripts?.["check:release-assets"] !== "node scripts/check-release-assets.mjs") {
+    errors.push("package.json missing check:release-assets release asset verification script");
+  }
+  for (const token of [
+    "assertPacksNotLocked",
+    "pack.path",
+    "\"LOCK\"",
+    "Cannot build the release ZIP while Foundry has package compendium packs open.",
+    "Locked packs:"
+  ]) {
+    if (!source.includes(token)) errors.push(`Release ZIP builder lock preflight missing ${token}`);
+  }
+
+  const lockCheckIndex = source.indexOf("await assertPacksNotLocked()");
+  const staleZipCleanupIndex = source.indexOf("await removeStaleReleaseZips()");
+  const writeZipIndex = source.indexOf("await fs.writeFile(outPath");
+  if (lockCheckIndex === -1 || staleZipCleanupIndex === -1 || writeZipIndex === -1) return;
+  if (lockCheckIndex > staleZipCleanupIndex || lockCheckIndex > writeZipIndex) {
+    errors.push("Release ZIP builder must check active pack locks before stale ZIP cleanup or output writes");
+  }
+
+  for (const token of [
+    "expectedZipUrl",
+    "checkPackagePackLocks",
+    "package pack locks released",
+    "checkLocalDist",
+    "checkRemoteManifest",
+    "checkRemoteZip",
+    "staleReleaseZips",
+    "stale local release zips",
+    "remote manifest version",
+    "remote zip status"
+  ]) {
+    if (!releaseAssetChecker.includes(token)) errors.push(`Release asset checker missing ${token}`);
+  }
+
+  for (const token of [
+    "Publish Release Assets",
+    "contents: write",
+    "workflow_dispatch:",
+    "tags:",
+    "v*.*.*",
+    "npm run check",
+    "npm run validate",
+    "npm test",
+    "npm run zip",
+    "dist/system.json",
+    "dist/${{ steps.meta.outputs.zip_name }}",
+    "gh release create",
+    "gh release edit",
+    "gh release upload",
+    "--clobber",
+    "npm run check:release-assets"
+  ]) {
+    if (!releaseWorkflow.includes(token)) errors.push(`Release publication workflow missing ${token}`);
+  }
+}
+
+async function assertManualQAGateScaffold() {
+  const dragDropEvidence = await readText("docs/qa/manual-dragdrop-matrix.md");
+  const dragDropChecker = await readText("scripts/check-dragdrop-evidence.mjs");
+
+  if (packageManifest.scripts?.["check:dragdrop-evidence"] !== "node scripts/check-dragdrop-evidence.mjs") {
+    errors.push("package.json missing check:dragdrop-evidence manual QA verification script");
+  }
+
+  for (const token of [
+    "item-occupation",
+    "item-archetype",
+    "item-domain",
+    "item-theology",
+    "item-blessing",
+    "item-curse",
+    "item-truth",
+    "item-relic",
+    "item-bond",
+    "item-worshipper",
+    "item-vassal",
+    "item-condition",
+    "item-weapon",
+    "item-armor",
+    "actor-territory-character"
+  ]) {
+    if (!dragDropEvidence.includes(token)) errors.push(`Manual drag/drop evidence matrix missing ${token}`);
+    if (!dragDropChecker.includes(token)) errors.push(`Manual drag/drop evidence checker missing ${token}`);
   }
 }
 
@@ -554,6 +854,21 @@ async function validatePremadeSourceData() {
   if (rulesAudit.missingSafeSummary.length) {
     errors.push(`Rules reference pages missing safeSummary flags:\n${rulesAudit.missingSafeSummary.map(key => `- ${key}`).join("\n")}`);
   }
+  if (rulesAudit.boilerplatePages.length) {
+    errors.push(`Rules reference pages still contain repeated placeholder boilerplate:\n${rulesAudit.boilerplatePages.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (rulesAudit.extractorArtifactPages.length) {
+    errors.push(`Rules reference pages still contain PDF extractor artifacts:\n${rulesAudit.extractorArtifactPages.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (rulesAudit.thinPages.length) {
+    errors.push(`Rules reference pages are too thin to be useful source-backed summaries:\n${rulesAudit.thinPages.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (rulesAudit.repeatedRuleParagraphs.length) {
+    errors.push(`Rules reference pages repeat the same rules paragraph:\n${rulesAudit.repeatedRuleParagraphs.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (rulesAudit.duplicatePageNames.length) {
+    errors.push(`Rules reference journals contain duplicate page names:\n${rulesAudit.duplicatePageNames.map(key => `- ${key}`).join("\n")}`);
+  }
   if (rulesAudit.totalWords > 12000 || rulesAudit.largestPageWords > 900) {
     errors.push(`Rules reference text is too large for release-safe summaries: totalWords=${rulesAudit.totalWords}, largestPageWords=${rulesAudit.largestPageWords}`);
   }
@@ -563,46 +878,58 @@ async function validatePremadeSourceData() {
     errors.push(`Backers' Pregens must remain metadata-only until permission is confirmed:\n${pregenAudit.unsafe.map(key => `- ${key}`).join("\n")}`);
   }
 
-  const manifestationAudit = manifestationApplicationAudit(documents.items);
+  const manifestationAudit = manifestationApplicationAudit(documents.items, documents.journals, items.MANIFESTATION_APPLICATION_DEFINITIONS);
+  if (manifestationAudit.misplacedItems.length) {
+    errors.push(`Manifestation application reference content should be JournalEntry pages, not Items:\n${manifestationAudit.misplacedItems.map(key => `- ${key}`).join("\n")}`);
+  }
   if (manifestationAudit.missing.length) {
-    errors.push(`Missing Chapter 3 manifestation application Items:\n${manifestationAudit.missing.map(key => `- ${key}`).join("\n")}`);
+    errors.push(`Missing Chapter 3 manifestation application Journal entries:\n${manifestationAudit.missing.map(key => `- ${key}`).join("\n")}`);
   }
   if (manifestationAudit.missingMetadata.length) {
-    errors.push(`Manifestation application Items missing roll metadata:\n${manifestationAudit.missingMetadata.map(key => `- ${key}`).join("\n")}`);
+    errors.push(`Manifestation application Journal entries missing source, Skill, or Measure guidance:\n${manifestationAudit.missingMetadata.map(key => `- ${key}`).join("\n")}`);
   }
   if (manifestationAudit.missingMeasures.length) {
-    errors.push(`Manifestation measure metadata missing:\n${manifestationAudit.missingMeasures.map(key => `- ${key}`).join("\n")}`);
+    errors.push(`Manifestation measure journal references missing:\n${manifestationAudit.missingMeasures.map(key => `- ${key}`).join("\n")}`);
   }
 
-  const chapterFourAudit = chapterFourRulesAudit(documents.items, documents.rollTables, documents.journals);
+  const chapterFourAudit = chapterFourRulesAudit(documents.items, documents.rollTables, documents.journals, items.CRITICAL_FAILURE_EFFECT_DEFINITIONS);
   if (chapterFourAudit.misplacedRuleItems.length) {
     errors.push(`Chapter 4 reference content should be JournalEntry pages, not Items:\n${chapterFourAudit.misplacedRuleItems.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFourAudit.misplacedCriticalFailureItems.length) {
+    errors.push(`Critical Failure effects should be JournalEntry rules, not premade Condition Items:\n${chapterFourAudit.misplacedCriticalFailureItems.map(key => `- ${key}`).join("\n")}`);
   }
   if (chapterFourAudit.missingJournalPages.length) {
     errors.push(`Missing Chapter 4 rules JournalEntry pages:\n${chapterFourAudit.missingJournalPages.map(key => `- ${key}`).join("\n")}`);
   }
   if (chapterFourAudit.missingCriticalFailureEffects.length) {
-    errors.push(`Missing Chapter 4 Critical Failure consequence Conditions:\n${chapterFourAudit.missingCriticalFailureEffects.map(key => `- ${key}`).join("\n")}`);
+    errors.push(`Missing Chapter 4 Critical Failure Journal entries:\n${chapterFourAudit.missingCriticalFailureEffects.map(key => `- ${key}`).join("\n")}`);
   }
   if (chapterFourAudit.missingRollTables.length) {
     errors.push(`Missing Chapter 4 procedural RollTables:\n${chapterFourAudit.missingRollTables.map(key => `- ${key}`).join("\n")}`);
   }
 
-  const chapterFiveAudit = chapterFiveBattleAudit(documents.items, documents.journals);
+  const chapterFiveAudit = chapterFiveBattleAudit(documents.items, documents.journals, items.QUALITY_DEFINITIONS);
   if (chapterFiveAudit.misplacedRuleItems.length) {
     errors.push(`Chapter 5 battle reference content should be JournalEntry pages, not Items:\n${chapterFiveAudit.misplacedRuleItems.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFiveAudit.misplacedGearQualityItems.length) {
+    errors.push(`Gear Qualities should be JournalEntry rules, not premade Items:\n${chapterFiveAudit.misplacedGearQualityItems.map(key => `- ${key}`).join("\n")}`);
   }
   if (chapterFiveAudit.missingJournalPages.length) {
     errors.push(`Missing Chapter 5 battle JournalEntry pages:\n${chapterFiveAudit.missingJournalPages.map(key => `- ${key}`).join("\n")}`);
   }
-  if (chapterFiveAudit.missingActions.length) {
-    errors.push(`Missing Chapter 5 Battle action/defense Items:\n${chapterFiveAudit.missingActions.map(key => `- ${key}`).join("\n")}`);
+  if (chapterFiveAudit.misplacedBattleActionItems.length) {
+    errors.push(`Chapter 5 Battle actions should be JournalEntry rules, not Items:\n${chapterFiveAudit.misplacedBattleActionItems.map(key => `- ${key}`).join("\n")}`);
   }
-  if (chapterFiveAudit.missingActionMetadata.length) {
-    errors.push(`Chapter 5 Battle action Items missing roll metadata:\n${chapterFiveAudit.missingActionMetadata.map(key => `- ${key}`).join("\n")}`);
+  if (chapterFiveAudit.missingJournalActions.length) {
+    errors.push(`Missing Chapter 5 Battle action/defense journal entries:\n${chapterFiveAudit.missingJournalActions.map(key => `- ${key}`).join("\n")}`);
   }
   if (chapterFiveAudit.missingGearFamilies.length) {
     errors.push(`Chapter 5 gear/condition families incomplete:\n${chapterFiveAudit.missingGearFamilies.map(key => `- ${key}`).join("\n")}`);
+  }
+  if (chapterFiveAudit.missingGearQualityEntries.length) {
+    errors.push(`Missing Gear Quality Journal entries:\n${chapterFiveAudit.missingGearQualityEntries.map(key => `- ${key}`).join("\n")}`);
   }
   if (chapterFiveAudit.missingInitiativeModifiers.length) {
     errors.push(`Chapter 5 initiative modifier metadata incomplete:\n${chapterFiveAudit.missingInitiativeModifiers.map(key => `- ${key}`).join("\n")}`);
@@ -659,91 +986,79 @@ function backersPregensAudit(actors) {
   return { unsafe };
 }
 
-function manifestationApplicationAudit(items) {
-  const expected = Object.entries(EXPECTED_MANIFESTATION_APPLICATIONS)
-    .flatMap(([manifestation, names]) => names.map(name => ({
-      manifestation,
-      name,
-      sourceId: `ptg2e.chapter-3.manifestation.${manifestation}.${sourceSlug(name)}`
-    })));
-  const applications = items.filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "manifestation-application");
-  const bySourceId = new Map(applications.map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item]));
-  const missing = expected
-    .filter(({ sourceId }) => !bySourceId.has(sourceId))
-    .map(({ manifestation, name }) => `${manifestation}:${name}`);
-  const missingMetadata = applications
-    .filter(item => {
-      const roll = item.system?.automation?.roll ?? {};
-      return roll.type !== "manifestation"
-        || !roll.manifestation
-        || !roll.application
-        || !Array.isArray(roll.suggestedSkills)
-        || !roll.suggestedSkills.length
-        || !Array.isArray(roll.commonMeasures)
-        || !roll.commonMeasures.length;
-    })
+function manifestationApplicationAudit(items, journals, definitions = []) {
+  const expected = definitions.length
+    ? definitions
+    : Object.entries(EXPECTED_MANIFESTATION_APPLICATIONS)
+      .flatMap(([manifestation, names]) => names.map(name => ({ manifestation, name, skills: [], commonMeasures: [] })));
+  const misplacedItems = items
+    .filter(item => item.type === "power" && (
+      item.flags?.[SYSTEM_ID]?.kind === "manifestation-application"
+      || item.flags?.[SYSTEM_ID]?.folder === "manifestation-application"
+    ))
     .map(item => item.name);
-  const measureSet = new Set();
-  for (const item of applications) {
-    const roll = item.system?.automation?.roll ?? {};
-    for (const measure of roll.measures ?? []) measureSet.add(measure);
-    for (const measure of roll.commonMeasures ?? []) measureSet.add(measure);
-  }
-  const missingMeasures = EXPECTED_MANIFESTATION_MEASURES.filter(measure => !measureSet.has(measure));
+  const pages = journalPages(journals, [
+    "Manifestation Applications: Aegis, Beckon, Journey, Minion, and Oracle",
+    "Manifestation Applications: Puppetry, Ruin, Shaping, and Soul"
+  ]);
+  const text = journalPagesText(pages);
+  const sourcePages = new Set(pages.flatMap(page => page.flags?.[SYSTEM_ID]?.sourcePages ?? []));
+  const missing = expected
+    .filter(definition => !text.includes(`${titleCase(definition.manifestation)}: ${definition.name}`))
+    .map(definition => `${definition.manifestation}:${definition.name}`);
+  const missingMetadata = expected
+    .filter(definition => {
+      const skillMissing = (definition.skills ?? []).length
+        ? !definition.skills.some(skill => text.includes(`${titleCase(definition.manifestation)} + ${titleCase(skill)}`))
+        : false;
+      const measureMissing = (definition.commonMeasures ?? []).some(measure => !text.includes(measureLabel(measure)));
+      return skillMissing || measureMissing || !sourcePages.has(Number(definition.page));
+    })
+    .map(definition => `${definition.manifestation}:${definition.name}`);
+  const missingMeasures = EXPECTED_MANIFESTATION_MEASURES.filter(measure => !text.includes(measureLabel(measure)));
 
-  return { missing, missingMetadata, missingMeasures };
+  return { misplacedItems, missing, missingMetadata, missingMeasures };
 }
 
-function chapterFourRulesAudit(items, rollTables, journals) {
+function chapterFourRulesAudit(items, rollTables, journals, criticalFailureDefinitions = []) {
   const misplacedRuleItems = items
     .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-4-rule")
     .map(item => item.name);
-  const criticalEffectsBySourceId = new Map(
-    items
-      .filter(item => item.type === "condition" && item.flags?.[SYSTEM_ID]?.kind === "critical-failure-effect")
-      .map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item])
-  );
+  const misplacedCriticalFailureItems = items
+    .filter(item => item.type === "condition" && (
+      item.flags?.[SYSTEM_ID]?.kind === "critical-failure-effect"
+      || item.flags?.[SYSTEM_ID]?.folder === "critical-failure-effects"
+    ))
+    .map(item => item.name);
   const missingJournalPages = missingRulesJournalPages(journals, EXPECTED_CHAPTER_FOUR_JOURNAL_PAGES);
+  const criticalFailureText = journalPagesText(journalPages(journals, ["Critical Failure Effects"]));
+  const expectedCriticalFailures = criticalFailureDefinitions.length
+    ? criticalFailureDefinitions.map(definition => definition.name)
+    : EXPECTED_CHAPTER_FOUR_CRITICAL_FAILURE_EFFECTS;
   const missingCriticalFailureEffects = EXPECTED_CHAPTER_FOUR_CRITICAL_FAILURE_EFFECTS
-    .filter(name => !criticalEffectsBySourceId.has(`ptg2e.chapter-4.critical-failure.${sourceSlug(name)}`));
+    .filter(name => !expectedCriticalFailures.includes(name) || !criticalFailureText.includes(name));
   const tableNames = new Set(rollTables.map(table => table.name));
   const missingRollTables = EXPECTED_CHAPTER_FOUR_ROLL_TABLES.filter(name => !tableNames.has(name));
 
-  return { misplacedRuleItems, missingJournalPages, missingCriticalFailureEffects, missingRollTables };
+  return { misplacedRuleItems, misplacedCriticalFailureItems, missingJournalPages, missingCriticalFailureEffects, missingRollTables };
 }
 
-function chapterFiveBattleAudit(items, journals) {
+function chapterFiveBattleAudit(items, journals, qualityDefinitions = {}) {
   const misplacedRuleItems = items
     .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "chapter-5-rule")
     .map(item => item.name);
-  const actionsBySourceId = new Map(
-    items
-      .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "battle-action")
-      .map(item => [item.system?.sourceId ?? item.flags?.[SYSTEM_ID]?.sourceId, item])
-  );
-  const missingJournalPages = missingRulesJournalPages(journals, EXPECTED_CHAPTER_FIVE_JOURNAL_PAGES);
-  const expectedActions = Object.entries(EXPECTED_CHAPTER_FIVE_BATTLE_ACTIONS)
-    .flatMap(([battle, groups]) => Object.entries(groups)
-      .flatMap(([actionType, names]) => names.map(name => ({
-        battle,
-        actionType,
-        name,
-        sourceId: `ptg2e.chapter-5.${battle}.${actionType}.${sourceSlug(name)}`
-      }))));
-  const missingActions = expectedActions
-    .filter(({ sourceId }) => !actionsBySourceId.has(sourceId))
-    .map(({ battle, actionType, name }) => `${battle}:${actionType}:${name}`);
-  const missingActionMetadata = [...actionsBySourceId.values()]
-    .filter(item => {
-      const roll = item.system?.automation?.roll ?? {};
-      return roll.type !== "battle-action"
-        || !roll.battle
-        || !roll.actionType
-        || !roll.actionName
-        || !["quick", "standard"].includes(item.system?.activation)
-        || !["health", "psyche"].includes(roll.damageResource);
-    })
+  const misplacedGearQualityItems = items
+    .filter(item => item.type === "gearQuality" || item.flags?.[SYSTEM_ID]?.kind === "gear-quality" || item.flags?.[SYSTEM_ID]?.folder === "gearQuality")
     .map(item => item.name);
+  const misplacedBattleActionItems = items
+    .filter(item => item.type === "power" && item.flags?.[SYSTEM_ID]?.kind === "battle-action")
+    .map(item => item.name);
+  const missingJournalPages = missingRulesJournalPages(journals, EXPECTED_CHAPTER_FIVE_JOURNAL_PAGES);
+  const missingJournalActions = missingBattleJournalActions(journals);
+  const gearQualityText = journalPagesText(journalPages(journals, ["Gear Qualities: Armor and General", "Gear Qualities: Weapon"]));
+  const missingGearQualityEntries = Object.keys(qualityDefinitions)
+    .filter(key => !gearQualityText.includes(titleCase(key)))
+    .map(key => titleCase(key));
   const chapterFiveItems = items.filter(item => {
     const page = Number(item.flags?.[SYSTEM_ID]?.page ?? item.system?.sourcePage ?? 0);
     return page >= 205 && page <= 212;
@@ -754,30 +1069,71 @@ function chapterFiveBattleAudit(items, journals) {
   }, {});
   const missingGearFamilies = [
     ["condition", 20],
-    ["gearQuality", 42],
     ["armor", 14],
     ["weapon", 9]
   ]
     .filter(([type, minimum]) => Number(familyCounts[type] ?? 0) < minimum)
     .map(([type, minimum]) => `${type}: expected at least ${minimum}, got ${Number(familyCounts[type] ?? 0)}`);
-  const missingInitiativeModifiers = initiativeModifierAudit(items);
+  const missingInitiativeModifiers = initiativeModifierAudit(items, journals);
 
-  return { misplacedRuleItems, missingJournalPages, missingActions, missingActionMetadata, missingGearFamilies, missingInitiativeModifiers };
+  return {
+    misplacedRuleItems,
+    misplacedGearQualityItems,
+    misplacedBattleActionItems,
+    missingJournalPages,
+    missingJournalActions,
+    missingGearFamilies,
+    missingGearQualityEntries,
+    missingInitiativeModifiers
+  };
 }
 
-function initiativeModifierAudit(items) {
+function missingBattleJournalActions(journals) {
+  const pages = new Map(
+    journals.flatMap(journal => (journal.pages ?? []).map(page => [page.name, page]))
+  );
+  const pageByBattle = {
+    fists: "Battle of Fists Actions and Defenses",
+    wits: "Battle of Wits Actions and Defenses"
+  };
+  const missing = [];
+
+  for (const [battle, groups] of Object.entries(EXPECTED_CHAPTER_FIVE_BATTLE_ACTIONS)) {
+    const content = pages.get(pageByBattle[battle])?.text?.content ?? "";
+    for (const [actionType, names] of Object.entries(groups)) {
+      for (const name of names) {
+        if (!content.includes(`>${name}:`) && !content.includes(`>${name}</strong>`)) {
+          missing.push(`${battle}:${actionType}:${name}`);
+        }
+      }
+    }
+  }
+
+  return missing;
+}
+
+function initiativeModifierAudit(items, journals) {
   const missing = [];
   const reactive = items.find(item => item.type === "blessing" && item.name === "Reactive");
-  const quick = items.find(item => item.type === "gearQuality" && item.name === "Quick");
+  const quickText = journalPagesText(journalPages(journals, ["Gear Qualities: Weapon"]));
 
   if (reactive?.system?.automation?.enabled !== true || Number(reactive?.system?.automation?.bonus?.initiative ?? 0) !== 2) {
     missing.push("Reactive blessing: expected enabled +2 Initiative automation");
   }
-  if (quick?.system?.automation?.enabled !== true || Number(quick?.system?.automation?.bonus?.initiative ?? 0) !== 1) {
-    missing.push("Quick gear quality: expected enabled +1 Initiative automation");
+  if (!/\bQuick\b.*\binitiative\b/i.test(quickText)) {
+    missing.push("Quick gear quality journal entry: expected initiative reminder");
   }
 
   return missing;
+}
+
+function journalPages(journals, names) {
+  const nameSet = new Set(names);
+  return journals.flatMap(journal => (journal.pages ?? []).filter(page => nameSet.has(page.name)));
+}
+
+function journalPagesText(pages) {
+  return pages.map(page => plainText(page.text?.content ?? "")).join(" ");
 }
 
 function missingRulesJournalPages(journals, expectedPages) {
@@ -802,12 +1158,60 @@ function rulesJournalTextAudit(journals) {
     .filter(({ page }) => !page.flags?.[SYSTEM_ID]?.safeSummary)
     .map(({ journal, page }) => `${journal.name}:${page.name}`);
   const wordCounts = pages.map(({ page }) => plainWordCount(page.text?.content ?? ""));
+  const boilerplatePages = pages
+    .filter(({ page }) =>
+      RULES_JOURNAL_BOILERPLATE_PATTERN.test(page.text?.content ?? "")
+      || RULES_JOURNAL_BOILERPLATE_PATTERN.test(page.flags?.[SYSTEM_ID]?.safeSummary ?? ""))
+    .map(({ journal, page }) => `${journal.name}:${page.name}`);
+  const extractorArtifactPages = pages
+    .filter(({ page }) =>
+      RULES_JOURNAL_EXTRACTOR_ARTIFACT_PATTERN.test(page.text?.content ?? "")
+      || RULES_JOURNAL_EXTRACTOR_ARTIFACT_PATTERN.test(page.flags?.[SYSTEM_ID]?.safeSummary ?? ""))
+    .map(({ journal, page }) => `${journal.name}:${page.name}`);
+  const thinPages = pages
+    .filter(({ page }) => plainWordCount(page.text?.content ?? "") < RULES_JOURNAL_MIN_PAGE_WORDS)
+    .map(({ journal, page }) => `${journal.name}:${page.name}:${plainWordCount(page.text?.content ?? "")} words`);
+  const duplicatePageNames = journals.flatMap(journal => {
+    const counts = new Map();
+    for (const page of journal.pages ?? []) counts.set(page.name, (counts.get(page.name) ?? 0) + 1);
+    return [...counts.entries()]
+      .filter(([, count]) => count > 1)
+      .map(([name, count]) => `${journal.name}:${name}:${count}`);
+  });
+  const paragraphs = new Map();
+
+  for (const { journal, page } of pages) {
+    for (const match of String(page.text?.content ?? "").matchAll(/<p(?:\s[^>]*)?>(.*?)<\/p>/gis)) {
+      if (/<strong>\s*Foundry support:/i.test(match[1])) continue;
+
+      const text = normalizedRulesParagraph(match[1]);
+      if (text.length < 80) continue;
+      paragraphs.set(text, [...(paragraphs.get(text) ?? []), `${journal.name}:${page.name}`]);
+    }
+  }
+  const repeatedRuleParagraphs = [...paragraphs.entries()]
+    .filter(([, references]) => references.length > 1)
+    .map(([text, references]) => `${references.join(", ")} => ${text.slice(0, 120)}`);
 
   return {
     totalWords: wordCounts.reduce((total, count) => total + count, 0),
     largestPageWords: wordCounts.length ? Math.max(...wordCounts) : 0,
-    missingSafeSummary
+    missingSafeSummary,
+    boilerplatePages,
+    extractorArtifactPages,
+    thinPages,
+    duplicatePageNames,
+    repeatedRuleParagraphs
   };
+}
+
+function normalizedRulesParagraph(value) {
+  return String(value ?? "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 }
 
 function hasStableSourceKey(document) {
@@ -861,6 +1265,14 @@ function plainTextLength(...values) {
     .length;
 }
 
+function plainText(value) {
+  return String(value ?? "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function plainWordCount(...values) {
   const text = values
     .filter(Boolean)
@@ -894,6 +1306,28 @@ function sourceSlug(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function titleCase(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\b[a-z]/g, char => char.toUpperCase());
+}
+
+function measureLabel(key) {
+  return {
+    area: "Area Affected",
+    damage: "Damage",
+    detail: "Effect Detail",
+    duration: "Duration",
+    magnitude: "Magnitude",
+    modifier: "Modifier",
+    range: "Range",
+    scale: "Scale",
+    targets: "Targets",
+    trigger: "Trigger"
+  }[key] ?? titleCase(key);
 }
 
 async function exists(relativePath) {

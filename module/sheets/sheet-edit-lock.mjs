@@ -1,4 +1,5 @@
 const unlockedSheets = new WeakSet();
+const lockedSheets = new WeakSet();
 
 const ALLOWED_LOCKED_BUTTON_SELECTOR = [
   "[data-ptg-edit-lock-toggle]",
@@ -11,6 +12,7 @@ const ALLOWED_LOCKED_BUTTON_SELECTOR = [
   "[data-resource-workflow]",
   "[data-mortality-workflow]",
   "[data-pantheon-pool-workflow]",
+  "[data-character-creator]",
   "[data-item-action='toggle-details']",
   "[data-item-action='use']",
   "[data-item-action='worshipper-request']",
@@ -35,7 +37,8 @@ const ALLOWED_READONLY_BUTTON_SELECTOR = [
 
 export function sheetEditLockContext(application, document, { editable = true } = {}) {
   const canEdit = Boolean(editable && canEditDocument(document));
-  const unlocked = canEdit && unlockedSheets.has(application);
+  const defaultUnlocked = canEdit && shouldDefaultSheetUnlocked(document);
+  const unlocked = canEdit && !lockedSheets.has(application) && (defaultUnlocked || unlockedSheets.has(application));
   const locked = canEdit && !unlocked;
 
   return {
@@ -76,7 +79,7 @@ export function wireSheetEditLock(application, root, document) {
     toggle.addEventListener("click", event => {
       event.preventDefault();
       event.stopPropagation();
-      toggleSheetEditLock(application);
+      toggleSheetEditLock(application, document);
     });
   }
 
@@ -84,15 +87,21 @@ export function wireSheetEditLock(application, root, document) {
   return context;
 }
 
-export function toggleSheetEditLock(application) {
-  if (unlockedSheets.has(application)) unlockedSheets.delete(application);
-  else unlockedSheets.add(application);
+export function toggleSheetEditLock(application, document = application?.document ?? application?.actor ?? null) {
+  const context = sheetEditLockContext(application, document, { editable: true });
+  if (context.sheetUnlocked) {
+    unlockedSheets.delete(application);
+    lockedSheets.add(application);
+  } else {
+    lockedSheets.delete(application);
+    unlockedSheets.add(application);
+  }
   application.render?.({ force: true });
 }
 
 export function isSheetEditLocked(application, document = null) {
   if (document && !canEditDocument(document)) return true;
-  return !unlockedSheets.has(application);
+  return sheetEditLockContext(application, document, { editable: true }).sheetLocked;
 }
 
 function applySheetEditLock(root, context) {
@@ -103,6 +112,14 @@ function applySheetEditLock(root, context) {
 
   for (const control of root.querySelectorAll("input, select, textarea")) {
     if (control.matches("[data-ptg-edit-lock-toggle]")) continue;
+
+    if (control.tagName?.toUpperCase?.() === "TEXTAREA") {
+      control.readOnly = true;
+      control.setAttribute("readonly", "");
+      control.setAttribute("aria-readonly", "true");
+      continue;
+    }
+
     control.disabled = true;
     control.setAttribute("aria-disabled", "true");
   }
@@ -138,4 +155,9 @@ function canEditDocument(document) {
   } catch (error) {
     return false;
   }
+}
+
+function shouldDefaultSheetUnlocked(document) {
+  if (!document || !globalThis.game?.user || globalThis.game.user.isGM) return false;
+  return canEditDocument(document);
 }

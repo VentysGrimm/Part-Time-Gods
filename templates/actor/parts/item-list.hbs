@@ -54,7 +54,7 @@
     <ol class="ptg-item-list">
       {{#each items as |item|}}
         <li class="ptg-item-row" data-item-id="{{item.id}}">
-          <img src="{{item.img}}" alt="">
+          <img src="{{item.img}}" data-fallback-src="icons/svg/item-bag.svg" alt="{{item.name}}">
           <div class="ptg-item-main">
             <strong>{{item.name}}</strong>
             <span>{{ptgItemTypeLabel item.type}}</span>

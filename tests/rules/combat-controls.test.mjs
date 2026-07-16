@@ -32,6 +32,8 @@ test("PTG combat controls builds its dialog from collection-backed combatants", 
   });
 
   assert.ok(promptConfig, "combat helper prompts for an action");
+  assert.deepEqual(promptConfig.classes, ["part-time-gods", "ptg-sheet-dialog", "ptg-combat-dialog-window"]);
+  assert.deepEqual(promptConfig.position, { width: 700, height: 680 });
   assert.match(promptConfig.content, /QA Character/);
   assert.match(promptConfig.content, /Post Round and Turn Sequence/);
 });

@@ -18,17 +18,21 @@ const PACKS = {
   rules: "part-time-gods.rules-reference"
 };
 
-export async function populatePremadeCompendiums({ notify = true } = {}) {
-  const actors = await populatePack(PACKS.actors, PTG_PREMADE_ACTORS, actorFolderLabels, "Actor");
-  const choices = await populatePack(PACKS.choices, PTG_PREMADE_CHOICES, choiceFolderLabels, "Item");
+export async function populatePremadeCompendiums({ notify = true, skipLockedPacks = false } = {}) {
+  const packOptions = { skipLockedPacks };
+  const actors = await populatePack(PACKS.actors, PTG_PREMADE_ACTORS, actorFolderLabels, "Actor", packOptions);
+  const choices = await populatePack(PACKS.choices, PTG_PREMADE_CHOICES, choiceFolderLabels, "Item", packOptions);
   const items = await populatePack(PACKS.items, PTG_PREMADE_ITEMS, itemFolderLabels, "Item", {
+    ...packOptions,
     removeStale: true,
-    stalePredicate: isPremadeItemDocument
+    stalePredicate: isPremadeItemDocument,
+    retiredFolderLabels: RETIRED_PREMADE_ITEM_FOLDER_LABELS
   });
-  const maps = await populatePack(PACKS.maps, getPremadeScenes(), sceneFolderLabels, "Scene");
-  const macros = await populatePack(PACKS.macros, PTG_PREMADE_MACROS, macroFolderLabels, "Macro");
-  const rollTables = await populatePack(PACKS.rollTables, PTG_PREMADE_ROLL_TABLES, rollTableFolderLabels, "RollTable");
+  const maps = await populatePack(PACKS.maps, getPremadeScenes(), sceneFolderLabels, "Scene", packOptions);
+  const macros = await populatePack(PACKS.macros, PTG_PREMADE_MACROS, macroFolderLabels, "Macro", packOptions);
+  const rollTables = await populatePack(PACKS.rollTables, PTG_PREMADE_ROLL_TABLES, rollTableFolderLabels, "RollTable", packOptions);
   const rules = await populatePack(PACKS.rules, await getPremadeJournals(), ruleFolderLabels, "JournalEntry", {
+    ...packOptions,
     removeStale: true,
     stalePredicate: isPremadeRulesJournal
   });
@@ -45,11 +49,16 @@ export async function populatePremadeCompendiums({ notify = true } = {}) {
   return total;
 }
 
-async function populatePack(packId, documents, folderLabels, documentName, { removeStale = false, stalePredicate = null } = {}) {
+async function populatePack(packId, documents, folderLabels, documentName, { removeStale = false, stalePredicate = null, retiredFolderLabels = [], skipLockedPacks = false } = {}) {
   const pack = game.packs.get(packId);
 
   if (!pack) {
     ui.notifications.warn(`Missing Part-Time Gods compendium: ${packId}`);
+    return 0;
+  }
+
+  if (shouldSkipPremadePackWrites(pack, { skipLockedPacks })) {
+    console.warn(`Part-Time Gods 2E | Skipping ready-time auto-populate for protected compendium: ${packId}`);
     return 0;
   }
 
@@ -66,38 +75,80 @@ async function populatePack(packId, documents, folderLabels, documentName, { rem
   const existing = new Set(pack.index.map(entry => documentKeys(entry, documentName)).flat());
   const missing = documents.filter(document => !documentKeys(document, documentName).some(key => existing.has(key)));
 
-  const wasLocked = pack.locked;
-  if (wasLocked) await pack.configure({ locked: false });
-
-  const folders = await ensurePackFolders(pack, documents, folderLabels, documentName);
-
-  if (missing.length) {
-    await documentClass.createDocuments(missing.map(document => ({
-      ...document,
-      folder: folders[documentTypeKey(document, documentName)]?.id
-    })), { pack: pack.collection });
+  const wasLocked = isCompendiumPackLocked(pack);
+  if (wasLocked) await setCompendiumPackLocked(pack, false);
+  if (isCompendiumPackLocked(pack)) {
+    console.warn(`Part-Time Gods 2E | Skipping auto-populate for locked compendium: ${packId}`);
+    return 0;
   }
 
-  let packDocuments = await pack.getDocuments();
-  const updated = ["Actor", "Item", "JournalEntry", "Macro", "RollTable", "Scene"].includes(documentName)
-    ? await updateExistingPremadeDocuments(packDocuments, documents, folders, documentName)
-    : 0;
-  const removed = removeStale
-    ? await removeStaleDocuments(documentClass, pack, packDocuments, documents, documentName, stalePredicate)
-    : 0;
+  try {
+    const folders = await ensurePackFolders(pack, documents, folderLabels, documentName);
 
-  if (removed) {
-    const staleKeys = sourceKeySet(documents, documentName);
-    packDocuments = packDocuments.filter(document =>
-      documentKeys(document, documentName).some(key => staleKeys.has(key)) || !stalePredicate?.(document)
-    );
+    if (missing.length) {
+      await documentClass.createDocuments(missing.map(document => ({
+        ...document,
+        folder: folders[documentTypeKey(document, documentName)]?.id
+      })), { pack: pack.collection });
+    }
+
+    let packDocuments = await pack.getDocuments();
+    const updated = ["Actor", "Item", "JournalEntry", "Macro", "RollTable", "Scene"].includes(documentName)
+      ? await updateExistingPremadeDocuments(packDocuments, documents, folders, documentName)
+      : 0;
+    const removed = removeStale
+      ? await removeStaleDocuments(documentClass, pack, packDocuments, documents, documentName, stalePredicate)
+      : 0;
+
+    if (removed) {
+      const staleKeys = sourceKeySet(documents, documentName);
+      packDocuments = packDocuments.filter(document =>
+        documentKeys(document, documentName).some(key => staleKeys.has(key)) || !stalePredicate?.(document)
+      );
+    }
+
+    const removedFolders = await removeRetiredFolders(pack, packDocuments, retiredFolderLabels, documentName);
+    const moved = await organizeExistingDocuments(packDocuments, folders, documentName);
+
+    return missing.length + updated + removed + removedFolders + moved;
+  } finally {
+    if (wasLocked) await setCompendiumPackLocked(pack, true);
+  }
+}
+
+export function isCompendiumPackLocked(pack) {
+  return Boolean(pack?.locked ?? pack?.metadata?.locked);
+}
+
+export function shouldSkipPremadePackWrites(pack, { skipLockedPacks = false } = {}) {
+  if (!skipLockedPacks) return false;
+  return isCompendiumPackLocked(pack) || pack?.metadata?.packageType !== "world";
+}
+
+export async function setCompendiumPackLocked(pack, locked) {
+  if (typeof pack?.configure === "function") await pack.configure({ locked });
+  syncCompendiumPackLockState(pack, locked);
+  return waitForCompendiumPackLockState(pack, locked);
+}
+
+function syncCompendiumPackLockState(pack, locked) {
+  for (const target of [pack, pack?.metadata]) {
+    if (!target || typeof target !== "object") continue;
+    try {
+      target.locked = locked;
+    } catch {
+      // Foundry versions differ on whether `locked` is assignable; `configure` remains authoritative.
+    }
+  }
+}
+
+async function waitForCompendiumPackLockState(pack, locked) {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    if (isCompendiumPackLocked(pack) === locked) return true;
+    await new Promise(resolve => globalThis.setTimeout?.(resolve, 0) ?? resolve());
   }
 
-  const moved = await organizeExistingDocuments(packDocuments, folders, documentName);
-
-  if (wasLocked) await pack.configure({ locked: true });
-
-  return missing.length + updated + removed + moved;
+  return isCompendiumPackLocked(pack) === locked;
 }
 
 async function ensurePackFolders(pack, documents, folderLabels, documentName) {
@@ -135,6 +186,23 @@ async function removeStaleDocuments(documentClass, pack, packDocuments, sourceDo
   return staleDocuments.length;
 }
 
+async function removeRetiredFolders(pack, packDocuments, retiredFolderLabels, documentName) {
+  if (!retiredFolderLabels.length) return 0;
+
+  const folderClass = globalThis.Folder;
+  if (typeof folderClass?.deleteDocuments !== "function") return 0;
+
+  const occupiedFolderIds = new Set(packDocuments.map(documentFolderId).filter(Boolean));
+  const retiredFolders = getPackFolders(pack)
+    .filter(folder => isRetiredFolderName(folder.name, retiredFolderLabels) && folder.type === documentName)
+    .filter(folder => !occupiedFolderIds.has(folderDocumentId(folder)));
+  const retiredFolderIds = retiredFolders.map(folderDocumentId).filter(Boolean);
+  if (!retiredFolderIds.length) return 0;
+
+  await folderClass.deleteDocuments(retiredFolderIds, { pack: pack.collection });
+  return retiredFolderIds.length;
+}
+
 async function organizeExistingDocuments(documents, folders, documentName) {
   const updates = [];
 
@@ -142,7 +210,7 @@ async function organizeExistingDocuments(documents, folders, documentName) {
     const folder = folders[documentTypeKey(document, documentName)];
     if (!folder || document.folder?.id === folder.id) continue;
 
-    updates.push(document.update({ folder: folder.id }));
+    updates.push(document.update(compendiumDocumentUpdateData(document, { folder: folder.id })));
   }
 
   await Promise.all(updates);
@@ -163,6 +231,7 @@ async function updateExistingPremadeDocuments(documents, sourceDocuments, folder
       folder: folder?.id ?? document.folder?.id ?? null
     };
     if (documentName === "Scene") delete updateData.drawings;
+    if (documentName === "JournalEntry") delete updateData.pages;
 
     const diff = foundry.utils.diffObject(document.toObject(), updateData);
     updates.push(updateExistingPremadeDocument(document, source, updateData, diff, documentName));
@@ -176,15 +245,23 @@ async function updateExistingPremadeDocument(document, source, updateData, diff,
   let changed = false;
 
   if (Object.keys(diff).length) {
-    await document.update(updateData);
+    await document.update(compendiumDocumentUpdateData(document, updateData));
     changed = true;
   }
 
   if (documentName === "Scene") {
     changed = await refreshPremadeSceneDrawings(document, source) || changed;
   }
+  if (documentName === "JournalEntry") {
+    changed = await refreshPremadeJournalPages(document, source) || changed;
+  }
 
   return changed;
+}
+
+export function compendiumDocumentUpdateData(document, updateData) {
+  const id = document?.id ?? document?._id ?? document?.toObject?.()._id;
+  return id ? { ...updateData, _id: id } : { ...updateData };
 }
 
 export async function refreshPremadeSceneDrawings(document, source) {
@@ -203,6 +280,26 @@ export async function refreshPremadeSceneDrawings(document, source) {
   const drawingIds = existingManagedDrawings.map(embeddedDocumentId).filter(Boolean);
   if (drawingIds.length) await document.deleteEmbeddedDocuments("Drawing", drawingIds);
   await document.createEmbeddedDocuments("Drawing", sourceDrawings);
+
+  return true;
+}
+
+export async function refreshPremadeJournalPages(document, source) {
+  const sourcePages = (source.pages ?? [])
+    .filter(isManagedRulesPage)
+    .map(page => foundry.utils.deepClone(page));
+
+  if (!sourcePages.length || typeof document.createEmbeddedDocuments !== "function") return false;
+
+  const existingManagedPages = embeddedCollectionDocuments(document.pages)
+    .filter(isManagedRulesPage);
+
+  if (sameManagedJournalPageSet(existingManagedPages, sourcePages)) return false;
+  if (existingManagedPages.length && typeof document.deleteEmbeddedDocuments !== "function") return false;
+
+  const pageIds = existingManagedPages.map(embeddedDocumentId).filter(Boolean);
+  if (pageIds.length) await document.deleteEmbeddedDocuments("JournalEntryPage", pageIds);
+  await document.createEmbeddedDocuments("JournalEntryPage", sourcePages);
 
   return true;
 }
@@ -233,11 +330,25 @@ function isManagedSceneDrawing(drawing) {
   );
 }
 
+function isManagedRulesPage(page) {
+  const source = pageSource(page);
+  const flags = source.flags?.[SYSTEM_ID] ?? {};
+  return flags.premade === true && flags.kind === "rules-reference";
+}
+
 function sameManagedDrawingSet(existingDrawings, sourceDrawings) {
   if (existingDrawings.length !== sourceDrawings.length) return false;
 
   const existing = existingDrawings.map(normalizedSceneDrawing).sort();
   const source = sourceDrawings.map(normalizedSceneDrawing).sort();
+  return existing.every((entry, index) => entry === source[index]);
+}
+
+function sameManagedJournalPageSet(existingPages, sourcePages) {
+  if (existingPages.length !== sourcePages.length) return false;
+
+  const existing = existingPages.map(normalizedJournalPage).sort();
+  const source = sourcePages.map(normalizedJournalPage).sort();
   return existing.every((entry, index) => entry === source[index]);
 }
 
@@ -250,8 +361,21 @@ function normalizedSceneDrawing(drawing) {
   return stableStringify(source);
 }
 
+function normalizedJournalPage(page) {
+  const source = foundry.utils.deepClone(pageSource(page));
+  delete source._id;
+  delete source.id;
+  delete source._stats;
+
+  return stableStringify(source);
+}
+
 function drawingSource(drawing) {
   return drawing?.toObject?.() ?? drawing?._source ?? drawing ?? {};
+}
+
+function pageSource(page) {
+  return page?.toObject?.() ?? page?._source ?? page ?? {};
 }
 
 function stableStringify(value) {
@@ -271,8 +395,27 @@ function getPackFolders(pack) {
   return game.folders.filter(folder => folder.pack === pack.collection);
 }
 
+function documentFolderId(document) {
+  if (!document?.folder) return null;
+  if (typeof document.folder === "string") return document.folder;
+  return document.folder.id ?? document.folder._id ?? null;
+}
+
+function folderDocumentId(folder) {
+  return folder?.id ?? folder?._id ?? null;
+}
+
 function labelize(type) {
   return `${type[0].toUpperCase()}${type.slice(1)}s`;
+}
+
+export function isRetiredPremadeItemFolderName(name) {
+  return isRetiredFolderName(name, RETIRED_PREMADE_ITEM_FOLDER_LABELS);
+}
+
+function isRetiredFolderName(name, labels) {
+  const normalizedName = slugify(name);
+  return labels.some(label => name === label || normalizedName === slugify(label));
 }
 
 function getDocumentClass(documentName) {
@@ -381,19 +524,13 @@ const choiceFolderLabels = {
 const itemFolderLabels = {
   attachment: "Attachments",
   armor: "Armor",
-  "battle-fists": "Battle of Fists Actions",
-  "battle-wits": "Battle of Wits Actions",
   blessing: "Blessings",
   bond: "Bonds",
   condition: "Conditions",
-  "critical-failure-effects": "Critical Failure Effects",
   curse: "Curses and Failings",
   domain: "Specific Dominions",
-  gearQuality: "Gear Qualities",
   manifestation: "Manifestations",
-  "manifestation-application": "Manifestation Applications",
   occupation: "Occupation Careers",
-  otherworld: "Otherworld Travel",
   power: "Powers",
   relic: "Relics",
   ritual: "Rituals",
@@ -402,6 +539,23 @@ const itemFolderLabels = {
   weapon: "Weapons",
   worshipper: "Worshippers"
 };
+
+const RETIRED_PREMADE_ITEM_FOLDER_LABELS = [
+  "Battle of Fists Actions",
+  "Battle of Wits Actions",
+  "Battle Fists Actions",
+  "Battle Wits Actions",
+  "Battle-fists",
+  "Battle-wits",
+  "Battle-fistss",
+  "Battle-witss",
+  "Critical Failure Effects",
+  "Gear Qualities",
+  "Manifestation Applications",
+  "Critical-failure-effectss",
+  "GearQualitys",
+  "Manifestation-applications"
+];
 
 const actorFolderLabels = {
   "Backers' Pregens": "Backers' Pregens",

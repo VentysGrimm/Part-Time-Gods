@@ -10,7 +10,7 @@ The pack updater matches by stable source ID first, then import ID, then slug, t
 
 ## Safe Summaries
 
-Rules journals loaded from `module/data/complete-rules.json` include metadata-only `safeSummary` flags on the JournalEntry and pages. These summaries describe the topic and source page range without expanding the source text.
+Rules journals loaded from `module/data/complete-rules.json` include release-safe source-backed summaries plus `safeSummary` flags on the JournalEntry and pages. These summaries describe the actual rules topic and Foundry support surface without reproducing source-book text.
 
 ## Item Explanations
 

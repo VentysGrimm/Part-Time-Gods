@@ -26,6 +26,8 @@
     "styles/part-time-gods.css"
   ],
 
+  "socket": true,
+
   "languages": [
     {
       "lang": "en",

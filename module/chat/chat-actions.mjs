@@ -5,7 +5,6 @@ import { localize } from "../util/localization.mjs";
 
 export function registerPTGChatCardActions() {
   Hooks.on("renderChatMessageHTML", bindChatCardActions);
-  Hooks.on("renderChatMessage", bindChatCardActions);
 }
 
 function bindChatCardActions(message, html) {

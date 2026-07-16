@@ -1,4 +1,5 @@
-import { importGodTerritoryScene, openTerritoryControls } from "../data/premade-scenes.mjs";
+import { getGodTerritorySceneData, importGodTerritoryScene, openTerritoryControls } from "../data/premade-scenes.mjs";
+import { getDragEventData } from "../util/drop-data.mjs";
 import { SYSTEM_ID, localize } from "../util/localization.mjs";
 
 const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -122,7 +123,7 @@ export function registerTerritoryGridControls() {
       icon: "fas fa-map",
       button: true,
       visible: Boolean(game.user?.isGM || findTerritoryScene()),
-      onClick: () => game.user?.isGM ? openTerritoryInterface() : openTerritoryScene()
+      onChange: () => game.user?.isGM ? openTerritoryInterface() : openTerritoryScene()
     };
 
     if (Array.isArray(controls)) {
@@ -203,6 +204,7 @@ export async function openTerritoryScene({ scene = findTerritoryScene(), notify 
   }
 
   try {
+    if (game.user?.isGM) await ensureTerritorySceneOverlayLayout(targetScene);
     if (globalThis.canvas?.scene?.uuid !== targetScene.uuid) {
       if (typeof targetScene.view === "function") await targetScene.view();
       else if (game.user?.isGM && typeof targetScene.activate === "function") await targetScene.activate();
@@ -286,7 +288,10 @@ export async function openTerritoryGridApp({ scene = getTerritoryScene({ allowFa
   if (!game.user?.isGM) return openTerritoryScene({ scene });
 
   if (!territoryGridApp) territoryGridApp = new TerritoryGridApp();
-  if (scene) territoryGridApp.setScene(scene);
+  if (scene) {
+    await ensureTerritorySceneOverlayLayout(scene);
+    territoryGridApp.setScene(scene);
+  }
   territoryGridApp.render({ force: true });
   return territoryGridApp;
 }
@@ -338,17 +343,18 @@ export async function setTerritorySceneBackground(scene, options = {}) {
     return null;
   }
 
-  const updateData = territorySceneBackgroundUpdateData(backgroundOptions);
+  const updateData = territorySceneBackgroundUpdateData(backgroundOptions, scene);
   try {
     await scene.update(updateData);
+    const appliedBackground = territorySceneBackgroundFromLevels(updateData.levels);
     if (typeof scene.setFlag === "function") {
       await scene.setFlag(SYSTEM_ID, "territoryBackground", {
-        src: updateData["background.src"] ?? "",
-        color: updateData.backgroundColor,
+        src: appliedBackground.src ?? "",
+        color: appliedBackground.color,
         updatedAt: new Date().toISOString()
       });
     }
-    await ensureTerritoryGridOverlayForeground(scene);
+    await ensureTerritorySceneOverlayLayout(scene);
   } catch (error) {
     console.warn("Part-Time Gods 2E | Unable to update Territory scene background.", scene, error);
     ui.notifications.error("Unable to update the Territory scene background. See the console for details.");
@@ -359,11 +365,96 @@ export async function setTerritorySceneBackground(scene, options = {}) {
   return updateData;
 }
 
-export function territorySceneBackgroundUpdateData({ src = "", backgroundSrc = src, color = "", backgroundColor = color, clearImage = false } = {}) {
+export function territorySceneBackgroundUpdateData({ src = "", backgroundSrc = src, color = "", backgroundColor = color, clearImage = false } = {}, scene = null) {
+  return territorySceneBackgroundUpdateDataForScene(scene, { src, backgroundSrc, color, backgroundColor, clearImage });
+}
+
+function territorySceneBackgroundUpdateDataForScene(scene, { src = "", backgroundSrc = src, color = "", backgroundColor = color, clearImage = false } = {}) {
+  const normalizedSrc = clearImage ? null : String(backgroundSrc ?? "").trim() || null;
+  const normalizedColor = normalizeColor(backgroundColor, DEFAULT_TERRITORY_BACKGROUND_COLOR);
+  const levels = territorySceneLevelsForBackground(scene, {
+    src: normalizedSrc,
+    color: normalizedColor
+  });
+
   return {
-    "background.src": clearImage ? "" : String(backgroundSrc ?? "").trim(),
-    backgroundColor: normalizeColor(backgroundColor, DEFAULT_TERRITORY_BACKGROUND_COLOR)
+    levels
   };
+}
+
+function territorySceneLevelsForBackground(scene, { src = null, color = DEFAULT_TERRITORY_BACKGROUND_COLOR } = {}) {
+  const source = scene?.toObject?.() ?? scene?._source ?? {};
+  const sourceLevels = Array.isArray(source.levels) && source.levels.length
+    ? source.levels
+    : [defaultTerritorySceneLevel()];
+
+  return sourceLevels.map((level, index) => {
+    const next = deepClone(level);
+    if (index !== 0) return next;
+    next.background = {
+      ...(next.background ?? {}),
+      src,
+      color
+    };
+    return next;
+  });
+}
+
+function territorySceneBackgroundFromLevels(levels = []) {
+  const background = Array.isArray(levels) ? levels[0]?.background ?? {} : {};
+  return {
+    src: background.src ?? "",
+    color: normalizeColor(background.color, DEFAULT_TERRITORY_BACKGROUND_COLOR)
+  };
+}
+
+function territorySceneBackgroundFromScene(scene) {
+  const source = scene?.toObject?.() ?? scene?._source ?? {};
+  const levelBackground = Array.isArray(source.levels) ? source.levels[0]?.background ?? {} : {};
+  const legacyBackground = source.background ?? {};
+  return {
+    src: String(levelBackground.src ?? legacyBackground.src ?? "").trim(),
+    color: normalizeColor(levelBackground.color ?? source.backgroundColor, DEFAULT_TERRITORY_BACKGROUND_COLOR)
+  };
+}
+
+function defaultTerritorySceneLevel() {
+  return {
+    _id: "defaultLevel0000",
+    name: "Level",
+    elevation: { bottom: 0, top: 20 },
+    background: {
+      color: DEFAULT_TERRITORY_BACKGROUND_COLOR,
+      src: null,
+      tint: "#ffffff",
+      alphaThreshold: 0.75
+    },
+    foreground: {
+      src: null,
+      tint: "#ffffff",
+      alphaThreshold: 0.75
+    },
+    fog: { src: null },
+    textures: {
+      anchorX: 0.5,
+      anchorY: 0.5,
+      offsetX: 0,
+      offsetY: 0,
+      fit: "fill",
+      scaleX: 1,
+      scaleY: 1,
+      rotation: 0
+    },
+    visibility: { levels: [] },
+    sort: 0,
+    flags: {}
+  };
+}
+
+function deepClone(value) {
+  if (value == null) return value;
+  if (typeof globalThis.foundry?.utils?.deepClone === "function") return globalThis.foundry.utils.deepClone(value);
+  return JSON.parse(JSON.stringify(value));
 }
 
 export function normalizeTerritoryGrid(value, legacyTerritory = null) {
@@ -612,8 +703,8 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     if (game.user?.isGM) {
-      root.addEventListener("dragover", event => this.#onDragOver(event));
-      root.addEventListener("drop", event => this.#onDrop(event));
+      root.addEventListener("dragover", event => this.#onDragOver(event), true);
+      root.addEventListener("drop", event => this.#onDrop(event), true);
     }
   }
 
@@ -657,11 +748,8 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   #onDragOver(event) {
-    const types = Array.from(event.dataTransfer?.types ?? []);
-    if (!types.some(type => ["text/plain", "application/json"].includes(type))) return;
-
     event.preventDefault();
-    event.dataTransfer.dropEffect = "copy";
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
   }
 
   async #onDrop(event) {
@@ -670,13 +758,12 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
     event.preventDefault();
     event.stopPropagation();
 
-    const data = dropEventData(event);
-    if (data?.type !== "Actor") {
+    const actor = await territoryActorFromDropData(getDragEventData(event));
+    if (!actor) {
       ui.notifications.warn("Drop a player Character actor onto the Territory GM interface.");
       return null;
     }
 
-    const actor = await actorFromDropData(data);
     if (actor?.type !== "character") {
       ui.notifications.warn("Only Character actors can be imported into the Territory Grid.");
       return null;
@@ -904,6 +991,69 @@ async function ensureTerritoryGridOverlayForeground(scene) {
 
   if (updates.length) await scene.updateEmbeddedDocuments("Drawing", updates);
   return updates.length;
+}
+
+async function ensureTerritorySceneOverlayLayout(scene) {
+  if (!scene || !game.user?.isGM || typeof scene.updateEmbeddedDocuments !== "function") {
+    return ensureTerritoryGridOverlayForeground(scene);
+  }
+
+  const desiredDrawings = getGodTerritorySceneData({ authorId: game.user?.id }).drawings ?? [];
+  const desiredByElement = new Map(desiredDrawings.map(drawing => [
+    drawing.flags?.[SYSTEM_ID]?.territorySheetElement,
+    drawing
+  ]).filter(([key]) => key));
+  const drawingCollection = Array.from(scene.drawings?.contents ?? scene.drawings ?? []);
+  const existingByElement = new Map();
+
+  for (const drawing of drawingCollection) {
+    const source = drawingSource(drawing);
+    const key = drawing?.getFlag?.(SYSTEM_ID, "territorySheetElement") ?? source.flags?.[SYSTEM_ID]?.territorySheetElement;
+    if (key && !existingByElement.has(key)) existingByElement.set(key, drawing);
+  }
+
+  const updates = [];
+  const creates = [];
+  let sort = 5000;
+
+  for (const [key, desired] of desiredByElement) {
+    const existing = existingByElement.get(key);
+    const drawingData = {
+      x: desired.x,
+      y: desired.y,
+      shape: deepClone(desired.shape),
+      text: desired.text ?? "",
+      fontFamily: desired.fontFamily,
+      fontSize: desired.fontSize,
+      textColor: desired.textColor,
+      textAlpha: desired.textAlpha,
+      fillType: desired.fillType,
+      fillColor: desired.fillColor,
+      fillAlpha: desired.fillAlpha,
+      strokeColor: desired.strokeColor,
+      strokeAlpha: desired.strokeAlpha,
+      strokeWidth: desired.strokeWidth,
+      hidden: false,
+      locked: true,
+      sort: sort++
+    };
+
+    if (existing) {
+      const id = existing.id ?? existing._id ?? drawingSource(existing)._id;
+      if (id) updates.push({ _id: id, ...drawingData });
+    } else if (typeof scene.createEmbeddedDocuments === "function") {
+      creates.push({
+        ...deepClone(desired),
+        ...drawingData,
+        author: desired.author ?? game.user?.id,
+        flags: deepClone(desired.flags)
+      });
+    }
+  }
+
+  if (updates.length) await scene.updateEmbeddedDocuments("Drawing", updates);
+  if (creates.length) await scene.createEmbeddedDocuments("Drawing", creates);
+  return updates.length + creates.length;
 }
 
 function isManagedTerritoryDrawing(drawing) {
@@ -1179,10 +1329,11 @@ function sortPointContext(a, b) {
 
 async function promptTerritorySceneBackground(scene) {
   const storedBackground = scene?.getFlag?.(SYSTEM_ID, "territoryBackground") ?? {};
-  const sceneSrc = String(scene?.background?.src ?? scene?.backgroundSrc ?? "").trim();
+  const sceneBackground = territorySceneBackgroundFromScene(scene);
+  const sceneSrc = sceneBackground.src;
   const storedSrc = String(storedBackground.src ?? "").trim();
   const existingSrc = sceneSrc || storedSrc;
-  const existingColor = normalizeColor(scene?.backgroundColor || storedBackground.color, DEFAULT_TERRITORY_BACKGROUND_COLOR);
+  const existingColor = normalizeColor(sceneBackground.color || storedBackground.color, DEFAULT_TERRITORY_BACKGROUND_COLOR);
   const content = `
     <div class="ptg-dialog-body ptg-territory-background-dialog">
       <p class="ptg-dialog-help">Set a scene background image or color. The Territory Grid overlay remains locked in the foreground.</p>
@@ -1233,7 +1384,7 @@ function wireTerritoryBackgroundDialog(element) {
 
   browse.addEventListener("click", event => {
     event.preventDefault();
-    const FilePickerClass = globalThis.FilePicker ?? foundry.applications.apps?.FilePicker;
+    const FilePickerClass = territoryFilePickerClass();
     if (!FilePickerClass) {
       ui.notifications.warn("Foundry's File Picker is not available. Paste a user-data image path into the field.");
       input.focus();
@@ -1250,6 +1401,11 @@ function wireTerritoryBackgroundDialog(element) {
     });
     picker.render(true);
   });
+}
+
+export function territoryFilePickerClass() {
+  const v14Picker = foundry.applications.apps?.FilePicker;
+  return globalThis.FilePicker ?? v14Picker?.implementation ?? v14Picker ?? null;
 }
 
 async function promptTerritoryPoint(point = null, defaults = {}) {
@@ -1581,6 +1737,7 @@ async function actorFromUuid(uuid) {
   try {
     const document = await fromUuid(uuid);
     if (document?.documentName === "Actor" || document?.constructor?.documentName === "Actor") return document;
+    if (document?.actor?.documentName === "Actor" || document?.actor?.constructor?.documentName === "Actor") return document.actor;
   } catch (error) {
     console.warn("Part-Time Gods 2E | Unable to resolve Territory Grid actor.", uuid, error);
   }
@@ -1599,9 +1756,10 @@ function pantheonActors() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function actorFromDropData(data) {
-  if (!data || data.type !== "Actor") return null;
+export async function territoryActorFromDropData(data) {
+  if (!data) return null;
   if (data.uuid) return actorFromUuid(data.uuid);
+  if (data.type && data.type !== "Actor" && data.type !== "Token") return null;
 
   const id = data.id ?? data._id ?? data.data?._id;
   if (!id) return null;
@@ -1647,27 +1805,6 @@ async function pointFromAttachment(actor, item, { fallbackCoordinate = null, pro
     publicNotes: attachmentNotes(item),
     notes: attachmentNotes(item)
   };
-}
-
-function dropEventData(event) {
-  const helper = foundry.applications?.ux?.TextEditor?.getDragEventData ?? globalThis.TextEditor?.getDragEventData;
-  if (helper) {
-    try {
-      return helper(event) ?? {};
-    } catch (error) {
-      console.warn("Part-Time Gods 2E | Unable to parse dropped Territory actor data.", error);
-    }
-  }
-
-  const raw = event.dataTransfer?.getData?.("text/plain") || event.dataTransfer?.getData?.("application/json");
-  if (!raw) return {};
-
-  try {
-    return JSON.parse(raw);
-  } catch (error) {
-    console.warn("Part-Time Gods 2E | Dropped Territory data was not valid JSON.", error);
-    return {};
-  }
 }
 
 function coordinateFromElement(element) {

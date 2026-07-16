@@ -1,0 +1,119 @@
+name: Publish Release Assets
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish. Defaults to v<system.json version>."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Build and publish Foundry release assets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="$(node -p "require('./system.json').version")"
+          system_id="$(node -p "require('./system.json').id")"
+          expected_tag="v${version}"
+          tag="${{ github.event.inputs.tag }}"
+
+          if [ -z "${tag}" ]; then
+            if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+              tag="${GITHUB_REF_NAME}"
+            else
+              tag="${expected_tag}"
+            fi
+          fi
+
+          if [ "${tag}" != "${expected_tag}" ]; then
+            echo "::error::Release tag ${tag} does not match system.json version ${expected_tag}."
+            exit 1
+          fi
+
+          if [ "${GITHUB_REF_TYPE}" != "tag" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "::error::Manual release publication must run from main or a version tag."
+            exit 1
+          fi
+
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "system_id=${system_id}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "zip_name=${system_id}-${version}.zip" >> "${GITHUB_OUTPUT}"
+
+      - name: Check JavaScript syntax
+        run: npm run check
+
+      - name: Validate Foundry system data
+        run: npm run validate
+
+      - name: Run Node test harness
+        run: npm test
+
+      - name: Build release ZIP
+        run: npm run zip
+
+      - name: Verify local release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "dist/system.json"
+          test -s "dist/${{ steps.meta.outputs.zip_name }}"
+
+      - name: Create or update GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          tag="${{ steps.meta.outputs.tag }}"
+          title="Part-Time Gods ${{ steps.meta.outputs.version }}"
+          notes="Foundry VTT v14 system release for Part-Time Gods 2E.
+
+          Automated package validation, Node tests, and release ZIP build passed in GitHub Actions before publishing these assets."
+
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            gh release edit "${tag}" --title "${title}" --notes "${notes}" --latest
+          else
+            gh release create "${tag}" --target "${GITHUB_SHA}" --title "${title}" --notes "${notes}" --latest
+          fi
+
+          gh release upload "${tag}" "dist/system.json" "dist/${{ steps.meta.outputs.zip_name }}" --clobber
+
+      - name: Verify live release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for attempt in 1 2 3 4 5; do
+            if npm run check:release-assets; then
+              exit 0
+            fi
+            sleep 15
+          done
+
+          npm run check:release-assets
