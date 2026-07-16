@@ -176,7 +176,7 @@ async function assertProductionUxScaffold() {
   }
 
   const dropDataModule = await readText("module/util/drop-data.mjs");
-  for (const token of ["DROP_DATA_CACHE_KEY", "parseDataTransfer", "application/json", "text/html", "data-uuid", "dropDataFromUuid", "data._id", "decodeHTMLAttribute", "@UUID", "Compendium", "itemUuidLooksLikeItem"]) {
+  for (const token of ["DROP_DATA_CACHE_KEY", "parseDataTransfer", "application/json", "text/html", "data-uuid", "data-pack", "data-id", "dropDataFromHtmlAttributes", "dropDataFromUuid", "data._id", "decodeHTMLAttribute", "@UUID", "Compendium", "itemUuidLooksLikeItem"]) {
     if (!dropDataModule.includes(token)) errors.push(`Shared drop-data helper missing ${token}`);
   }
 

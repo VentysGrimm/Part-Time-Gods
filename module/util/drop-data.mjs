@@ -1,4 +1,9 @@
 const DROP_DATA_CACHE_KEY = "__ptgDropData";
+const HTML_DROP_PACK_ATTRIBUTE = "data-pack";
+const HTML_DROP_ID_ATTRIBUTE = "data-id";
+const HTML_DROP_DOCUMENT_ID_ATTRIBUTE = "data-document-id";
+const HTML_DROP_TYPE_ATTRIBUTE = "data-type";
+const HTML_DROP_DOCUMENT_TYPE_ATTRIBUTE = "data-document-type";
 
 export function getDragEventData(event) {
   if (event?.[DROP_DATA_CACHE_KEY]) return event[DROP_DATA_CACHE_KEY];
@@ -30,12 +35,12 @@ export async function itemFromDropData(data) {
     if (document?.documentName === "Item") return document;
   }
 
-  if (type && type !== "Item" && !itemUuidLooksLikeItem(uuid)) return null;
-
-  if (data.pack && data.id) {
+  if (data.pack && (data.id || data._id || data.data?._id)) {
     const pack = game.packs.get(data.pack);
-    if (pack?.documentName === "Item") return pack.getDocument(data.id);
+    if (pack?.documentName === "Item") return pack.getDocument(data.id ?? data._id ?? data.data?._id);
   }
+
+  if (type && type !== "Item" && !itemUuidLooksLikeItem(uuid)) return null;
 
   const id = data.id ?? data._id ?? data.data?._id;
   if (id) return game.items.get(id) ?? null;
@@ -74,9 +79,28 @@ function parseDroppedValue(raw) {
   try {
     return JSON.parse(value);
   } catch {
+    const htmlDropData = dropDataFromHtmlAttributes(value);
+    if (htmlDropData && Object.keys(htmlDropData).length) return htmlDropData;
+
     const uuid = extractDroppedUuid(value);
     return uuid ? dropDataFromUuid(uuid) : {};
   }
+}
+
+function dropDataFromHtmlAttributes(value) {
+  const pack = extractHTMLAttribute(value, HTML_DROP_PACK_ATTRIBUTE);
+  const id = extractHTMLAttribute(value, HTML_DROP_ID_ATTRIBUTE)
+    || extractHTMLAttribute(value, HTML_DROP_DOCUMENT_ID_ATTRIBUTE);
+  if (!pack || !id) return {};
+
+  const explicitType = extractHTMLAttribute(value, HTML_DROP_TYPE_ATTRIBUTE)
+    || extractHTMLAttribute(value, HTML_DROP_DOCUMENT_TYPE_ATTRIBUTE);
+  const documentType = explicitType || inferPackDocumentType(pack);
+  return {
+    type: documentType || "Compendium",
+    pack,
+    id
+  };
 }
 
 function extractDroppedUuid(value) {
@@ -87,10 +111,21 @@ function extractDroppedUuid(value) {
   return match ? decodeHTMLAttribute(match[1] ?? match[2] ?? match[3] ?? "") : "";
 }
 
+function extractHTMLAttribute(value, attribute) {
+  const escaped = attribute.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = String(value).match(new RegExp(`\\b${escaped}=(?:"([^"]+)"|'([^']+)'|([^\\s>]+))`, "i"));
+  return match ? decodeHTMLAttribute(match[1] ?? match[2] ?? match[3] ?? "").trim() : "";
+}
+
 function dropDataFromUuid(uuid) {
   const parts = String(uuid).split(".");
   const type = parts[0] === "Compendium" ? parts.at(-2) : parts[0];
   return type ? { type, uuid } : { uuid };
+}
+
+function inferPackDocumentType(pack) {
+  const packDocumentName = game?.packs?.get?.(pack)?.documentName;
+  return packDocumentName || "";
 }
 
 function itemUuidLooksLikeItem(uuid) {
