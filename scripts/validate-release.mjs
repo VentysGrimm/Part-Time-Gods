@@ -166,12 +166,12 @@ async function assertProductionUxScaffold() {
   }
 
   const territoryModule = await readText("module/apps/territory-grid-app.mjs");
-  for (const token of ["registerTerritoryGridSettings", "maybeOpenTerritoryInterfaceOnReady", "autoOpenTerritoryInterface", "openTerritoryScene", "fitTerritorySceneToCanvas", "territorySceneFitPan", "setTerritorySceneBackground", "territorySceneBackgroundUpdateData", "ensureTerritoryGridOverlayForeground", "openTerritoryControls", "territoryPointsFromActor", "rollTerritoryLocationCoordinate", "getDragEventData", "root.addEventListener(\"drop\", event => this.#onDrop(event), true)", "canEditTerritory", "findTerritoryScene", "LOCATION_TYPES", "CONTROL_TYPES", "TERRITORY_STATUSES", "DISCOVERY_STATES", "RITUAL_EVENT_TYPES", "gmNotes", "publicNotes", "footprint", "ritualEvents", "data-territory-background-browse", "wireTerritoryBackgroundDialog", "territoryFilePickerClass", "FilePicker", "implementation"]) {
+  for (const token of ["registerTerritoryGridSettings", "maybeOpenTerritoryInterfaceOnReady", "autoOpenTerritoryInterface", "openTerritoryScene", "fitTerritorySceneToCanvas", "territorySceneFitPan", "setTerritorySceneBackground", "territorySceneBackgroundUpdateData", "ensureTerritoryGridOverlayForeground", "openTerritoryControls", "territoryPointsFromActor", "rollTerritoryLocationCoordinate", "TERRITORY_MANIFESTATION_BONUS_LIMIT", "territoryInfluenceCellContext", "hasOverlap", "rawBonus", "getDragEventData", "root.addEventListener(\"drop\", event => this.#onDrop(event), true)", "canEditTerritory", "findTerritoryScene", "LOCATION_TYPES", "CONTROL_TYPES", "TERRITORY_STATUSES", "DISCOVERY_STATES", "RITUAL_EVENT_TYPES", "gmNotes", "publicNotes", "footprint", "ritualEvents", "data-territory-background-browse", "wireTerritoryBackgroundDialog", "territoryFilePickerClass", "FilePicker", "implementation"]) {
     if (!territoryModule.includes(token)) errors.push(`Integrated Territory interface missing ${token}`);
   }
 
   const territoryTemplate = await readText("templates/apps/territory-grid-app.hbs");
-  for (const token of ["data-action=\"view-scene\"", "data-action=\"territory-controls\"", "data-action=\"background\"", "data-action=\"random-point\"", "fa-dice", "can-drop-actors", "data-territory-drop-root", "controlLabel", "statusLabel", "discoveryLabel", "eventLabel"]) {
+  for (const token of ["data-action=\"view-scene\"", "data-action=\"territory-controls\"", "data-action=\"background\"", "data-action=\"random-point\"", "fa-dice", "can-drop-actors", "data-territory-drop-root", "data-manifestation-bonus", "data-influence-overlap", "influenceTitle", "controlLabel", "statusLabel", "discoveryLabel", "eventLabel"]) {
     if (!territoryTemplate.includes(token)) errors.push(`Territory GM interface template missing ${token}`);
   }
 
@@ -343,6 +343,9 @@ async function assertProductionUxScaffold() {
     ".ptg-territory-grid-app.can-drop-actors",
     ".ptg-territory-cell .ptg-territory-point-main strong",
     ".ptg-territory-cell .ptg-territory-point-delete",
+    ".ptg-territory-cell.has-overlap",
+    ".ptg-territory-cell-status-contested",
+    ".ptg-territory-cell-control-outsider",
     "text-overflow: ellipsis",
     "word-break: keep-all",
     "scrollbar-gutter: stable",

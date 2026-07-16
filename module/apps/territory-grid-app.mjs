@@ -10,6 +10,7 @@ const TERRITORY_SCENE_KIND = "god-territory-grid";
 const TERRITORY_SCENE_NAME = "God Territory Grid";
 const GRID_VERSION = 1;
 const GRID_SIZE = 10;
+const TERRITORY_MANIFESTATION_BONUS_LIMIT = 3;
 const TERRITORY_CANVAS_FIT_PADDING = 48;
 const DEFAULT_TERRITORY_BACKGROUND_COLOR = "#f4f0e8";
 
@@ -601,8 +602,7 @@ export function buildTerritoryGridCells(grid, { canEditTerritory = true } = {}) 
     const cells = [];
     for (let x = 1; x <= GRID_SIZE; x += 1) {
       const key = coordinateKey(x, y);
-      const bonus = influence[key]?.total ?? 0;
-      const bonusSources = influence[key]?.sources ?? [];
+      const influenceContext = territoryInfluenceCellContext(influence[key]);
       const points = pointsByCoordinate.get(key) ?? [];
       cells.push({
         x,
@@ -610,11 +610,12 @@ export function buildTerritoryGridCells(grid, { canEditTerritory = true } = {}) 
         key,
         label: key,
         points,
-        bonus,
-        bonusSources,
-        bonusTitle: bonusSources.map(source => source.name).join(", "),
-        hasBonus: bonus > 0,
-        hasPoints: points.length > 0
+        ...influenceContext,
+        hasPoints: points.length > 0,
+        cellClass: territoryCellClass({
+          hasPoints: points.length > 0,
+          ...influenceContext
+        })
       });
     }
     rows.push({ y, cells });
@@ -624,6 +625,62 @@ export function buildTerritoryGridCells(grid, { canEditTerritory = true } = {}) 
     columns: Array.from({ length: GRID_SIZE }, (_, index) => index + 1),
     rows
   };
+}
+
+function territoryInfluenceCellContext(entry = null) {
+  const sources = Array.isArray(entry?.sources) ? entry.sources : [];
+  const rawBonus = Number(entry?.total ?? sources.length ?? 0);
+  const bonus = Math.min(rawBonus, TERRITORY_MANIFESTATION_BONUS_LIMIT);
+  const controlTypes = uniqueStrings(sources.map(source => source.controlType));
+  const statuses = uniqueStrings(sources.map(source => source.status));
+  const hasBonus = bonus > 0;
+  const hasOverlap = rawBonus > 1;
+  const primaryControl = influencePriority(controlTypes, ["outsider", "pantheon", "shared", "merged", "npc-god", "god", "faction", "neutral", "unclaimed", "custom"]);
+  const primaryStatus = influencePriority(statuses, ["contested", "hostile", "bolstered", "visitor-admitted", "converged", "converted", "ceded", "separate", "friendly", "unknown"]);
+  const sourceSummary = sources
+    .map(source => [
+      source.name,
+      source.owner,
+      source.controlLabel,
+      source.statusLabel
+    ].filter(Boolean).join(" - "))
+    .join("; ");
+  const influenceTitle = hasBonus
+    ? `Manifestation bonus +${bonus}${rawBonus > bonus ? ` (capped from ${rawBonus})` : ""}${hasOverlap ? " - overlapping spheres" : ""}${sourceSummary ? `: ${sourceSummary}` : ""}`
+    : "";
+
+  return {
+    bonus,
+    rawBonus,
+    overlapCount: rawBonus,
+    bonusSources: sources,
+    bonusTitle: influenceTitle,
+    influenceTitle,
+    hasBonus,
+    hasOverlap,
+    primaryControl,
+    primaryStatus,
+    controlTypes,
+    statuses
+  };
+}
+
+function territoryCellClass({ hasPoints = false, hasBonus = false, hasOverlap = false, primaryControl = "", primaryStatus = "" } = {}) {
+  return [
+    hasPoints ? "has-points" : "",
+    hasBonus ? "has-bonus" : "",
+    hasOverlap ? "has-overlap" : "",
+    primaryControl ? `ptg-territory-cell-control-${primaryControl}` : "",
+    primaryStatus ? `ptg-territory-cell-status-${primaryStatus}` : ""
+  ].filter(Boolean).join(" ");
+}
+
+function uniqueStrings(values = []) {
+  return Array.from(new Set(values.map(value => String(value ?? "").trim()).filter(Boolean)));
+}
+
+function influencePriority(values = [], priority = []) {
+  return priority.find(value => values.includes(value)) ?? values[0] ?? "";
 }
 
 class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {

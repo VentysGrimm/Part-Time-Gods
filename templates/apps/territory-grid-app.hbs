@@ -73,11 +73,11 @@
           {{#each rows as |row|}}
             <span class="ptg-territory-axis">{{row.y}}</span>
             {{#each row.cells as |cell|}}
-              <section class="ptg-territory-cell {{#if cell.hasPoints}}has-points{{/if}} {{#if cell.hasBonus}}has-bonus{{/if}}" data-coordinate="{{cell.key}}">
+              <section class="ptg-territory-cell {{cell.cellClass}}" data-coordinate="{{cell.key}}" data-manifestation-bonus="{{cell.bonus}}" data-influence-overlap="{{cell.overlapCount}}">
                 <header>
                   <span>{{cell.label}}</span>
                   {{#if cell.hasBonus}}
-                    <strong title="{{cell.bonusTitle}}">+{{cell.bonus}}</strong>
+                    <strong title="{{cell.influenceTitle}}">+{{cell.bonus}}</strong>
                   {{/if}}
                 </header>
 

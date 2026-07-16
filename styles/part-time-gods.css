@@ -1348,8 +1348,28 @@ details.ptg-editor-section:not([open]) {
   background: #f2fbf4;
 }
 
+.ptg-territory-cell.has-overlap {
+  box-shadow: inset 0 0 0 2px #3f6f8f;
+}
+
 .ptg-territory-cell.has-points {
   background: #fff8e7;
+}
+
+.ptg-territory-cell-control-outsider,
+.ptg-territory-cell-status-hostile {
+  background: #fff0eb;
+}
+
+.ptg-territory-cell-status-contested {
+  border-color: #8c2f39;
+  box-shadow: inset 0 0 0 2px #8c2f39;
+}
+
+.ptg-territory-cell-status-bolstered,
+.ptg-territory-cell-status-visitor-admitted,
+.ptg-territory-cell-status-converged {
+  box-shadow: inset 0 0 0 2px #2f6f45;
 }
 
 .ptg-territory-cell header {

@@ -473,6 +473,73 @@ test("Territory random location helper rolls 2d10 coordinates for point creation
   assert.match(targetCell.points[0].publicNotes, /Random location helper rolled 1-10/);
 });
 
+test("Territory influence overlay exposes capped Manifestation bonus and overlap state", () => {
+  const grid = territory.normalizeTerritoryGrid({
+    points: [
+      {
+        id: "north",
+        name: "North Bond",
+        publicName: "North Known",
+        x: 5,
+        y: 4,
+        category: "individual",
+        controlType: "god",
+        status: "friendly",
+        owner: "North God"
+      },
+      {
+        id: "east",
+        name: "East Landmark",
+        publicName: "East Known",
+        x: 6,
+        y: 5,
+        category: "landmark",
+        controlType: "pantheon",
+        status: "contested",
+        owner: "QA Pantheon"
+      },
+      {
+        id: "south",
+        name: "South Choir",
+        publicName: "South Known",
+        x: 5,
+        y: 6,
+        category: "worshipper",
+        controlType: "outsider",
+        status: "hostile",
+        owner: "Outsider Court"
+      },
+      {
+        id: "west",
+        name: "West Shrine",
+        publicName: "West Known",
+        x: 4,
+        y: 5,
+        category: "landmark",
+        controlType: "shared",
+        status: "bolstered",
+        owner: "Shared Gods"
+      }
+    ]
+  });
+  const cells = territory.buildTerritoryGridCells(grid, { canEditTerritory: false });
+  const center = cells.rows.flatMap(row => row.cells).find(cell => cell.key === "5-5");
+
+  assert.equal(center.rawBonus, 4);
+  assert.equal(center.bonus, 3);
+  assert.equal(center.overlapCount, 4);
+  assert.equal(center.hasOverlap, true);
+  assert.equal(center.primaryStatus, "contested");
+  assert.equal(center.primaryControl, "outsider");
+  assert.match(center.cellClass, /has-bonus/);
+  assert.match(center.cellClass, /has-overlap/);
+  assert.match(center.cellClass, /ptg-territory-cell-status-contested/);
+  assert.match(center.cellClass, /ptg-territory-cell-control-outsider/);
+  assert.match(center.influenceTitle, /Manifestation bonus \+3 \(capped from 4\)/);
+  assert.match(center.influenceTitle, /overlapping spheres/);
+  assert.match(center.influenceTitle, /East Known/);
+});
+
 test("Territory character import turns player attachments into scene points", async () => {
   const actor = {
     name: "QA Character",
