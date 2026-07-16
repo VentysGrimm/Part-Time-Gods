@@ -1,24 +1,36 @@
+const DROP_DATA_CACHE_KEY = "__ptgDropData";
+
 export function getDragEventData(event) {
+  if (event?.[DROP_DATA_CACHE_KEY]) return event[DROP_DATA_CACHE_KEY];
+
   const helper = foundry.applications?.ux?.TextEditor?.getDragEventData ?? globalThis.TextEditor?.getDragEventData;
+  let helperError = null;
   if (helper) {
     try {
       const data = helper(event);
-      if (data && Object.keys(data).length) return data;
+      if (data && Object.keys(data).length) return cacheDropData(event, data);
     } catch (error) {
-      console.warn("Part-Time Gods 2E | Unable to parse Foundry drag data.", error);
+      helperError = error;
     }
   }
 
-  return parseDataTransfer(event?.dataTransfer);
+  const fallback = parseDataTransfer(event?.dataTransfer);
+  if (fallback && Object.keys(fallback).length) return cacheDropData(event, fallback);
+
+  if (helperError) console.warn("Part-Time Gods 2E | Unable to parse Foundry drag data.", helperError);
+  return cacheDropData(event, {});
 }
 
 export async function itemFromDropData(data) {
-  if (data?.type !== "Item") return null;
+  const uuid = String(data?.uuid ?? "").trim();
+  const type = String(data?.type ?? "").trim();
 
-  if (data.uuid) {
-    const document = await documentFromUuid(data.uuid);
+  if (uuid) {
+    const document = await documentFromUuid(uuid);
     if (document?.documentName === "Item") return document;
   }
+
+  if (type && type !== "Item" && !itemUuidLooksLikeItem(uuid)) return null;
 
   if (data.pack && data.id) {
     const pack = game.packs.get(data.pack);
@@ -30,6 +42,16 @@ export async function itemFromDropData(data) {
   if (data.data) return new Item.implementation(data.data);
 
   return null;
+}
+
+function cacheDropData(event, data) {
+  const cached = data && Object.keys(data).length ? data : {};
+  try {
+    if (event && typeof event === "object") event[DROP_DATA_CACHE_KEY] = cached;
+  } catch {
+    // DOM events may be non-extensible in some hosts; parsing can still proceed without caching.
+  }
+  return cached;
 }
 
 function parseDataTransfer(dataTransfer) {
@@ -59,13 +81,21 @@ function parseDroppedValue(raw) {
 
 function extractDroppedUuid(value) {
   const match = String(value).match(/\bdata-uuid=(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i)
-    ?? String(value).match(/\buuid=(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i);
+    ?? String(value).match(/\buuid=(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i)
+    ?? String(value).match(/@UUID\[([^\]]+)\]/i)
+    ?? String(value).match(/\b((?:Actor|Item|Scene|Compendium)\.[^\s<>"']+)/i);
   return match ? decodeHTMLAttribute(match[1] ?? match[2] ?? match[3] ?? "") : "";
 }
 
 function dropDataFromUuid(uuid) {
-  const type = String(uuid).split(".")[0] ?? "";
+  const parts = String(uuid).split(".");
+  const type = parts[0] === "Compendium" ? parts.at(-2) : parts[0];
   return type ? { type, uuid } : { uuid };
+}
+
+function itemUuidLooksLikeItem(uuid) {
+  const parts = String(uuid ?? "").split(".");
+  return parts[0] === "Item" || (parts[0] === "Compendium" && parts.at(-2) === "Item");
 }
 
 function decodeHTMLAttribute(value) {

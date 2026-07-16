@@ -75,6 +75,37 @@ test("character sheet drop copies the #131 item matrix into actor inventory", as
   });
 });
 
+test("character sheet drop ignores duplicate handling for the same native event", async () => {
+  installFoundryTestEnvironment();
+
+  const truth = matrixItem("truth");
+  game.items = new Map([[truth.id, truth]]);
+
+  const createdDocuments = [];
+  const actor = {
+    uuid: "Actor.qa-character",
+    isOwner: true,
+    async createEmbeddedDocuments(documentType, documents) {
+      createdDocuments.push({ documentType, documents });
+      return documents.map(data => ({
+        ...data,
+        async delete() {}
+      }));
+    }
+  };
+
+  const { PTGCharacterSheet } = await import("../../module/sheets/character-sheet.mjs?duplicate-drop");
+  const { toggleSheetEditLock } = await import("../../module/sheets/sheet-edit-lock.mjs");
+  const sheet = Object.assign(Object.create(PTGCharacterSheet.prototype), { actor });
+  toggleSheetEditLock(sheet);
+
+  const event = dropEvent({ type: "Item", id: truth.id });
+  assert.equal(await sheet._onDrop(event), false);
+  assert.equal(await sheet._onDrop(event), false);
+  assert.equal(createdDocuments.length, 1);
+  assert.equal(createdDocuments[0].documents[0].type, "truth");
+});
+
 test("character sheet drop rejects items in mismatched typed sections", async () => {
   installFoundryTestEnvironment();
 

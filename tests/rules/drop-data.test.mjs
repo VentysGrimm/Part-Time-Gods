@@ -37,9 +37,30 @@ test("drop data resolves Foundry Item sources used by actor-sheet drag/drop", as
     }
   }), { type: "Item", uuid: "Item.html-armor" });
 
+  const compendiumUuid = "Compendium.part-time-gods.premade-items.Item.pack-domain";
+  assert.deepEqual(getDragEventData({
+    dataTransfer: {
+      types: ["text/html"],
+      getData: type => type === "text/html" ? `<a class="content-link" data-uuid="${compendiumUuid}">Pack Dominion</a>` : ""
+    }
+  }), { type: "Item", uuid: compendiumUuid });
+
+  assert.deepEqual(getDragEventData({
+    dataTransfer: {
+      types: ["text/plain"],
+      getData: type => type === "text/plain" ? `@UUID[${compendiumUuid}]` : ""
+    }
+  }), { type: "Item", uuid: compendiumUuid });
+
   const uuidItem = { documentName: "Item", name: "UUID Truth", type: "truth" };
-  globalThis.fromUuid = async uuid => uuid === "Item.uuid-truth" ? uuidItem : null;
+  const compendiumItem = { documentName: "Item", name: "Compendium Dominion", type: "domain" };
+  globalThis.fromUuid = async uuid => {
+    if (uuid === "Item.uuid-truth") return uuidItem;
+    if (uuid === compendiumUuid) return compendiumItem;
+    return null;
+  };
   assert.equal(await itemFromDropData({ type: "Item", uuid: "Item.uuid-truth" }), uuidItem);
+  assert.equal(await itemFromDropData({ type: "Compendium", uuid: compendiumUuid }), compendiumItem);
 
   const packItem = { documentName: "Item", name: "Pack Dominion", type: "domain" };
   game.packs.set("part-time-gods.premade-items", {

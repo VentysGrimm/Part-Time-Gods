@@ -176,7 +176,7 @@ async function assertProductionUxScaffold() {
   }
 
   const dropDataModule = await readText("module/util/drop-data.mjs");
-  for (const token of ["parseDataTransfer", "application/json", "text/html", "data-uuid", "dropDataFromUuid", "data._id", "decodeHTMLAttribute"]) {
+  for (const token of ["DROP_DATA_CACHE_KEY", "parseDataTransfer", "application/json", "text/html", "data-uuid", "dropDataFromUuid", "data._id", "decodeHTMLAttribute", "@UUID", "Compendium", "itemUuidLooksLikeItem"]) {
     if (!dropDataModule.includes(token)) errors.push(`Shared drop-data helper missing ${token}`);
   }
 
@@ -196,7 +196,7 @@ async function assertProductionUxScaffold() {
   for (const token of ["sheetDetailDisplayHTML", "sanitizeSheetDetailHTML", "decodeSheetDetailEntities", "itemAutomationSummary", "Automation Hook", "data-random-god-apply", "data-random-god-preview", "randomGodPreviewHTML", "identity.divineName", "identity.divineMythSeed"]) {
     if (!characterSheet.includes(token)) errors.push(`Character sheet detail display helper missing ${token}`);
   }
-  for (const token of ["#wireScrollPersistence", "#captureActivePageScroll", "#pendingScrollAnchorItemId", "captureCurrent: false", "scrollIntoView"]) {
+  for (const token of ["#wireScrollPersistence", "#captureActivePageScroll", "#pendingScrollAnchorItemId", "captureCurrent: false", "scrollIntoView", "#wireNativeDropFallback", "CHARACTER_DROP_HANDLED_KEY", "dropDataLooksLikeItem"]) {
     if (!characterSheet.includes(token)) errors.push(`Character sheet scroll persistence missing ${token}`);
   }
   const characterModel = await readText("module/documents/models/actor/character-model.mjs");

@@ -9,6 +9,7 @@ import { isSheetEditLocked, mergeSheetEditLockContext, wireSheetEditLock } from 
 
 const SYSTEM_ID = "part-time-gods";
 const PTG_DIALOG_CLASSES = ["part-time-gods", "ptg-sheet-dialog"];
+const CHARACTER_DROP_HANDLED_KEY = "__ptgCharacterSheetDropHandled";
 const SCROLL_CAPTURE_ACTION_SELECTOR = [
   "button",
   "[role='button']",
@@ -131,6 +132,7 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     wireSheetEditLock(this, this.element, this.actor);
     wireImageFallbacks(this.element, CHARACTER_ITEM_IMAGE_FALLBACK);
     this.#wireScrollPersistence();
+    this.#wireNativeDropFallback();
 
     for (const tab of this.element.querySelectorAll("[data-ptg-tab]")) {
       tab.addEventListener("click", event => this.#activateTab(event.currentTarget.dataset.ptgTab));
@@ -197,6 +199,9 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
   }
 
   async _onDrop(event) {
+    if (event?.[CHARACTER_DROP_HANDLED_KEY]) return false;
+    markCharacterDropHandled(event);
+
     if (isSheetEditLocked(this, this.actor)) {
       ui.notifications.warn("Unlock this sheet before dropping Items onto it.");
       return false;
@@ -227,6 +232,31 @@ export class PTGCharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) 
     }
 
     return false;
+  }
+
+  #wireNativeDropFallback() {
+    const root = this.element;
+    if (!root || root.dataset.ptgNativeDropFallbackWired) return;
+    root.dataset.ptgNativeDropFallbackWired = "true";
+    root.addEventListener("dragover", event => this.#onNativeDragOver(event), true);
+    root.addEventListener("drop", event => this.#onNativeDrop(event), true);
+  }
+
+  #onNativeDragOver(event) {
+    if (!event?.dataTransfer) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  }
+
+  async #onNativeDrop(event) {
+    if (event?.[CHARACTER_DROP_HANDLED_KEY]) return false;
+
+    const data = getDragEventData(event);
+    if (!dropDataLooksLikeItem(data)) return false;
+
+    event.preventDefault();
+    event.stopPropagation();
+    return this._onDrop(event);
   }
 
   async #createAttachmentOfChoiceFromDrop(sourceItem) {
@@ -4681,6 +4711,24 @@ function labelCase(key) {
   return String(key ?? "")
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, char => char.toUpperCase());
+}
+
+function markCharacterDropHandled(event) {
+  try {
+    if (event && typeof event === "object") event[CHARACTER_DROP_HANDLED_KEY] = true;
+  } catch {
+    // DOM events may be non-extensible in some hosts; the fallback still remains best effort.
+  }
+}
+
+function dropDataLooksLikeItem(data) {
+  const type = String(data?.type ?? "");
+  const uuid = String(data?.uuid ?? "");
+  return type === "Item"
+    || uuid.startsWith("Item.")
+    || (uuid.startsWith("Compendium.") && uuid.split(".").at(-2) === "Item")
+    || Boolean(data?.pack && data?.id)
+    || Boolean(data?.data?.type);
 }
 
 function escapeHTML(value) {

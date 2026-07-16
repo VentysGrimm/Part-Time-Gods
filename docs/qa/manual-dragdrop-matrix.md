@@ -2,7 +2,7 @@
 
 Updated: 2026-07-16
 
-This file tracks the remaining physical mouse-drag evidence for issues #131 and #165. Automated tests and runtime `DataTransfer` proofs cover the handlers, but these rows require human-level sidebar-to-sheet or sidebar-to-app dragging in the live Foundry client.
+This file tracks the remaining physical mouse-drag evidence for issues #131 and #165. Automated tests and runtime `DataTransfer` proofs cover the handlers, including the Character sheet's capture-phase native drop fallback and compendium/`@UUID` Item payload parsing, but these rows require human-level sidebar-to-sheet or sidebar-to-app dragging in the live Foundry client.
 
 Run `npm.cmd run check:dragdrop-evidence` after updating this table. The check is expected to fail until every required row is marked `Pass`.
 
