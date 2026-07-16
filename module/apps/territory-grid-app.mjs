@@ -1845,15 +1845,82 @@ function pantheonActors() {
 
 export async function territoryActorFromDropData(data) {
   if (!data) return null;
-  if (data.uuid) return actorFromUuid(data.uuid);
-  if (data.type && data.type !== "Actor" && data.type !== "Token") return null;
 
-  const id = data.id ?? data._id ?? data.data?._id;
-  if (!id) return null;
+  if (!dropDataAllowsActor(data)) return null;
 
-  return game.actors?.get?.(id)
-    ?? Array.from(game.actors ?? []).find(actor => actor.id === id || actor._id === id)
-    ?? null;
+  for (const uuid of actorDropUuidCandidates(data)) {
+    const actor = await actorFromUuid(uuid);
+    if (actor) return actor;
+  }
+
+  const tokenActor = await actorFromSceneTokenDropData(data);
+  if (tokenActor) return tokenActor;
+
+  for (const id of actorDropIdCandidates(data)) {
+    const actor = game.actors?.get?.(id)
+      ?? Array.from(game.actors ?? []).find(candidate => candidate.id === id || candidate._id === id)
+      ?? null;
+    if (actor) return actor;
+  }
+
+  return null;
+}
+
+function dropDataAllowsActor(data) {
+  const type = dropDocumentType(data);
+  return !type || type === "Actor" || type === "Token";
+}
+
+function dropDocumentType(data) {
+  return String(
+    data.documentName
+    ?? data.documentType
+    ?? data.type
+    ?? data.data?.documentName
+    ?? data.data?.documentType
+    ?? ""
+  ).trim();
+}
+
+function actorDropUuidCandidates(data) {
+  return compactUniqueStrings([
+    data.uuid,
+    data.actorUuid,
+    data.documentUuid,
+    data.data?.uuid,
+    data.data?.actorUuid,
+    data.data?.documentUuid
+  ]);
+}
+
+async function actorFromSceneTokenDropData(data) {
+  const sceneId = String(data.sceneId ?? data.data?.sceneId ?? "").trim();
+  const tokenId = String(data.tokenId ?? data.documentId ?? data.id ?? data.data?.tokenId ?? data.data?.documentId ?? "").trim();
+  if (!sceneId || !tokenId) return null;
+  return actorFromUuid(`Scene.${sceneId}.Token.${tokenId}`);
+}
+
+function actorDropIdCandidates(data) {
+  return compactUniqueStrings([
+    data.id,
+    data._id,
+    data.actorId,
+    data.documentId,
+    data.tokenId,
+    data.data?.id,
+    data.data?._id,
+    data.data?.actorId,
+    data.data?.documentId,
+    data.data?.tokenId
+  ]);
+}
+
+function compactUniqueStrings(values) {
+  return Array.from(new Set(
+    values
+      .map(value => String(value ?? "").trim())
+      .filter(Boolean)
+  ));
 }
 
 function importableAttachmentItems(actor) {

@@ -764,7 +764,7 @@ test("Territory scene background file picker uses Foundry v14 implementation", (
   }
 });
 
-test("Territory GM drop resolves Actor and Token UUID payloads", async () => {
+test("Territory GM drop resolves native Actor and Token payload shapes", async () => {
   const actor = {
     documentName: "Actor",
     type: "character",
@@ -784,17 +784,30 @@ test("Territory GM drop resolves Actor and Token UUID payloads", async () => {
   globalThis.fromUuid = async uuid => {
     if (uuid === "Actor.owned") return actor;
     if (uuid === "Scene.scene.Token.token") return token;
+    if (uuid === "Scene.scene.Token.document-token") return token;
     return null;
   };
-  game.actors = new Map([["owned", actor]]);
+  game.actors = new Map([
+    ["owned", actor],
+    ["document-owned", actor]
+  ]);
   console.warn = (...args) => warnings.push(args);
 
   try {
     assert.equal(await territory.territoryActorFromDropData({ uuid: "Actor.owned" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ actorUuid: "Actor.owned" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ documentUuid: "Actor.owned" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ data: { uuid: "Actor.owned" } }), actor);
     assert.equal(await territory.territoryActorFromDropData({ uuid: "Scene.scene.Token.token" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ type: "Token", sceneId: "scene", tokenId: "token" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ type: "Token", sceneId: "scene", documentId: "document-token" }), actor);
     assert.equal(await territory.territoryActorFromDropData({ type: "Actor", id: "owned" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ type: "Actor", actorId: "owned" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ type: "Actor", documentId: "document-owned" }), actor);
+    assert.equal(await territory.territoryActorFromDropData({ type: "Actor", data: { actorId: "owned" } }), actor);
     assert.equal(await territory.territoryActorFromDropData({ type: "Token", id: "owned" }), actor);
     assert.equal(await territory.territoryActorFromDropData({ type: "Item", id: "owned" }), null);
+    assert.equal(await territory.territoryActorFromDropData({ type: "Item", actorUuid: "Actor.owned" }), null);
     assert.equal(warnings.length, 0);
   } finally {
     globalThis.fromUuid = originalFromUuid;
