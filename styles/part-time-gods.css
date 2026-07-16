@@ -351,6 +351,8 @@ form.part-time-gods.sheet.item.domain-sheet {
   box-sizing: border-box;
   display: block;
   flex: 0 0 auto;
+  min-inline-size: 0;
+  min-block-size: 0;
   max-inline-size: 100%;
   max-width: 100%;
   vertical-align: middle;
@@ -951,14 +953,22 @@ details.ptg-editor-section:not([open]) {
 .ptg-item-details :where(figure, picture, svg, canvas, video),
 .ptg-sheet-detail-body :where(figure, picture, svg, canvas, video) {
   box-sizing: border-box;
+  display: block;
+  inline-size: auto !important;
   width: fit-content;
   min-width: 0;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   max-width: 100%;
+  block-size: auto !important;
+  max-block-size: 18rem;
   max-height: 18rem;
   margin-inline: auto;
   overflow: auto;
   contain: paint;
   background-clip: padding-box;
+  object-fit: contain;
+  object-position: center;
 }
 
 .ptg-editor-section :where(hr),
@@ -3427,7 +3437,7 @@ details.ptg-editor-section:not([open]) {
   align-items: end;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .ptg-line-field.wide {
@@ -3435,16 +3445,19 @@ details.ptg-editor-section:not([open]) {
 }
 
 .ptg-line-field .ptg-name {
-  height: 34px;
+  min-height: 34px;
+  height: auto;
+  max-height: 4.75rem;
   min-width: 0;
   max-width: 100%;
   font-size: 22px;
   line-height: 1.15;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: auto;
   scrollbar-width: thin;
   text-overflow: clip;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .ptg-page-one-grid {
@@ -3972,7 +3985,7 @@ details.ptg-editor-section:not([open]) {
   min-height: 46px;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
   color: #ffffff;
   font-weight: 900;
   isolation: isolate;
@@ -3984,7 +3997,7 @@ details.ptg-editor-section:not([open]) {
   justify-content: flex-end;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
   color: #ffffff;
   font-size: 17px;
   font-size: clamp(14px, 15cqw, 17px);
@@ -4007,7 +4020,7 @@ details.ptg-editor-section:not([open]) {
   max-width: 100%;
   min-block-size: 46px;
   min-height: 46px;
-  max-height: 5.25rem;
+  max-height: 6rem;
   padding: 5px 10px;
   border: 3px solid #111111 !important;
   border-radius: 0;
@@ -4188,6 +4201,7 @@ details.ptg-editor-section:not([open]) {
 .ptg-print-lines textarea {
   --ptg-lined-row-height: 36px;
   --ptg-lined-rule-color: var(--ptg-paper-line);
+  --ptg-lined-rule-width: 1px;
   box-sizing: border-box;
   width: 100%;
   min-height: 160px;
@@ -4200,8 +4214,8 @@ details.ptg-editor-section:not([open]) {
   background-clip: padding-box;
   background-image: linear-gradient(
     to bottom,
-    transparent calc(var(--ptg-lined-row-height) - 1px),
-    var(--ptg-lined-rule-color) calc(var(--ptg-lined-row-height) - 1px),
+    transparent calc(var(--ptg-lined-row-height) - var(--ptg-lined-rule-width)),
+    var(--ptg-lined-rule-color) calc(var(--ptg-lined-row-height) - var(--ptg-lined-rule-width)),
     var(--ptg-lined-rule-color) var(--ptg-lined-row-height)
   );
   background-origin: padding-box;
@@ -4584,6 +4598,7 @@ details.ptg-editor-section:not([open]) {
 .ptg-print-specialties textarea {
   --ptg-lined-row-height: 30px;
   --ptg-lined-rule-color: var(--ptg-paper-line);
+  --ptg-lined-rule-width: 1px;
   box-sizing: border-box;
   min-height: 78px;
   padding: 0 6px;
@@ -4593,8 +4608,8 @@ details.ptg-editor-section:not([open]) {
   background-clip: padding-box;
   background-image: linear-gradient(
     to bottom,
-    transparent calc(var(--ptg-lined-row-height) - 1px),
-    var(--ptg-lined-rule-color) calc(var(--ptg-lined-row-height) - 1px),
+    transparent calc(var(--ptg-lined-row-height) - var(--ptg-lined-rule-width)),
+    var(--ptg-lined-rule-color) calc(var(--ptg-lined-row-height) - var(--ptg-lined-rule-width)),
     var(--ptg-lined-rule-color) var(--ptg-lined-row-height)
   );
   background-origin: padding-box;
@@ -4630,6 +4645,7 @@ details.ptg-editor-section:not([open]) {
 .ptg-print-truth-list {
   --ptg-lined-row-height: 40px;
   --ptg-lined-rule-color: rgba(17, 17, 17, 0.55);
+  --ptg-lined-rule-width: 1px;
   display: grid;
   gap: 8px;
   min-height: 120px;
@@ -4640,8 +4656,8 @@ details.ptg-editor-section:not([open]) {
   background-clip: padding-box;
   background-image: linear-gradient(
     to bottom,
-    transparent calc(var(--ptg-lined-row-height) - 1px),
-    var(--ptg-lined-rule-color) calc(var(--ptg-lined-row-height) - 1px),
+    transparent calc(var(--ptg-lined-row-height) - var(--ptg-lined-rule-width)),
+    var(--ptg-lined-rule-color) calc(var(--ptg-lined-row-height) - var(--ptg-lined-rule-width)),
     var(--ptg-lined-rule-color) var(--ptg-lined-row-height)
   );
   background-origin: padding-box;
@@ -4782,14 +4798,22 @@ details.ptg-editor-section:not([open]) {
 .ptg-character-sheet .ptg-print-page .ptg-item-details :where(figure, picture, svg, canvas, video),
 .ptg-character-sheet .ptg-print-page .ptg-sheet-detail-body :where(figure, picture, svg, canvas, video) {
   box-sizing: border-box;
+  display: block;
+  inline-size: auto !important;
   width: fit-content;
   min-width: 0;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   max-width: 100%;
+  block-size: auto !important;
+  max-block-size: 12rem;
   max-height: 12rem;
   margin-inline: auto;
   overflow: auto;
   contain: paint;
   background-clip: padding-box;
+  object-fit: contain;
+  object-position: center;
   scrollbar-width: thin;
 }
 
