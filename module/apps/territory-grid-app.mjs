@@ -759,7 +759,8 @@ class TerritoryGridApp extends HandlebarsApplicationMixin(ApplicationV2) {
       button.addEventListener("click", event => this.#onAction(event.currentTarget));
     }
 
-    if (game.user?.isGM) {
+    if (game.user?.isGM && !root.dataset.ptgTerritoryDropHandlersWired) {
+      root.dataset.ptgTerritoryDropHandlersWired = "true";
       root.addEventListener("dragover", event => this.#onDragOver(event), true);
       root.addEventListener("drop", event => this.#onDrop(event), true);
     }

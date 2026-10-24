@@ -148,13 +148,15 @@ class MortalDivineBalanceTracker extends HandlebarsApplicationMixin(ApplicationV
 
     const root = this.element;
     wireImageFallbacks(root, PTG_IMAGE_FALLBACK);
-    root.addEventListener("dragover", event => this.#onDragOver(event), true);
-    root.addEventListener("drop", event => this.#onDrop(event), true);
-
     root.querySelector("[data-balance-actor-select]")?.addEventListener("change", event => this.#onActorSelect(event.currentTarget));
     root.querySelector("[data-balance-add]")?.addEventListener("click", event => this.#addSelectedActor(event.currentTarget));
 
-    root.addEventListener("click", event => this.#onClick(event));
+    if (!root.dataset.ptgBalanceTrackerHandlersWired) {
+      root.dataset.ptgBalanceTrackerHandlersWired = "true";
+      root.addEventListener("dragover", event => this.#onDragOver(event), true);
+      root.addEventListener("drop", event => this.#onDrop(event), true);
+      root.addEventListener("click", event => this.#onClick(event));
+    }
   }
 
   setActor(actor) {

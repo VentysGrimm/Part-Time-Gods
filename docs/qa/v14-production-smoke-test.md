@@ -2,11 +2,15 @@
 
 Status: Runtime QA in progress. Issue #131 remains open.
 
-Updated: 2026-07-16
+Updated: 2026-10-23
 System: Part-Time Gods 2E 0.1.0
 Repository: VentysGrimm/Part-Time-Gods
 OS: Windows, user data under `C:\Users\Owner\AppData\Local\FoundryVTT`
 Foundry target: v14 only
+
+## Current Compatibility Review
+
+- 2026-10-23: Foundry's latest Stable release is 14.369. The system manifest now declares compatibility verified through 14.369 after reviewing the official 14.365-14.369 release notes against the APIs used by the system. That review found no removed or restricted API used by this code. The 14.365 Application V2 re-render changes prompted a fix: Territory and Mortal-Divine root-level drag/click handlers now register once per persistent application root instead of on every render. The installed local Foundry executable is 14.363, and the latest recorded live QA is 14.364, so a live smoke on 14.369 remains outstanding.
 
 ## Environment
 
