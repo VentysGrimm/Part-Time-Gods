@@ -6,6 +6,7 @@
   "url": "https://github.com/VentysGrimm/Part-Time-Gods",
   "manifest": "https://github.com/VentysGrimm/Part-Time-Gods/releases/latest/download/system.json",
   "download": "https://github.com/VentysGrimm/Part-Time-Gods/releases/download/v0.1.2/part-time-gods-0.1.2.zip",
+
   "compatibility": {
     "minimum": "14",
     "verified": "14.370"
@@ -16,13 +17,17 @@
       "name": "VentysGrimm"
     }
   ],
+
   "esmodules": [
     "part-time-gods.js"
   ],
+
   "styles": [
     "styles/part-time-gods.css"
   ],
+
   "socket": true,
+
   "languages": [
     {
       "lang": "en",
@@ -30,6 +35,7 @@
       "path": "lang/en.json"
     }
   ],
+
   "packs": [
     {
       "name": "character-creation",
@@ -81,166 +87,75 @@
       "system": "part-time-gods"
     }
   ],
+
   "documentTypes": {
     "Actor": {
       "character": {
-        "htmlFields": [
-          "notes"
-        ]
+        "htmlFields": ["notes"]
       },
       "antagonist": {
-        "htmlFields": [
-          "description",
-          "powers",
-          "notes"
-        ]
+        "htmlFields": ["description", "powers", "notes"]
       },
       "pantheon": {
-        "htmlFields": [
-          "goals",
-          "enemies",
-          "obligations",
-          "storyHooks",
-          "trouble",
-          "notes"
-        ]
+        "htmlFields": ["goals", "enemies", "obligations", "storyHooks", "trouble", "notes"]
       }
     },
+
     "Item": {
       "occupation": {
-        "htmlFields": [
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["description", "notes"]
       },
       "archetype": {
-        "htmlFields": [
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["description", "notes"]
       },
       "domain": {
-        "htmlFields": [
-          "description",
-          "limitations",
-          "gmNotes",
-          "notes"
-        ]
+        "htmlFields": ["description", "limitations", "gmNotes", "notes"]
       },
       "theology": {
-        "htmlFields": [
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["description", "notes"]
       },
       "power": {
-        "htmlFields": [
-          "effect",
-          "limitations",
-          "notes"
-        ]
+        "htmlFields": ["effect", "limitations", "notes"]
       },
       "attachment": {
-        "htmlFields": [
-          "relatedBonus",
-          "relatedDetriment",
-          "automationNotes",
-          "benefit",
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "description", "notes"]
       },
       "bond": {
-        "htmlFields": [
-          "relatedBonus",
-          "relatedDetriment",
-          "automationNotes",
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "description", "notes"]
       },
       "truth": {
-        "htmlFields": [
-          "relatedBonus",
-          "relatedDetriment",
-          "automationNotes",
-          "benefit",
-          "effect",
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "effect", "description", "notes"]
       },
       "relic": {
-        "htmlFields": [
-          "relatedBonus",
-          "relatedDetriment",
-          "automationNotes",
-          "benefit",
-          "effect",
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "effect", "description", "notes"]
       },
       "worshipper": {
-        "htmlFields": [
-          "relatedBonus",
-          "relatedDetriment",
-          "automationNotes",
-          "benefit",
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "benefit", "description", "notes"]
       },
       "vassal": {
-        "htmlFields": [
-          "relatedBonus",
-          "relatedDetriment",
-          "automationNotes",
-          "riskNotes",
-          "benefit",
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["relatedBonus", "relatedDetriment", "automationNotes", "riskNotes", "benefit", "description", "notes"]
       },
       "blessing": {
-        "htmlFields": [
-          "effect",
-          "notes"
-        ]
+        "htmlFields": ["effect", "notes"]
       },
       "curse": {
-        "htmlFields": [
-          "effect",
-          "notes"
-        ]
+        "htmlFields": ["effect", "notes"]
       },
       "condition": {
-        "htmlFields": [
-          "effect",
-          "notes"
-        ]
+        "htmlFields": ["effect", "notes"]
       },
       "gearQuality": {
-        "htmlFields": [
-          "effect",
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["effect", "description", "notes"]
       },
       "weapon": {
-        "htmlFields": [
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["description", "notes"]
       },
       "armor": {
-        "htmlFields": [
-          "description",
-          "notes"
-        ]
+        "htmlFields": ["description", "notes"]
       }
     }
   },
+
   "primaryTokenAttribute": "resources.health",
   "secondaryTokenAttribute": "resources.psyche"
 }
