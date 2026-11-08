@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Updated package metadata to version 0.1.2 and declared Foundry VTT compatibility through v14.370 (Stable 12).
+- Reviewed the official v14.370 API changes. The only declared breaking API adjustment concerns `CalendarData#onUpdateWorldTime`; the system runtime does not use that API, so no runtime migration was required. Live v14.370 smoke testing remains pending.
+
 - Aligned the 0.1.0 system manifest, package metadata, release validation, and generated compendium metadata version source.
 - Added a party-style Mortal-Divine Balance roster and documented workflow macros as compatibility launchers for native sheet, scene, and GM setup entry points.
 - Began unifying Territory scene setup and controls behind one native Territory interface API.

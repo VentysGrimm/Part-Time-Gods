@@ -82,6 +82,7 @@ const errors = [];
 
 assertEqual(system.id, SYSTEM_ID, "system id");
 assertPackageVersion(system, packageManifest);
+assertFoundryCompatibility(system);
 assertReleaseUrls(system);
 await assertReleaseZipBuilderScaffold();
 await assertManualQAGateScaffold();
@@ -675,6 +676,13 @@ async function assertPremadeItemFolderScaffold() {
   for (const token of ["Total created Item documents", "No journal-style Item kinds", "`packs/**` LevelDB churn"]) {
     if (!itemAuditDoc.includes(token)) errors.push(`Premade Item audit note missing ${token}`);
   }
+}
+
+function assertFoundryCompatibility(manifest) {
+  const minimum = String(manifest.compatibility?.minimum ?? "");
+  const verified = String(manifest.compatibility?.verified ?? "");
+  if (minimum !== "14") errors.push(`Foundry minimum compatibility must remain v14: ${minimum}`);
+  if (verified !== "14.370") errors.push(`Foundry verified compatibility must match the reviewed target v14.370: ${verified}`);
 }
 
 function assertReleaseUrls(manifest) {

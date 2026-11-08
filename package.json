@@ -1,9 +1,9 @@
 {
   "name": "part-time-gods",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
-  "description": "Foundry VTT v14 system for Part-Time Gods Second Edition.",
+  "description": "Foundry VTT v14.370 system for Part-Time Gods Second Edition.",
   "scripts": {
     "check": "node scripts/check-syntax.mjs",
     "check:dragdrop-evidence": "node scripts/check-dragdrop-evidence.mjs",

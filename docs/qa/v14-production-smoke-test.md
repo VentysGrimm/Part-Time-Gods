@@ -2,13 +2,16 @@
 
 Status: Runtime QA in progress. Issue #131 remains open.
 
-Updated: 2026-10-23
-System: Part-Time Gods 2E 0.1.0
+Updated: 2026-11-07
+Package target: Part-Time Gods 2E 0.1.2
+Historical QA world: Part-Time Gods 2E 0.1.0 (see environment and runtime evidence below)
 Repository: VentysGrimm/Part-Time-Gods
 OS: Windows, user data under `C:\Users\Owner\AppData\Local\FoundryVTT`
-Foundry target: v14 only
+Foundry target: v14.370 (Stable 12); live v14.370 runtime smoke pending
 
 ## Current Compatibility Review
+
+- 2026-11-07: Updated the package compatibility target to Foundry v14.370 (Stable 12) after reviewing the official release notes. The only declared breaking API adjustment is the corrected `CalendarData#onUpdateWorldTime` `deltaTime` parameter. The system runtime modules and entry point do not use that API, so no source migration was identified. This is a static API review, not a live runtime pass: the environment and runtime results below are historical checks on Foundry v14.364, and a complete live smoke test on v14.370 remains outstanding.
 
 - 2026-10-23: Foundry's latest Stable release is 14.369. The system manifest now declares compatibility verified through 14.369 after reviewing the official 14.365-14.369 release notes against the APIs used by the system. That review found no removed or restricted API used by this code. The 14.365 Application V2 re-render changes prompted a fix: Territory and Mortal-Divine root-level drag/click handlers now register once per persistent application root instead of on every render. The installed local Foundry executable is 14.363, and the latest recorded live QA is 14.364, so a live smoke on 14.369 remains outstanding.
 

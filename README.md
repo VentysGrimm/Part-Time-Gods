@@ -2,6 +2,8 @@
 
 A Foundry VTT system for Part-Time Gods Second Edition.
 
+**Compatibility target:** Foundry VTT v14.370 (Stable 12). The package retains Foundry v14 as its minimum supported core version. A live v14.370 runtime smoke test is still pending; see `docs/qa/v14-production-smoke-test.md`.
+
 This package is a play aid and does not replace the Part-Time Gods Second Edition rulebook. Users should own or otherwise have lawful access to the rulebook and any source material needed for play.
 
 ## Development
